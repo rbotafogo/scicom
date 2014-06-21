@@ -1,0 +1,37 @@
+require_relative '../config.rb'
+
+dirs = $VENDOR_DIR.split(";")
+jars = Array.new 
+dirs.each do |dir|
+  jars << Dir[dir + "/*.jar"]
+end
+
+unless RUBY_PLATFORM == 'java'
+  abort 'Please run with JRuby'
+end
+
+#-----------------------------------------------------------------------------------------
+desc 'Compile java classes'
+task :compile do
+  classes    = Dir['**/*.java']
+  sh "javac -classpath #{jars.join(';')} -d #{$CLASSES_DIR} #{classes.join(' ')}"
+end
+
+#-----------------------------------------------------------------------------------------
+desc 'Make jar file'
+task :jar do
+
+  Dir.chdir("build/classes")
+  classes = Dir['**/*.class']
+  sh "jar -cf #{$TARGET_DIR}/helper.jar #{classes.join(' ')}"
+
+end
+
+#-----------------------------------------------------------------------------------------
+desc 'Clean files'
+task :clean do
+  
+  files = Dir['**/*.class']
+  p "#{files.join(' ')}"
+  
+end
