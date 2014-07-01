@@ -26,3 +26,5 @@ require 'mdarray'
 require_relative 'env'
 require_relative 'JRubyR/jrubyr'
 
+require_relative 'index.rb'
+

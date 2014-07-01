@@ -46,58 +46,24 @@ class SciComTest < Test::Unit::TestCase
     #
     #======================================================================================
 
-    should "send multidimensional arrays to Renjin" do
+    should "work with colum-major indexes" do
 
-      # typed_arange does the same as arange but for arrays of other type
-      arr = MDArray.typed_arange(:double, 12)
-      arr.reshape!([4, 3])
+      @r1.eval("v = c(0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11)")
+      @r1.eval("dim(v) = c(2, 2, 3)")
+      # @r1.eval("class(v)")
+      @r1.eval("print(v)")
 
-      # assign MDArray to R vector.  MDArray shape is the R vector's shape
-      @r1.vec = arr
+      column = MDArray.build(:double, [2, 2, 3], [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11], :column)
+      column.print
 
-      # When accessing a vector with the wrong indexes, return nil
-      res = @r1.eval("vec[0]")
-      assert_equal(nil, res)
+      col2 = MDArray.double([2, 2, 3], [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11], :column)
+      col2.print
 
-      # First index in R is 1 and not 0.
-      # method R.ct converts an MDArray counter to a R counter (in string format) ready
-      # to evaluate
-      arr.each_with_counter do |val, ct|
-        assert_equal(val, @r1.eval("vec#{R.ct(ct)}"))
-      end
-
-      # typed_arange does the same as arange but for arrays of other type
-      arr = MDArray.typed_arange(:double, 60)
-      arr.reshape!([5, 3, 4])
-      @r1.vec = arr
-      arr.each_with_counter do |val, ct|
-        assert_equal(arr.get(ct), @r1.eval("vec#{R.ct(ct)}"))
-      end
-
-      # typed_arange does the same as arange but for arrays of other type
-      arr = MDArray.typed_arange(:double, 120)
-      arr.reshape!([2, 4, 3, 5])
-      @r1.vec = arr
-      arr.each_with_counter do |val, ct|
-        assert_equal(val, @r1.eval("vec#{R.ct(ct)}"))
-      end
-
+      row_double = MDArray.double([2, 2, 3], [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11])
+      row_double.print
+      
     end
-
-=begin
-    #======================================================================================
-    #
-    #======================================================================================
-
-    should "receive multidimensional arrays from Renjin" do
-
-      # returned value is column major but MDArray is interpreting as row major
-      mat = @r1.eval(" mat = matrix(rnorm(20), 4)")
-      mat.print
-      @r1.eval("print(mat)")
-    end
-=end
-
+    
   end
-  
+
 end

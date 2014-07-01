@@ -23,6 +23,7 @@ package rb.scicom;
 
 
 import org.renjin.sexp.*;
+import org.renjin.primitives.*;
 import ucar.ma2.*;
 
 
@@ -55,16 +56,13 @@ public class MDDoubleVector extends DoubleVector {
     
     @Override
 	public double getElementAsDouble(int val) {
-	System.out.println("val: " + val);
-	Vector dim = getAttributes().getDim();
-	int size = dim.getElementAsInt(0) * dim.getElementAsInt(1);
-	System.out.println("Size: " + size);
-	int row = val % size;
-	int col = val / size;
-	System.out.println("(" + row + ", " + col + ")");
-	return size;
-	// System.out.println("dims: " + dim.toString());
-	// return this.array.getDouble(this.index.set(val));
+	int dim[] = getAttributes().getDimArray();
+	int index[] = Indexes.vectorIndexToArrayIndex(val, dim);
+
+	// int offset = dim.getElementAsInt(0);
+	// int row = val % offset;
+	// int col = val / offset;
+	return this.array.getDouble(this.index.set(index));
     }
   
     @Override

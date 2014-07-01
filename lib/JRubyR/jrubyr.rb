@@ -42,6 +42,11 @@ class R
 
   attr_reader :echo_enabled
 
+  def self.ct(ct)
+    ct.map{ |val| (val +1) }
+    # "[#{(ct[0]+1).to_s}, #{(ct[1]+1).to_s}]"
+  end
+
   #----------------------------------------------------------------------------------------
   #
   #----------------------------------------------------------------------------------------
@@ -364,9 +369,11 @@ class R
       else
         # Vector created inside Renjin
         res = MDArray.from_jstorage("double", [sexp.length()], sexp.toDoubleArrayUnsafe())
-        res.set_sexp(sexp)
-        # set return vector as immutable, as Renjin assumes it.
-        res.immutable
+        if (res != nil)
+          res.set_sexp(sexp)
+          # set return vector as immutable, as Renjin assumes it.
+          res.immutable
+        end
       end
     when "character"
       # res = StringVector.new(sexp)
@@ -439,3 +446,4 @@ end
 
   end
 =end
+
