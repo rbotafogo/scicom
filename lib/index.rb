@@ -22,12 +22,27 @@
 ##########################################################################################
 
 require 'java'
+require 'set'
 
 class Java::UcarMa2::Index
   field_accessor :stride
+
+#=begin
+  def currentElement
+    getCurrentCounter()
+    super
+  end
+#=end
+
 end
 
+#------------------------------------------------------------------------------------------
+#
+#------------------------------------------------------------------------------------------
+
 class MDArray
+
+  @LAYOUT = Set.new [:row, :column, :r]
 
   #------------------------------------------------------------------------------------
   # Builds a new MDArray
@@ -38,6 +53,10 @@ class MDArray
   #------------------------------------------------------------------------------------
 
   def self.build(type, shape, storage = nil, layout = :row)
+
+    if !@LAYOUT.include?(layout)
+      raise "Unknown layout #{layout}"
+    end
 
     if (shape.is_a? String)
       # building from csv
@@ -53,19 +72,59 @@ class MDArray
       # nc_array = Java::UcarMa2.Array.factory(dtype, jshape, jstorage)
       nc_array = make_nc_array(type, shape, storage, layout)
     else
-      nc_array = Java::UcarMa2.Array.factory(dtype, jshape)
+      nc_array = Java::UcarMa2.Array
+        .factory(DataType.valueOf(type.upcase), shape.to_java(:int))
     end
-
-    p type
-    p nc_array
 
     klass = Object.const_get("#{type.capitalize}MDArray")
     return klass.new(type, nc_array)
 
   end
 
-  #------------------------------------------------------------------------------------
+  #----------------------------------------------------------------------------------------
   #
+  #----------------------------------------------------------------------------------------
+
+  private
+
+  #------------------------------------------------------------------------------------
+  # Computes the stride for the given shape and column-major layout
+  #------------------------------------------------------------------------------------
+
+  def self.comp_stride(shape)
+
+    stride = Array.new(shape.size)
+    stride[-1], stride[-2] = shape[-2], 1
+    product = shape[-1] * shape[-2]
+
+    if (shape.size > 2)
+      (shape.length - 3).downto(0).each do |i|
+        stride[i] = product
+        product *= shape[i]
+      end
+    end
+
+    stride
+
+  end
+
+  #------------------------------------------------------------------------------------
+  # Creates new index with the given shape and column-major layout
+  #------------------------------------------------------------------------------------
+
+  def self.index_factory(shape)
+
+    stride = comp_stride(shape)
+    stride = stride.to_java(:int)
+    index = Java::UcarMa2.Index.factory(shape.to_java(:int))
+    index.stride = stride
+    index.precalc
+    index
+
+  end
+
+  #------------------------------------------------------------------------------------
+  # Makes a NetCDF Array with the given storage and layout.
   #------------------------------------------------------------------------------------
 
   def self.make_nc_array(type, shape, storage, layout)
@@ -73,14 +132,13 @@ class MDArray
     dtype = DataType.valueOf(type.upcase)
     jshape = shape.to_java :int
     jstorage = storage.to_java type.downcase.to_sym
-    
-    case layout
-    when :row
+
+    if (layout == :row || shape.size == 1)
       nc_array = Java::UcarMa2.Array.factory(dtype, jshape, jstorage)
     else
       jclass = Java::UcarMa2::Array.java_class
       nc_array = Java::RbScicom::PrivateCall
-        .factoryInvoke(jclass, type.capitalize, index_factory(shape, layout), jstorage)
+        .factoryInvoke(jclass, type.capitalize, index_factory(shape), jstorage)
     end
 
   end
@@ -90,6 +148,10 @@ class MDArray
   #------------------------------------------------------------------------------------
 
   def self.from_jstorage(type, shape, jstorage, section = false, layout = :row)
+
+    if !@LAYOUT.include?(layout)
+      raise "Unknown layout #{layout}"
+    end
 
     if (shape.size == 1 && shape[0] == 0)
       return nil
@@ -107,9 +169,38 @@ class MDArray
       jclass = Java::UcarMa2::Array.java_class
       jstorage = storage.to_java(type)
       nc_array = Java::RbScicom::PrivateCall
-        .factoryInvoke(jclass, "Double", index_factory(shape, layout), jstorage)
-      MDArray.build_from_nc_array(type, arr.array)
+        .factoryInvoke(jclass, type.capitalize, index_factory(shape, layout), jstorage)
+      MDArray.build_from_nc_array(type, nc_array)
     end
+
+  end
+
+end
+
+
+
+
+
+
+=begin
+
+#------------------------------------------------------------------------------------------
+# Derived class from Index does not work as we need to create Index1D, Index2D, etc.
+# classes, and this will only create the Index class
+#------------------------------------------------------------------------------------------
+
+class ColumnIndex < Java::UcarMa2::Index
+
+  field_reader :stride
+  field_reader :offset
+  field_reader :current
+
+  def initialize(shape)
+
+    stride = comp_stride(shape)
+    stride = stride.to_java(:int)
+    # index = Java::UcarMa2.Index.factory(shape.to_java(:int))
+    super(shape.to_java(:int), stride)
 
   end
 
@@ -120,39 +211,30 @@ class MDArray
   private
 
   #------------------------------------------------------------------------------------
-  # Computes the stride for the given shape and layout.  Layout can be either :column
-  # or :r.
+  # Computes the stride for the given shape and a column-major layout
   #------------------------------------------------------------------------------------
 
-  def self.comp_stride(shape, layout)
+  def comp_stride(shape)
 
-    product = 1;
-    stride = Array.new
-    (0...shape.length).each do |i|
-      this_dim = shape[i]
-      if (this_dim < 0)
-        raise "negative array size"
+    stride = Array.new(shape.size)
+    stride[-1], stride[-2] = shape[-2], 1
+    product = shape[-1] * shape[-2]
+
+    if (shape.size > 2)
+      (shape.length - 3).downto(0).each do |i|
+        stride[i] = product
+        product *= shape[i]
       end
-      stride[i] = product
-      product *= this_dim
     end
+
     stride
-  end
 
-  #------------------------------------------------------------------------------------
-  # Creates new index with the given shape and layout
-  #------------------------------------------------------------------------------------
-
-  def self.index_factory(shape, layout)
-    index = Java::UcarMa2.Index.factory(shape.to_java(:int))
-    index.stride = comp_stride(shape, layout).to_java(:int)
-    index
   end
 
 end
 
 
-=begin
+
 
     # jclass is a java class
     jclass = Java::UcarMa2::Array.java_class

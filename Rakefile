@@ -35,6 +35,11 @@ task :push_gem do
   sh "push #{name} -p $http_proxy"
 end
 
+desc 'Counts the number of lines of ruby code'
+task :count do
+  sh "find . -name '*.rb' | xargs wc -l"
+end
+
 Rake::TestTask.new do |t|
   t.libs << "test"
   t.test_files = FileList['test/complete.rb']

@@ -232,9 +232,17 @@ class R
         value = value.sexp
       else
         value.immutable
+        shape = value.shape
+        # representation of shape in R in different from shape in MDArray.  Convert MDArray
+        # shape to R shape.
+        if (shape.size > 2)
+          shape.reverse!
+          shape[0], shape[1] = shape[1], shape[0]
+        end
+        value.reshape!(shape)
         # AttributeMap attributes = AttributeMap.builder().setDim(new IntVector(dim)).build();
         attributes = Java::OrgRenjinSexp::AttributeMap.builder()
-          .setDim(Java::OrgRenjinSexp::IntArrayVector.new(*(value.shape))).build()
+          .setDim(Java::OrgRenjinSexp::IntArrayVector.new(*(shape))).build()
         value = Java::RbScicom::MDDoubleVector.new(value.nc_array, attributes)
       end
     end
@@ -242,11 +250,6 @@ class R
     @engine.put(name, value)
     original_value
     
-=begin
-      AttributeMap attributes = AttributeMap.builder().setDim(numRows, numCols).build();
-      DoubleVector matrix = DoubleArrayVector.unsafe(myArray, attributes);
-=end
-
   end
 
   #----------------------------------------------------------------------------------------
