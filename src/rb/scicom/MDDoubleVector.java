@@ -21,59 +21,62 @@
 
 package rb.scicom;
 
-
+import java.util.*;
 import org.renjin.sexp.*;
 import org.renjin.primitives.*;
 import ucar.ma2.*;
 
 
 public class MDDoubleVector extends DoubleVector {
-    
-    private ArrayDouble array;
-    private Index index;
+
+    // array is a NetCDF Array in row-major format
+    private ArrayDouble _array;
+    // index is a column-major index on top of the same backing store
+    private Index _index;
+    // Stride in reverse order for column-major mode.  Necessary as stride is protected
+    // in NetCDF Array.
+    private int[] _stride;
     
 
     private MDDoubleVector(AttributeMap attributes) {
 	super(attributes);
     }
 
-
     public ArrayDouble getArray() {
-	return array;
+	return _array;
     }
 
-    public MDDoubleVector(ArrayDouble array) {
-	super(AttributeMap.EMPTY);
-	this.array = array;
-	this.index = array.getIndex();
+    public Index getIndex() {
+	return _index;
     }
 
-    public MDDoubleVector(ArrayDouble array, AttributeMap attributes) {
+    public int[] getRevStride() {
+	return _stride;
+    }
+
+    public MDDoubleVector(ArrayDouble array, AttributeMap attributes, Index index, 
+			  int[] stride) {
 	super(attributes);
-	this.array = array;
-	this.index = array.getIndex();
+	_array = array;
+	_index = index;
+	_stride = stride;
     }
     
     @Override
 	public double getElementAsDouble(int val) {
-	int dim[] = getAttributes().getDimArray();
-	int index[] = Indexes.vectorIndexToArrayIndex(val, dim);
-
-	// int offset = dim.getElementAsInt(0);
-	// int row = val % offset;
-	// int col = val / offset;
-	return this.array.getDouble(this.index.set(index));
+	setCurrentCounter(val);
+	return _index.currentElement();
     }
-  
+
     @Override
 	public int length() {
-	return (int) array.getSize();
+	return (int) _array.getSize();
     }
     
     @Override
 	protected SEXP cloneWithNewAttributes(AttributeMap attributes) {
 	MDDoubleVector clone = new MDDoubleVector(attributes);
-	clone.array = array;
+	clone._array = _array;
 	return clone;
     }
     
@@ -82,5 +85,31 @@ public class MDDoubleVector extends DoubleVector {
 	return true;
     }
 
+    /*
+     * Given an element finds the coresponding counter in column-major order
+     */
+
+    public void setCurrentCounter(int currElement) {
+
+	int length = _stride.length;
+	int[] shape = _array.getShape();
+	int [] current = new int[length];
+	int l2 = (length - 2) >= 0 ? (length - 2) : 1;
+
+	if (length > 2) { 
+	    for (int i = 0; i < l2; i++) { 
+		current[i] = currElement / _stride[i];
+		currElement -= current[i] * _stride[i];
+	    }
+	}
+
+	for(int i = l2; i < length; ++i) {
+	    current[i] = currElement % shape[i];
+	    currElement = (currElement - current[i]) / shape[i];
+	}
+	// java.lang.System.out.println("current: " + Arrays.toString(current));
+	_index.set(current); // transfer to subclass fields
+    }
+    
 }
 

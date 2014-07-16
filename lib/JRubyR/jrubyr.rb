@@ -42,9 +42,44 @@ class R
 
   attr_reader :echo_enabled
 
-  def self.ct(ct)
-    ct.map{ |val| (val +1) }
+  #----------------------------------------------------------------------------------------
+  # Converts an MDArray shape or index onto an equivalent R shape or index
+  #----------------------------------------------------------------------------------------
+
+  def self.ri(shape)
+
+    rshape = shape.clone
+
+    if (rshape.size > 2)
+      rshape.reverse!
+      rshape[0], rshape[1] = rshape[1], rshape[0]
+    end
+    rshape.map{ |val| (val + 1) }
+
     # "[#{(ct[0]+1).to_s}, #{(ct[1]+1).to_s}]"
+  end
+
+  #----------------------------------------------------------------------------------------
+  # Builds a Renjin vector from an MDArray
+  #----------------------------------------------------------------------------------------
+
+  def self.build_vector(array)
+
+    shape = array.shape
+    index = array.nc_array.getIndex()
+    # index = MDArray.index_factory(shape)
+    # representation of shape in R in different from shape in MDArray.  Convert MDArray
+    # shape to R shape.
+    if (shape.size > 2)
+      shape.reverse!
+      shape[0], shape[1] = shape[1], shape[0]
+    end
+    # AttributeMap attributes = AttributeMap.builder().setDim(new IntVector(dim)).build();
+    attributes = Java::OrgRenjinSexp::AttributeMap.builder()
+      .setDim(Java::OrgRenjinSexp::IntArrayVector.new(*(shape))).build()
+    vector = Java::RbScicom::MDDoubleVector.new(array.nc_array, attributes, index,
+                                                index.stride)
+    
   end
 
   #----------------------------------------------------------------------------------------
@@ -232,18 +267,7 @@ class R
         value = value.sexp
       else
         value.immutable
-        shape = value.shape
-        # representation of shape in R in different from shape in MDArray.  Convert MDArray
-        # shape to R shape.
-        if (shape.size > 2)
-          shape.reverse!
-          shape[0], shape[1] = shape[1], shape[0]
-        end
-        value.reshape!(shape)
-        # AttributeMap attributes = AttributeMap.builder().setDim(new IntVector(dim)).build();
-        attributes = Java::OrgRenjinSexp::AttributeMap.builder()
-          .setDim(Java::OrgRenjinSexp::IntArrayVector.new(*(shape))).build()
-        value = Java::RbScicom::MDDoubleVector.new(value.nc_array, attributes)
+        value = R.build_vector(value)
       end
     end
 

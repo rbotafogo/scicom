@@ -81,6 +81,20 @@ class MDArray
 
   end
 
+  #------------------------------------------------------------------------------------
+  # Creates new index with the given shape and column-major layout
+  #------------------------------------------------------------------------------------
+
+  def self.index_factory(shape)
+
+    stride = comp_stride(shape)
+    index = Java::UcarMa2.Index.factory(shape.to_java(:int))
+    index.stride = stride.to_java(:int)
+    index.precalc
+    index
+
+  end
+
   #----------------------------------------------------------------------------------------
   #
   #----------------------------------------------------------------------------------------
@@ -105,21 +119,6 @@ class MDArray
     end
 
     stride
-
-  end
-
-  #------------------------------------------------------------------------------------
-  # Creates new index with the given shape and column-major layout
-  #------------------------------------------------------------------------------------
-
-  def self.index_factory(shape)
-
-    stride = comp_stride(shape)
-    stride = stride.to_java(:int)
-    index = Java::UcarMa2.Index.factory(shape.to_java(:int))
-    index.stride = stride
-    index.precalc
-    index
 
   end
 
@@ -169,7 +168,7 @@ class MDArray
       jclass = Java::UcarMa2::Array.java_class
       jstorage = storage.to_java(type)
       nc_array = Java::RbScicom::PrivateCall
-        .factoryInvoke(jclass, type.capitalize, index_factory(shape, layout), jstorage)
+        .factoryInvoke(jclass, type.capitalize, index_factory(shape), jstorage)
       MDArray.build_from_nc_array(type, nc_array)
     end
 
