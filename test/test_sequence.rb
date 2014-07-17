@@ -1,8 +1,6 @@
 # -*- coding: utf-8 -*-
 
 ##########################################################################################
-# @author Rodrigo Botafogo
-#
 # Copyright © 2013 Rodrigo Botafogo. All Rights Reserved. Permission to use, copy, modify, 
 # and distribute this software and its documentation, without fee and without a signed 
 # licensing agreement, is hereby granted, provided that the above copyright notice, this 
@@ -21,9 +19,51 @@
 # OR MODIFICATIONS.
 ##########################################################################################
 
-require 'mdarray'
+require 'rubygems'
+require "test/unit"
+require 'shoulda'
 
-require_relative 'env'
-require_relative 'JRubyR/jrubyr'
+require 'env'
+require 'scicom'
 
+class SciComTest < Test::Unit::TestCase
 
+  context "R environment" do
+
+    #======================================================================================
+    #
+    #======================================================================================
+
+    setup do 
+
+      # creating two distinct instances of SciCom
+      @r1 = R.new
+      @r2 = R.new
+
+    end
+
+    #======================================================================================
+    #
+    #======================================================================================
+
+=begin
+    should "test" do
+      p R.epsilon
+      R.eval("vec = c(1, 2, 3)")
+    end
+=end
+
+#=begin
+    should "create an int sequence" do
+      
+      seq = R.seq(2, 10)
+      p seq.length
+      p seq[1]
+      p seq[2]
+
+    end
+#=end
+
+  end
+
+end

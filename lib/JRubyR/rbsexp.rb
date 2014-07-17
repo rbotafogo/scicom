@@ -21,9 +21,29 @@
 # OR MODIFICATIONS.
 ##########################################################################################
 
-require 'mdarray'
+class RubySexp
 
-require_relative 'env'
-require_relative 'JRubyR/jrubyr'
+  attr_reader :sexp
+
+  def initialize(sexp)
+    @sexp = sexp
+  end
+
+  #----------------------------------------------------------------------------------------
+  #
+  #----------------------------------------------------------------------------------------
+
+  def self.build(sexp)
+    
+    p sexp
+
+    if (sexp.is_a? Java::OrgRenjinPrimitivesSequence::IntSequence)
+      IntSeq.new(sexp)
+    end
 
 
+  end
+
+end
+
+require_relative 'sequence'
