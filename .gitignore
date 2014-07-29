@@ -1,6 +1,8 @@
 *.class
 *~
 *.#
+*#
+*_old
 test/coverage/
 doc
 .yardoc
