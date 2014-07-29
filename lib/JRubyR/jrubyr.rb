@@ -26,7 +26,7 @@ require 'java'
 require_relative 'renjin'
 
 class R
-
+  
   @renjin = Renjin.new
 
   class << self
@@ -108,6 +108,22 @@ class R
   #----------------------------------------------------------------------------------------
   #
   #----------------------------------------------------------------------------------------
+  
+  def self.assign(name, value)
+    @renjin.assign(name, value)
+  end
+
+  #----------------------------------------------------------------------------------------
+  #
+  #----------------------------------------------------------------------------------------
+
+  def self.pull(name)
+    @renjin.pull(name)
+  end
+
+  #----------------------------------------------------------------------------------------
+  #
+  #----------------------------------------------------------------------------------------
 
   def self.eval(string)
     @renjin.eval(string)
@@ -120,6 +136,15 @@ class R
   def self.seq(*args)
     params = args.join(",")
     @renjin.eval("seq(#{params})")
+  end
+
+  #----------------------------------------------------------------------------------------
+  #
+  #----------------------------------------------------------------------------------------
+
+  def self.c(*args)
+    params = args.join(",")
+    @renjin.eval("c(#{params})")
   end
 
   #----------------------------------------------------------------------------------------
@@ -145,7 +170,7 @@ class R
   # depending on the context.
   #----------------------------------------------------------------------------------------
   
-  def method_missing(symbol, *args)
+  def self.method_missing(symbol, *args)
 
     name = symbol.id2name
     if name =~ /(.*)=$/
@@ -156,6 +181,33 @@ class R
     else
       super if args.length != 0
       @renjin.pull(name)
+    end
+
+  end
+
+  #----------------------------------------------------------------------------------------
+  #
+  #----------------------------------------------------------------------------------------
+
+  def initialize
+    @instance = Renjin.new
+  end
+
+  #----------------------------------------------------------------------------------------
+  #
+  #----------------------------------------------------------------------------------------
+
+  def method_missing(symbol, *args)
+
+    name = symbol.id2name
+    if name =~ /(.*)=$/
+      # should never reach this point.  Parse error... but check
+      # raise ArgumentError, "You shouldn't assign nil" if args==[nil]
+      super if args.length != 1
+      @instance.assign($1,args[0])
+    else
+      super if args.length != 0
+      @instance.pull(name)
     end
 
   end

@@ -21,86 +21,31 @@
 # OR MODIFICATIONS.
 ##########################################################################################
 
-class RubySexp
-
-  attr_reader :sexp
-  attr_reader :rvar
+class ListVector < RubySexp
 
   #----------------------------------------------------------------------------------------
   #
   #----------------------------------------------------------------------------------------
 
-  def initialize(sexp)
-    @sexp = sexp
+  def length
+    @sexp.length()
   end
 
   #----------------------------------------------------------------------------------------
   #
   #----------------------------------------------------------------------------------------
 
-  def type_name
-    @sexp.getTypeName()
+  def get_element_as_sexp(index)
+    RubySexp.build(@sexp.getElementAsSexp(index))
   end
 
   #----------------------------------------------------------------------------------------
   #
   #----------------------------------------------------------------------------------------
 
-  def numeric?
-    @sexp.isNumeric()
-  end
-
-  #----------------------------------------------------------------------------------------
-  #
-  #----------------------------------------------------------------------------------------
-
-  def r
-
-    if (@rvar == nil)
-      @rvar = "sc_#{SecureRandom.hex(8)}"
-      R.assign(@rvar, @sexp)
-    end
-    @rvar
-
-  end
-
-  #----------------------------------------------------------------------------------------
-  #
-  #----------------------------------------------------------------------------------------
-
-  def self.build(sexp)
-    
-    if (sexp.instance_of? Java::OrgRenjinPrimitivesSequence::IntSequence)
-      res = IntSeq.new(sexp)
-    elsif (sexp.instance_of? Java::RbScicom::MDDoubleVector)
-      res = MDArray.build_from_nc_array(:double, sexp.array)
-      res.set_sexp(sexp)
-      # set return vector as immutable, as Renjin assumes it.
-      res.immutable
-    elsif (sexp.instance_of? Java::OrgRenjinSexp::DoubleArrayVector)
-      res = MDArray.from_jstorage("double", [sexp.length()], sexp.toDoubleArrayUnsafe())
-      if (res != nil)
-        res.set_sexp(sexp)
-        # set return vector as immutable, as Renjin assumes it.
-        res.immutable
-      end
-    elsif (sexp.instance_of? Java::OrgRenjinSexp::IntArrayVector)
-      res = MDArray.from_jstorage("int", [sexp.length()], sexp.toIntArrayUnsafe())
-      if (res != nil)
-        res.set_sexp(sexp)
-        # set return vector as immutable, as Renjin assumes it.
-        res.immutable
-      end
-    else
-      p "sexp type needs to be specialized"
-      p sexp
-      res = RubySexp.new(sexp)
-    end
-
-    return res
-
+  def [](index)
+    get_element_as_sexp(index)
   end
 
 end
 
-require_relative 'sequence'

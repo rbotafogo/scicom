@@ -49,9 +49,9 @@ class SciComTest < Test::Unit::TestCase
 
     should "create a double (single value) in R" do
 
-      @r1.eval("i1 = 10.2387")
+      R.eval("i1 = 10.2387")
       # the returned value is an MDArray and all methods on MDArray can be called
-      i1 = @r1.i1
+      i1 = R.i1
 
       # by default type is double
       assert_equal("double", i1.type_name)
@@ -65,9 +65,9 @@ class SciComTest < Test::Unit::TestCase
 
       # assign to an R variable the MDArray returned previously.  The original variable
       # is still valid
-      @r1.assign("i2", i1)
-      assert_equal(10.2387, @r1.i2)
-      assert_equal(10.2387, @r1.i1)
+      R.assign("i2", i1)
+      assert_equal(10.2387, R.i2)
+      assert_equal(10.2387, R.i1)
 
       # p @r1.eval("typeof(i2)")
 
@@ -79,7 +79,7 @@ class SciComTest < Test::Unit::TestCase
 
     should "make MDArrays returned by R immutable" do
 
-      i1 = @r1.eval("i1 = 10.2387")
+      i1 = R.eval("i1 = 10.2387")
 
       assert_raise ( RuntimeError ) { i1[0] = 20 }
       assert_raise ( RuntimeError ) { i1.set(0, 20) }
@@ -93,7 +93,7 @@ class SciComTest < Test::Unit::TestCase
 
     should "cast an R object to different types" do
 
-      i1 = @r1.eval("i1 = 10.2387")
+      i1 = R.eval("i1 = 10.2387")
 
       # double cannot be converted to boolean
       assert_raise ( RuntimeError ) { i1.get_as(:boolean) }
@@ -120,7 +120,7 @@ class SciComTest < Test::Unit::TestCase
 
     should "be able to create a double vector in R" do
 
-      vec = @r1.eval("c(1, 2, 3, 4)")
+      vec = R.eval("c(1, 2, 3, 4)")
 
       # The vector created in R returns as a MDArray in Ruby and can be treated as such
       assert_equal("1.0 2.0 3.0 4.0 ", vec.to_string)
@@ -139,10 +139,10 @@ class SciComTest < Test::Unit::TestCase
 
     should "work with NA and NaN in double vectors" do
 
-      vec2 = @r1.eval("c(1, NA, 3, 4)")
+      vec2 = R.eval("c(1, NA, 3, 4)")
       vec2.print
 
-      vec3 = @r1.eval("c(1, NaN, 3, 4)")
+      vec3 = R.eval("c(1, NaN, 3, 4)")
       vec3.print
 
     end
@@ -157,13 +157,13 @@ class SciComTest < Test::Unit::TestCase
       # vec is just a normal MDArray that can be changed at anytime
       vec[0] = 2
 
-      @r1.prime = vec
+      R.prime = vec
 
       # now vec is immutable, since it is now in Renjin and Renjin requires an immutable
       # vector
       assert_raise ( RuntimeError ) { vec[0] = 1 }
 
-      vec2 = @r1.eval("print(prime)")
+      vec2 = R.eval("print(prime)")
       vec2.print
 
       assert_raise ( RuntimeError ) { vec2[1] = 7 }

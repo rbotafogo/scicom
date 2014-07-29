@@ -36,12 +36,12 @@ class SciComTest < Test::Unit::TestCase
 
     setup do 
 
-      # creating two distinct instances of SciCom
+      # creating new instance of R interpreter
       @r1 = R.new
-      @r2 = R.new
 
     end
 
+=begin
     #--------------------------------------------------------------------------------------
     #
     #--------------------------------------------------------------------------------------
@@ -69,7 +69,7 @@ class SciComTest < Test::Unit::TestCase
       end
 
     end
-
+=end
     #--------------------------------------------------------------------------------------
     #
     #--------------------------------------------------------------------------------------
@@ -83,21 +83,21 @@ class SciComTest < Test::Unit::TestCase
 
       # assign MDArray to R vector.  MDArray shape is converted to R shape: two dimensions
       # are identical in MDArray and R.
-      @r1.vec = arr
+      R.vec = arr
 
       # When accessing a vector with the wrong indexes, return nil
-      res = @r1.eval("vec[0]")
+      res = R.eval("vec[0]")
       assert_equal(nil, res)
 
-      # @r1.eval("print(vec[1, 1])")
-      # @r1.eval("print(vec[1, 2])")
+      # R.eval("print(vec[1, 1])")
+      # R.eval("print(vec[1, 2])")
 
 
       # First index in R is 1 and not 0.
       # method R.ri converts an MDArray index to a R index (in string format) ready
       # to evaluate
       arr.each_with_counter do |val, ct|
-         assert_equal(val, @r1.eval("vec#{R.ri(ct)}"))
+         assert_equal(val, R.eval("vec#{R.ri(ct)}"))
       end
       
     end
@@ -114,10 +114,10 @@ class SciComTest < Test::Unit::TestCase
       arr.reshape!([5, 3, 4])
       # arr.print
 
-      # shape of @r1.vec is [3, 4, 5].  
-      @r1.vec = arr
-      @r1.eval("print(dim(vec))")
-      # @r1.eval("print(vec)")
+      # shape of R.vec is [3, 4, 5].  
+      R.vec = arr
+      R.eval("print(dim(vec))")
+      # R.eval("print(vec)")
 
       # The data in the array can be accessed both in MDArray as in the R vector.  
       # To access the same element, indexing has to be properly converted from MDArray
@@ -125,16 +125,18 @@ class SciComTest < Test::Unit::TestCase
       # is done as follows: Let [i1, i2, i3, ... in] be the MDArray index, the 
       # corresponding R index is [i(n-1)+1, in+1, ..., i3+1, i2+1, i1+1].  As ane example
       # arr[3, 0, 1] is the R vector vec[1, 2, 4]
-      assert_equal(arr[3, 0, 1], @r1.eval("vec[1, 2, 4]")[0])
+      assert_equal(arr[3, 0, 1], R.eval("vec[1, 2, 4]")[0])
       # arr[3, 1, 2] is vec[2, 3, 4]
-      assert_equal(arr[3, 1, 2], @r1.eval("vec[2, 3, 4]")[0])
+      assert_equal(arr[3, 1, 2], R.eval("vec[2, 3, 4]")[0])
 
       # method R.ri converts an MDArray index to a R index (in string format) ready
       # to evaluate
       arr.each_with_counter do |val, ct|
-        assert_equal(arr.get(ct), @r1.eval("vec#{R.ri(ct)}"))
+        assert_equal(arr.get(ct), R.eval("vec#{R.ri(ct)}"))
       end
     end
+
+#=begin
 
     #--------------------------------------------------------------------------------------
     #
@@ -145,9 +147,9 @@ class SciComTest < Test::Unit::TestCase
       # typed_arange does the same as arange but for arrays of other type
       arr = MDArray.typed_arange(:double, 120)
       arr.reshape!([2, 4, 3, 5])
-      @r1.vec = arr
+      R.vec = arr
       arr.each_with_counter do |val, ct|
-        assert_equal(val, @r1.eval("vec#{R.ri(ct)}"))
+        assert_equal(val, R.eval("vec#{R.ri(ct)}"))
       end
 
     end
@@ -161,9 +163,9 @@ class SciComTest < Test::Unit::TestCase
       # typed_arange does the same as arange but for arrays of other type
       arr = MDArray.typed_arange(:double, 360)
       arr.reshape!([2, 4, 3, 5, 3])
-      @r1.vec = arr
+      R.vec = arr
       arr.each_with_counter do |val, ct|
-        assert_equal(val, @r1.eval("vec#{R.ri(ct)}"))
+        assert_equal(val, R.eval("vec#{R.ri(ct)}"))
       end
 
     end
@@ -177,9 +179,9 @@ class SciComTest < Test::Unit::TestCase
       # typed_arange does the same as arange but for arrays of other type
       arr = MDArray.typed_arange(:double, 720)
       arr.reshape!([2, 4, 3, 5, 3, 2])
-      @r1.vec = arr
+      R.vec = arr
       arr.each_with_counter do |val, ct|
-        assert_equal(val, @r1.eval("vec#{R.ri(ct)}"))
+        assert_equal(val, R.eval("vec#{R.ri(ct)}"))
       end
 
     end
@@ -193,9 +195,9 @@ class SciComTest < Test::Unit::TestCase
       # typed_arange does the same as arange but for arrays of other type
       arr = MDArray.typed_arange(:double, 2160)
       arr.reshape!([2, 4, 3, 5, 3, 2, 3])
-      @r1.vec = arr
+      R.vec = arr
       arr.each_with_counter do |val, ct|
-        assert_equal(val, @r1.eval("vec#{R.ri(ct)}"))
+        assert_equal(val, R.eval("vec#{R.ri(ct)}"))
       end
 
     end
@@ -209,13 +211,13 @@ class SciComTest < Test::Unit::TestCase
       # typed_arange does the same as arange but for arrays of other type
       arr = MDArray.typed_arange(:double, 8640)
       arr.reshape!([2, 4, 3, 5, 3, 2, 3, 4])
-      @r1.vec = arr
+      R.vec = arr
       arr.each_with_counter do |val, ct|
-        assert_equal(val, @r1.eval("vec#{R.ri(ct)}"))
+        assert_equal(val, R.eval("vec#{R.ri(ct)}"))
       end
 
     end
-
+#=end
 =begin
 
     #--------------------------------------------------------------------------------------
@@ -225,9 +227,9 @@ class SciComTest < Test::Unit::TestCase
     should "receive multidimensional arrays from Renjin" do
 
       # returned value is column major but MDArray is interpreting as row major
-      mat = @r1.eval(" mat = matrix(rnorm(20), 4)")
+      mat = R.eval(" mat = matrix(rnorm(20), 4)")
       mat.print
-      @r1.eval("print(mat)")
+      R.eval("print(mat)")
     end
 =end
 

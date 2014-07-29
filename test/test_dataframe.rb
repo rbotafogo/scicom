@@ -30,31 +30,30 @@ class SciComTest < Test::Unit::TestCase
 
   context "R environment" do
 
-    #======================================================================================
+    #--------------------------------------------------------------------------------------
     #
-    #======================================================================================
+    #--------------------------------------------------------------------------------------
 
     setup do 
 
-      # creating a new instance of Renjin
+      # creating two distinct instances of SciCom
       @r1 = R.new
+      @r2 = R.new
 
     end
 
-    #======================================================================================
-    #
-    #======================================================================================
 
-    should "create an int sequence" do
-      
-      seq = R.seq(2, 10)
+    #--------------------------------------------------------------------------------------
+    # We should be able to create MDArray with different layouts such as row-major, 
+    # column-major, or R layout.
+    #--------------------------------------------------------------------------------------
 
-      res = R.eval <<EOF
-      print(#{seq.r});
-      print(#{seq.r});
-print(ls());
+    should "work with data-frames" do
 
-EOF
+      R.eval("vec = seq(20)")
+      R.eval("dim(vec) = c(4, 5)")
+      R.eval("df = as.data.frame(vec)")
+      R.eval("print(df)")
 
     end
 

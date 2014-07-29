@@ -45,7 +45,7 @@ class SciComTest < Test::Unit::TestCase
     #
     #======================================================================================
 
-    should "create an int sequence" do
+    should "integrate Ruby sequence with R sequence" do
       
       seq = R.seq(2, 10)
 
@@ -53,6 +53,28 @@ class SciComTest < Test::Unit::TestCase
       print(#{seq.r});
       print(#{seq.r});
 print(ls());
+
+EOF
+
+    end
+
+    #======================================================================================
+    #
+    #======================================================================================
+
+    should "integrate MDArray with R vector" do
+      
+      # typed_arange does the same as arange but for arrays of other type
+      arr = MDArray.typed_arange(:double, 60)
+      # MDArray is stored in row-major order
+      arr.reshape!([5, 3, 4])
+      # arr.print
+
+      R.eval <<EOF
+      print(#{arr.r});
+      vec = #{arr.r};
+print(vec);
+print(vec[1, 1, 1])
 
 EOF
 
