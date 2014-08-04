@@ -117,8 +117,24 @@ class R
   #
   #----------------------------------------------------------------------------------------
 
+  def assing(name, value)
+    @instance.assign(name, value)
+  end
+
+  #----------------------------------------------------------------------------------------
+  #
+  #----------------------------------------------------------------------------------------
+
   def self.pull(name)
     @renjin.pull(name)
+  end
+
+  #----------------------------------------------------------------------------------------
+  #
+  #----------------------------------------------------------------------------------------
+
+  def pull(name)
+    @instance.pull(name)
   end
 
   #----------------------------------------------------------------------------------------
@@ -133,18 +149,8 @@ class R
   #
   #----------------------------------------------------------------------------------------
 
-  def self.seq(*args)
-    params = args.join(",")
-    @renjin.eval("seq(#{params})")
-  end
-
-  #----------------------------------------------------------------------------------------
-  #
-  #----------------------------------------------------------------------------------------
-
-  def self.c(*args)
-    params = args.join(",")
-    @renjin.eval("c(#{params})")
+  def eval(string)
+    @intances.eval(string)
   end
 
   #----------------------------------------------------------------------------------------
@@ -175,14 +181,52 @@ class R
     name = symbol.id2name
     if name =~ /(.*)=$/
       # should never reach this point.  Parse error... but check
-      # raise ArgumentError, "You shouldn't assign nil" if args==[nil]
+      raise ArgumentError, "You shouldn't assign nil" if args==[nil]
       super if args.length != 1
       @renjin.assign($1,args[0])
     else
-      super if args.length != 0
-      @renjin.pull(name)
+      # super if args.length != 0
+      if (args.length == 0)
+        @renjin.pull(name)
+      else
+        params = parse(*args)
+        # params = args.join(",")
+        # params.gsub!(/[{:}>]/, ' ')
+        # p params
+        @renjin.eval("#{name}(#{params})")
+      end
+
     end
 
+  end
+
+  #----------------------------------------------------------------------------------------
+  #
+  #----------------------------------------------------------------------------------------
+
+  def self.parse(*args)
+
+    params = Array.new
+
+    args.each do |arg|
+      if (arg.is_a? Numeric)
+        params << arg
+      elsif(arg.is_a? String)
+        params << "\"#{arg}\""
+      elsif (arg.is_a? Symbol)
+        params << "\"#{arg.to_s}\""
+      elsif (arg.is_a? Hash)
+        arg.each_pair do |key, value|
+          params << "#{key.to_s} = #{value}"
+        end
+      else
+        raise "Unknown parameter type for R: #{arg}"
+      end
+      
+    end
+
+    params.join(",")
+      
   end
 
   #----------------------------------------------------------------------------------------
