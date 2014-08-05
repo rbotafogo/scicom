@@ -77,17 +77,28 @@ class SciComTest < Test::Unit::TestCase
 
     should "be able to call built-in R character functions" do
 
-      R.abs(-20.5)
-      R.substr("abcdef", 2, 4)
-      R.rnorm(30, m: 0, sd: 1)
+      # Extract or replace substrings in a character vector.
+      x = "abcdef"
+      assert_equal("bcd", R.substr(x, 2, 4)[0])
+
+      vec = R.c(TRUE, TRUE, FALSE)
+      vec = R.c(true, true, false)
+      vec = R.c(NaN, NA, EPSILON)
+      vec.print
+
+      # grep(pattern, x, ignore.case=FALSE, fixed=FALSE).  Search for pattern in x. 
+      # If fixed = FALSE then pattern is a regular expression. If fixed = TRUE then pattern 
+      # is a text string. Returns matching indices.
+      res = R.grep("A", R.c("b","A","c"), fixed: TRUE)
+      p res[0]
+
+      sub = R.sub("\\s",".","Hello There")
+      sub[0]
 
 =begin
-substr(x, start=n1, stop=n2)	Extract or replace substrings in a character vector.
 x <- "abcdef" 
-substr(x, 2, 4) is "bcd" 
 substr(x, 2, 4) <- "22222" is "a222ef"
-grep(pattern, x , ignore.case=FALSE, fixed=FALSE)	Search for pattern in x. If fixed =FALSE then pattern is a regular expression. If fixed=TRUE then pattern is a text string. Returns matching indices.
-grep("A", c("b","A","c"), fixed=TRUE) returns 2
+
 sub(pattern, replacement, x, ignore.case =FALSE, fixed=FALSE)	Find pattern in x and replace with replacement text. If fixed=FALSE then pattern is a regular expression.
 If fixed = T then pattern is a text string. 
 sub("\\s",".","Hello There") returns "Hello.There"

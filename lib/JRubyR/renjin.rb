@@ -24,7 +24,7 @@
 require 'java'
 require 'securerandom'
 
-require_relative 'index.rb'
+require_relative 'index'
 require_relative 'vector'
 require_relative 'rbsexp'
 
@@ -317,62 +317,3 @@ class Renjin
   private
 
 end
-
-
-=begin  
-  def eval(string, echo_override=nil)
-
-    echo_enabled = ( echo_override != nil ) ? echo_override : @echo_enabled
-
-    if complete?(string)
-      @writer.puts string
-      @writer.puts "warning('#{RinRuby_Stderr_Flag}',immediate.=TRUE)" if @echo_stderr
-      @writer.puts "print('#{RinRuby_Eval_Flag}')"
-    else
-      raise ParseError, "Parse error on eval:#{string}"
-    end
-
-    found_eval_flag = false
-    found_stderr_flag = false
-
-    while true
-      echo_eligible = true
-      begin
-        line = @reader.gets
-      rescue
-        return false
-      end
-
-      if ! line
-        return false
-      end
-
-      while line.chomp!
-      end
-
-      line = line[8..-1] if line[0] == 27     # Delete escape sequence
-
-      if line == "[1] \"#{RinRuby_Eval_Flag}\""
-        found_eval_flag = true
-        echo_eligible = false
-      end
-
-      if line == "Warning: #{RinRuby_Stderr_Flag}"
-        found_stderr_flag = true
-        echo_eligible = false
-      end
-
-      break if found_eval_flag && ( found_stderr_flag == @echo_stderr )
-      return false if line == RinRuby_Exit_Flag
-
-      if echo_enabled && echo_eligible
-        puts line
-        $stdout.flush if @platform !~ /windows/
-      end
-    end
-
-    true
-
-  end
-=end
-

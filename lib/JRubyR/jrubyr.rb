@@ -25,6 +25,10 @@ require 'java'
 
 require_relative 'renjin'
 
+NaN = Java::OrgRenjinSexp.DoubleVector::NaN
+NA = Java::OrgRenjinSexp.DoubleVector::NA
+EPSILON = Java::OrgRenjinSexp.DoubleVector::EPSILON
+
 class R
   
   @renjin = Renjin.new
@@ -190,8 +194,6 @@ class R
         @renjin.pull(name)
       else
         params = parse(*args)
-        # params = args.join(",")
-        # params.gsub!(/[{:}>]/, ' ')
         # p params
         @renjin.eval("#{name}(#{params})")
       end
@@ -215,10 +217,16 @@ class R
         params << "\"#{arg}\""
       elsif (arg.is_a? Symbol)
         params << "\"#{arg.to_s}\""
+      elsif (arg.is_a? TrueClass)
+        params << "TRUE"
+      elsif (arg.is_a? FalseClass)
+        params << "FALSE"
       elsif (arg.is_a? Hash)
         arg.each_pair do |key, value|
-          params << "#{key.to_s} = #{value}"
+          params << "#{key.to_s} = #{parse(value)}"
         end
+      elsif (arg.is_a? MDArray)
+        params << arg.r
       else
         raise "Unknown parameter type for R: #{arg}"
       end
