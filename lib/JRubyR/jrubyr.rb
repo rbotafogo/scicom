@@ -189,6 +189,7 @@ class R
       super if args.length != 1
       @renjin.assign($1,args[0])
     else
+      name.sub!(/__/,".")
       # super if args.length != 0
       if (args.length == 0)
         @renjin.pull(name)
@@ -216,11 +217,16 @@ class R
       elsif(arg.is_a? String)
         params << "\"#{arg}\""
       elsif (arg.is_a? Symbol)
-        params << "\"#{arg.to_s}\""
+        # params << "\"#{arg.to_s}\""
+        var = R.eval("#{arg.to_s}")
+        var.r
+        params << var.rvar
       elsif (arg.is_a? TrueClass)
         params << "TRUE"
       elsif (arg.is_a? FalseClass)
         params << "FALSE"
+      elsif (arg.is_a? Range)
+        params << "(#{arg.begin}:#{arg.end})"
       elsif (arg.is_a? Hash)
         arg.each_pair do |key, value|
           params << "#{key.to_s} = #{parse(value)}"

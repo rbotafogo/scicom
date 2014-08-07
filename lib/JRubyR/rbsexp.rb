@@ -99,6 +99,8 @@ class RubySexp
     
     if (sexp.instance_of? Java::OrgRenjinPrimitivesSequence::IntSequence)
       res = IntSeq.new(sexp)
+    elsif (sexp.instance_of? Java::OrgRenjinSexp::ListVector)
+      res = ListVector.new(sexp)
     elsif (sexp.instance_of? Java::RbScicom::MDDoubleVector)
       res = MDArray.build_from_nc_array(:double, sexp.array)
       res.set_sexp(sexp)

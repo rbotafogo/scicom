@@ -202,7 +202,11 @@ class Renjin
   #----------------------------------------------------------------------------------------
 
   def eval(expression)
-    RubySexp.build(@engine.eval(expression))
+    begin
+      RubySexp.build(@engine.eval(expression))
+    rescue Java::OrgRenjinEval::EvalException => e 
+      p "Unmatched positional arguments"
+    end
   end
 
   #----------------------------------------------------------------------------------------
