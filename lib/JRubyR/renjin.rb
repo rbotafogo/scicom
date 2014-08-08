@@ -32,10 +32,41 @@ class Renjin
   include_package "javax.script"
   include_package "org.renjin"
 
-  @@EPSILON = Java::OrgRenjinSexp.DoubleVector::EPSILON
-  @@Int_NA = Java::OrgRenjinSexp.IntVector::NA
-  @@Double_NA = Java::OrgRenjinSexp.DoubleVector::NA
-  @@Double_NaN = Java::OrgRenjinSexp.DoubleVector::NaN
+  #----------------------------------------------------------------------------------------
+  # This is the internal representation R uses to
+  # represent NAs: a "quiet NaN" with a payload of 1954 (0x07A2).
+  # <p/>
+  # <p>The Java Language Spec is somewhat ambiguous regarding the extent to which
+  # non-canonical NaNs will be preserved. What is clear though, is that signaled bit
+  # (bit 12) is dropped by {@link Double#longBitsToDouble(long)}, at least on the few
+  # platforms on which I have tested the Sun JDK 1.6.
+  # <p/>
+  # <p>The payload, however, does appear to be preserved by the JVM.
+  #----------------------------------------------------------------------------------------
+
+  NA = Java::OrgRenjinSexp.DoubleVector::NA
+  Double_NA = NA
+
+  #----------------------------------------------------------------------------------------
+  # The double constant used to designate elements or values that are
+  # missing in the statistical sense, or literally "Not Available". The following
+  # has the relationships hold true:
+  # <p/>
+  # <ul>
+  # <li>isNaN(NA) is <i>true</i>
+  # <li>isNA(Double.NaN) is <i>false</i>
+  # </ul>
+  #----------------------------------------------------------------------------------------
+
+  NaN = Java::OrgRenjinSexp.DoubleVector::NaN
+  Double_NaN = NaN
+
+  EPSILON = Java::OrgRenjinSexp.DoubleVector::EPSILON
+  Int_NA = Java::OrgRenjinSexp.IntVector::NA
+
+  #----------------------------------------------------------------------------------------
+  #
+  #----------------------------------------------------------------------------------------
 
   attr_reader :engine
 
@@ -80,6 +111,155 @@ class Renjin
     factory = Java::JavaxScript.ScriptEngineManager.new()
     @engine = factory.getEngineByName("Renjin")
     
+  end
+
+  #----------------------------------------------------------------------------------------
+  # Converts an MDArray shape or index onto an equivalent R shape or index
+  #----------------------------------------------------------------------------------------
+
+  def ri(shape)
+
+    rshape = shape.clone
+
+    if (rshape.size > 2)
+      rshape.reverse!
+      rshape[0], rshape[1] = rshape[1], rshape[0]
+    end
+    rshape.map{ |val| (val + 1) }
+
+  end
+
+  #----------------------------------------------------------------------------------------
+  #
+  #----------------------------------------------------------------------------------------
+
+  def nan?(x)
+    Java::OrgRenjinSexp.DoubleVector.isNaN(x)
+  end
+
+  #----------------------------------------------------------------------------------------
+  # The integer constant used to designate elements or values that are
+  # missing in the statistical sense, or literally "Not Available". 
+  # For integers (Fixnum) this is represented as the minimum integer from Java 
+  # Integer.MIN_VALUE
+  #----------------------------------------------------------------------------------------
+
+  def na?(x)
+
+    if (x.is_a?(Fixnum))
+      Java::OrgRenjinSexp.IntVector.isNA(x)
+    elsif (x.is_a?(Float))
+      Java::OrgRenjinSexp.DoubleVector.isNA(x)
+    else
+      false
+    end
+
+  end
+
+  #----------------------------------------------------------------------------------------
+  #
+  #----------------------------------------------------------------------------------------
+
+  def finite?(x)
+    Java::OrgRenjinSexp.DoubleVector.isFinite(x)
+  end
+
+  #----------------------------------------------------------------------------------------
+  #
+  #----------------------------------------------------------------------------------------
+
+  def method_missing(symbol, *args)
+
+    stack = Array.new
+
+    name = symbol.id2name
+    if name =~ /(.*)=$/
+      # should never reach this point.  Parse error... but check
+      raise ArgumentError, "You shouldn't assign nil" if args==[nil]
+      super if args.length != 1
+      ret = assign($1,args[0])
+    else
+      name.sub!(/__/,".")
+      # super if args.length != 0
+      if (args.length == 0)
+        ret = pull(name)
+      else
+        params, stack = parse(*args)
+        # p params
+        ret = eval("#{name}(#{params})")
+      end
+    end
+
+    stack.each do |sexp|
+      sexp.destroy
+    end
+
+    ret
+
+  end
+
+  #----------------------------------------------------------------------------------------
+  #
+  #----------------------------------------------------------------------------------------
+
+  def eval(expression)
+    begin
+      RubySexp.build(@engine.eval(expression))
+    rescue Java::OrgRenjinEval::EvalException => e 
+      p "Unmatched positional arguments"
+    end
+  end
+
+  #----------------------------------------------------------------------------------------
+  #
+  #----------------------------------------------------------------------------------------
+
+  def direct_eval(expression)
+    begin
+      @engine.eval(expression)
+    rescue Java::OrgRenjinEval::EvalException => e 
+      p "Unmatched positional arguments"
+    end
+  end
+
+  #----------------------------------------------------------------------------------------
+  #
+  #----------------------------------------------------------------------------------------
+
+  def parse(*args)
+
+    params = Array.new
+    stack = Array.new
+
+    args.each do |arg|
+      if (arg.is_a? Numeric)
+        params << arg
+      elsif(arg.is_a? String)
+        params << "\"#{arg}\""
+      elsif (arg.is_a? Symbol)
+        # params << "\"#{arg.to_s}\""
+        var = eval("#{arg.to_s}")
+        params << var.r
+      elsif (arg.is_a? TrueClass)
+        params << "TRUE"
+      elsif (arg.is_a? FalseClass)
+        params << "FALSE"
+      elsif (arg.is_a? Range)
+        params << "(#{arg.begin}:#{arg.end})"
+      elsif (arg.is_a? Hash)
+        arg.each_pair do |key, value|
+          params << "#{key.to_s} = #{parse(value)}"
+        end
+      elsif ((arg.is_a? MDArray)  || (arg.is_a? RubySexp))
+        params << arg.r(stack)
+      else
+        raise "Unknown parameter type for R: #{arg}"
+      end
+      
+    end
+
+    [params.join(","), stack]
+      
   end
 
   #----------------------------------------------------------------------------------------
@@ -163,53 +343,6 @@ class Renjin
   end
 
   #----------------------------------------------------------------------------------------
-  # The eval instance method passes the R commands contained in the supplied string and 
-  # displays any resulting plots or prints the output. For example:
-  #
-  #      >>  sample_size = 10
-  #      >>  R.eval "x <- rnorm(#{sample_size})"
-  #      >>  R.eval "summary(x)"
-  #      >>  R.eval "sd(x)"
-  #
-  #produces the following:
-  #
-  #         Min. 1st Qu.        Median      Mean 3rd Qu.         Max.
-  #      -1.88900 -0.84930 -0.45220 -0.49290 -0.06069          0.78160
-  #      [1] 0.7327981
-  #
-  # This example used a string substitution to make the argument to first eval method 
-  # equivalent to x <- rnorm(10). This example used three invocations of the eval method, 
-  # but a single invoke is possible using a here document:
-  #
-  #      >> R.eval <<EOF
-  #              x <- rnorm(#{sample_size})
-  #              summary(x)
-  #              sd(x)
-  #         EOF
-  #
-  # <b>Parameters that can be passed to the eval method</b>
-  #
-  # * string: The string parameter is the code which is to be passed to R, for example, 
-  # string = "hist(gamma(1000,5,3))". The string can also span several lines of code by use 
-  # of a here document, as shown:
-  #      R.eval <<EOF
-  #         x<-rgamma(1000,5,3)
-  #         hist(x)
-  #      EOF
-  #
-  # * echo_override: This argument allows one to set the echo behavior for this call only. 
-  # The default for echo_override is nil, which does not override the current echo behavior.
-  #----------------------------------------------------------------------------------------
-
-  def eval(expression)
-    begin
-      RubySexp.build(@engine.eval(expression))
-    rescue Java::OrgRenjinEval::EvalException => e 
-      p "Unmatched positional arguments"
-    end
-  end
-
-  #----------------------------------------------------------------------------------------
   # Builds a Renjin vector from an MDArray. Should be private, but public for testing.
   #----------------------------------------------------------------------------------------
 
@@ -232,92 +365,8 @@ class Renjin
     
   end
 
-  #----------------------------------------------------------------------------------------
-  #
-  #----------------------------------------------------------------------------------------
-
-  def self.epsilon
-    @@EPSILON
-  end
-
-  #----------------------------------------------------------------------------------------
-  #
-  #----------------------------------------------------------------------------------------
-
-  def self.Int_NA
-    @@Int_NA
-  end
-
-  #----------------------------------------------------------------------------------------
-  # This is the internal representation R uses to
-  # represent NAs: a "quiet NaN" with a payload of 1954 (0x07A2).
-  # <p/>
-  # <p>The Java Language Spec is somewhat ambiguous regarding the extent to which
-  # non-canonical NaNs will be preserved. What is clear though, is that signaled bit
-  # (bit 12) is dropped by {@link Double#longBitsToDouble(long)}, at least on the few
-  # platforms on which I have tested the Sun JDK 1.6.
-  # <p/>
-  # <p>The payload, however, does appear to be preserved by the JVM.
-  #----------------------------------------------------------------------------------------
-
-  def self.Double_NA
-    @@Double_NA
-  end
-
-  #----------------------------------------------------------------------------------------
-  # The double constant used to designate elements or values that are
-  # missing in the statistical sense, or literally "Not Available". The following
-  # has the relationships hold true:
-  # <p/>
-  # <ul>
-  # <li>isNaN(NA) is <i>true</i>
-  # <li>isNA(Double.NaN) is <i>false</i>
-  # </ul>
-  #----------------------------------------------------------------------------------------
-
-  def self.Double_NaN
-    @@Double_NaN
-  end
-
-  #----------------------------------------------------------------------------------------
-  #
-  #----------------------------------------------------------------------------------------
-
-  def self.nan?(x)
-    Java::OrgRenjinSexp.DoubleVector.isNaN(x)
-  end
-
-  #----------------------------------------------------------------------------------------
-  # The integer constant used to designate elements or values that are
-  # missing in the statistical sense, or literally "Not Available". 
-  # For integers (Fixnum) this is represented as the minimum integer from Java 
-  # Integer.MIN_VALUE
-  #----------------------------------------------------------------------------------------
-
-  def self.na?(x)
-
-    if (x.is_a?(Fixnum))
-      Java::OrgRenjinSexp.IntVector.isNA(x)
-    elsif (x.is_a?(Float))
-      Java::OrgRenjinSexp.DoubleVector.isNA(x)
-    else
-      false
-    end
-
-  end
-
-  #----------------------------------------------------------------------------------------
-  #
-  #----------------------------------------------------------------------------------------
-
-  def self.finite?(x)
-    Java::OrgRenjinSexp.DoubleVector.isFinite(x)
-  end
-
-  #----------------------------------------------------------------------------------------
-  #
-  #----------------------------------------------------------------------------------------
-
-  private
 
 end
+
+# Create a new R interpreter
+R = Renjin.new

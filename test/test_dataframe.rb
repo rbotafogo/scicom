@@ -37,8 +37,7 @@ class SciComTest < Test::Unit::TestCase
     setup do 
 
       # creating two distinct instances of SciCom
-      @r1 = R.new
-      @r2 = R.new
+      @r1 = Renjin.new
 
     end
 
@@ -74,11 +73,14 @@ class SciComTest < Test::Unit::TestCase
       wgt = R.c(180, 156, 128, 118, 202)
       race = R.c("Cauc", "Af. Am", "Af. Am", "Cauc", "Asian")
       sat = R.c(1080, 1210, 840, 1340, 880)
-      
+
       list = R.list(name, age, hgt, wgt, race, sat)
       list.print
 
       df = R.data__frame(name, age, hgt, wgt, race, sat)
+      col = R.colnames(df)
+
+=begin
       # R.colnames(df) = R.c("name", "age", "height", "weigth", "race", "SAT")
       df.print
       summ = R.summary(df.r)
@@ -88,10 +90,10 @@ class SciComTest < Test::Unit::TestCase
       R.eval("print(colnames(#{df.r}))")
       col = R.colnames(:df)
       col.print
-
+=end
 
     end
 
   end
-
+  
 end

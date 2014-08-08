@@ -64,7 +64,8 @@ class RubySexp
   def destroy
     
     if (@rvar != nil)
-      R.eval("rm('#{@rvar}')")
+      R.direct_eval("rm('#{@rvar}')")
+      @rvar = nil
     end
 
   end
@@ -81,11 +82,12 @@ class RubySexp
   #
   #----------------------------------------------------------------------------------------
 
-  def r
+  def r(stack = nil)
 
     if (@rvar == nil)
       @rvar = "sc_#{SecureRandom.hex(8)}"
       R.assign(@rvar, @sexp)
+      stack << self if stack
     end
     @rvar
 
