@@ -38,41 +38,17 @@ class SciComTest < Test::Unit::TestCase
       
     end
 
-
     #--------------------------------------------------------------------------------------
     #
     #--------------------------------------------------------------------------------------
 
-    should "work with list" do
+    should "work with environment" do
 
-      x = R.list(first: (1..10), second: R.c("yes","no"), third: R.c(TRUE,FALSE), 
-        fourth: R.gl(2,3))
-      x.first.print
-      x.second.print
-      x.fourth.print
-      x[0].print
-
-      assert_raise ( RuntimeError ) { x.third(3) }
-
-      x.each do |elmt|
-        elmt.print
-      end
-
-      R.var = R.c(2, 3, 4)
-      # list with R options
-      opts = R.options
-
-      opts.each do |opt|
-        opt.print
-      end
-
-      lst = R.list(R.var, R.c(1, 2, 3), opts)
-      lst[0].print
-      lst[2].na__action.print
-
-      longlst = R.append(lst, lst)
-      p "long list"
-      longlst.print
+      # creates a new environment
+      e1 = R.new__env
+      # This is wrong!!!
+      e1.a = 2
+      # p e1.a
 
     end
     

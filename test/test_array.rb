@@ -40,42 +40,29 @@ class SciComTest < Test::Unit::TestCase
 
 
     #--------------------------------------------------------------------------------------
-    #
+    # We should be able to create MDArray with different layouts such as row-major, 
+    # column-major, or R layout.
     #--------------------------------------------------------------------------------------
 
     should "work with list" do
 
-      x = R.list(first: (1..10), second: R.c("yes","no"), third: R.c(TRUE,FALSE), 
-        fourth: R.gl(2,3))
-      x.first.print
-      x.second.print
-      x.fourth.print
-      x[0].print
+      arr = MDArray.typed_arange(:double, 12)
+      arr.reshape!([3, 4])
 
-      assert_raise ( RuntimeError ) { x.third(3) }
+      R.vec3 = arr
 
-      x.each do |elmt|
-        elmt.print
-      end
+      R.eval <<EOF
+        print(vec3)
+        print(vec3[1, 1])
+        print(vec3[2, 1])
+        print(vec3[3, 1])
+EOF
 
-      R.var = R.c(2, 3, 4)
-      # list with R options
-      opts = R.options
-
-      opts.each do |opt|
-        opt.print
-      end
-
-      lst = R.list(R.var, R.c(1, 2, 3), opts)
-      lst[0].print
-      lst[2].na__action.print
-
-      longlst = R.append(lst, lst)
-      p "long list"
-      longlst.print
-
+      R.eval <<EOF
+        #{arr}
+EOF
     end
-    
+
   end
 
 end

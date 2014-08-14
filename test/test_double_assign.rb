@@ -37,7 +37,7 @@ class SciComTest < Test::Unit::TestCase
     setup do 
 
       # creating new instance of R interpreter
-      @r1 = R.new
+      @r1 = Renjin.new
 
     end
 
@@ -101,7 +101,7 @@ class SciComTest < Test::Unit::TestCase
       end
       
     end
-
+#=begin
     #--------------------------------------------------------------------------------------
     #
     #--------------------------------------------------------------------------------------

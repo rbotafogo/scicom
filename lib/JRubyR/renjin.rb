@@ -24,45 +24,12 @@
 require 'java'
 require 'securerandom'
 
-require_relative 'index'
-require_relative 'vector'
 require_relative 'rbsexp'
+require_relative 'index'
 
 class Renjin
   include_package "javax.script"
   include_package "org.renjin"
-
-  #----------------------------------------------------------------------------------------
-  # This is the internal representation R uses to
-  # represent NAs: a "quiet NaN" with a payload of 1954 (0x07A2).
-  # <p/>
-  # <p>The Java Language Spec is somewhat ambiguous regarding the extent to which
-  # non-canonical NaNs will be preserved. What is clear though, is that signaled bit
-  # (bit 12) is dropped by {@link Double#longBitsToDouble(long)}, at least on the few
-  # platforms on which I have tested the Sun JDK 1.6.
-  # <p/>
-  # <p>The payload, however, does appear to be preserved by the JVM.
-  #----------------------------------------------------------------------------------------
-
-  NA = Java::OrgRenjinSexp.DoubleVector::NA
-  Double_NA = NA
-
-  #----------------------------------------------------------------------------------------
-  # The double constant used to designate elements or values that are
-  # missing in the statistical sense, or literally "Not Available". The following
-  # has the relationships hold true:
-  # <p/>
-  # <ul>
-  # <li>isNaN(NA) is <i>true</i>
-  # <li>isNA(Double.NaN) is <i>false</i>
-  # </ul>
-  #----------------------------------------------------------------------------------------
-
-  NaN = Java::OrgRenjinSexp.DoubleVector::NaN
-  Double_NaN = NaN
-
-  EPSILON = Java::OrgRenjinSexp.DoubleVector::EPSILON
-  Int_NA = Java::OrgRenjinSexp.IntVector::NA
 
   #----------------------------------------------------------------------------------------
   #
@@ -134,7 +101,7 @@ class Renjin
   #----------------------------------------------------------------------------------------
 
   def nan?(x)
-    Java::OrgRenjinSexp.DoubleVector.isNaN(x)
+    is__nan(x)
   end
 
   #----------------------------------------------------------------------------------------
@@ -182,7 +149,17 @@ class Renjin
       name.sub!(/__/,".")
       # super if args.length != 0
       if (args.length == 0)
-        ret = pull(name)
+        is_var = false
+        # Try to see if name is a variable or a method.
+        # Find all variables in the environment and compare them to the given name
+        vars = eval("ls()")
+        vars.each do |var|
+          if (var == name)
+            is_var = true
+            break
+          end
+        end if vars != nil
+        ret = (is_var)? eval("#{name}") : eval("#{name}()")
       else
         params, stack = parse(*args)
         # p params
@@ -207,11 +184,16 @@ class Renjin
       RubySexp.build(@engine.eval(expression))
     rescue Java::OrgRenjinEval::EvalException => e 
       p "Unmatched positional arguments"
+      p e.message
+    rescue Java::OrgRenjinParser::ParseException => e
+      p e.message
     end
   end
 
   #----------------------------------------------------------------------------------------
-  #
+  # Evaluates an expression but does not wrap the return in a RubySexp.  Needed for 
+  # intermediate evaluation done by internal methods.  In principle, should not be
+  # called by users.
   #----------------------------------------------------------------------------------------
 
   def direct_eval(expression)
@@ -248,7 +230,7 @@ class Renjin
         params << "(#{arg.begin}:#{arg.end})"
       elsif (arg.is_a? Hash)
         arg.each_pair do |key, value|
-          params << "#{key.to_s} = #{parse(value)}"
+          params << "#{key.to_s} = #{parse(value)[0]}"
         end
       elsif ((arg.is_a? MDArray)  || (arg.is_a? RubySexp))
         params << arg.r(stack)
@@ -370,3 +352,7 @@ end
 
 # Create a new R interpreter
 R = Renjin.new
+NA = R.eval("NA")
+NaN = R.eval("NaN")
+# EPSILON = R.eval("EPSILON")
+

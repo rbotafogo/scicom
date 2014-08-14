@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
 
 ##########################################################################################
+# @author Rodrigo Botafogo
+#
 # Copyright © 2013 Rodrigo Botafogo. All Rights Reserved. Permission to use, copy, modify, 
 # and distribute this software and its documentation, without fee and without a signed 
 # licensing agreement, is hereby granted, provided that the above copyright notice, this 
@@ -19,63 +21,22 @@
 # OR MODIFICATIONS.
 ##########################################################################################
 
-require 'rubygems'
-require "test/unit"
-require 'shoulda'
+#==========================================================================================
+#
+#==========================================================================================
 
-require 'env'
-require 'scicom'
+require 'java'
 
-class SciComTest < Test::Unit::TestCase
+class LogicalVector < Vector
 
-  context "R environment" do
+  #----------------------------------------------------------------------------------------
+  #
+  #----------------------------------------------------------------------------------------
 
-    #--------------------------------------------------------------------------------------
-    #
-    #--------------------------------------------------------------------------------------
-
-    setup do 
-      
+  def each(&block)
+    while (@iterator.hasNext())
+      block.call((@iterator.next().getInternalValue() == 1)? true : false)
     end
-
-
-    #--------------------------------------------------------------------------------------
-    #
-    #--------------------------------------------------------------------------------------
-
-    should "work with list" do
-
-      x = R.list(first: (1..10), second: R.c("yes","no"), third: R.c(TRUE,FALSE), 
-        fourth: R.gl(2,3))
-      x.first.print
-      x.second.print
-      x.fourth.print
-      x[0].print
-
-      assert_raise ( RuntimeError ) { x.third(3) }
-
-      x.each do |elmt|
-        elmt.print
-      end
-
-      R.var = R.c(2, 3, 4)
-      # list with R options
-      opts = R.options
-
-      opts.each do |opt|
-        opt.print
-      end
-
-      lst = R.list(R.var, R.c(1, 2, 3), opts)
-      lst[0].print
-      lst[2].na__action.print
-
-      longlst = R.append(lst, lst)
-      p "long list"
-      longlst.print
-
-    end
-    
   end
 
 end

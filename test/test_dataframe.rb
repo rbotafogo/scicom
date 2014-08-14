@@ -77,8 +77,29 @@ class SciComTest < Test::Unit::TestCase
       list = R.list(name, age, hgt, wgt, race, sat)
       list.print
 
+      # should I change the datatype????????
       df = R.data__frame(name, age, hgt, wgt, race, sat)
       col = R.colnames(df)
+      R.colnames(df).print
+      df.colnames('name', 'age', 'height', 'weigth', 'race', 'SAT')
+      R.colnames(df).print
+      
+
+      # Renjin allows changes to variable properties
+      R.eval("colnames(#{df.r}) = c('name', 'age', 'height', 'weigth', 'race', 'SAT')")
+      R.eval("print(colnames(#{df.r}))")
+
+      rbvec = R.eval("vec = c(1, 2, 3, 4, 5)")
+      # this is a new vector with the same name.  Assigning a new value to a large
+      # vector can then be very costly as every assignment does copy the old data.
+      R.eval("vec[1] = 10")
+      R.eval("print(vec)")
+      # this proves that vec is actually a new vec.  We have kept the old vector in 
+      # variable rbvec.
+      rbvec.print
+      # raises an exception
+      assert_raise ( RuntimeError ) {rbvec[1] = 10}
+
 
 =begin
       # R.colnames(df) = R.c("name", "age", "height", "weigth", "race", "SAT")

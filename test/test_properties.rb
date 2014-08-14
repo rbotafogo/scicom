@@ -31,48 +31,90 @@ class SciComTest < Test::Unit::TestCase
 
   context "R environment" do
 
-    #======================================================================================
-    #======================================================================================
+    #--------------------------------------------------------------------------------------
+    #
+    #--------------------------------------------------------------------------------------
 
     setup do 
 
       # creating two distinct instances of SciCom
-      @r1 = R.new
-      @r2 = R.new
+      @r1 = Renjin.new
 
     end
 
-    #======================================================================================
+    #--------------------------------------------------------------------------------------
     #
-    #======================================================================================
+    #--------------------------------------------------------------------------------------
+
+    should "get info from the workspace" do
+
+      R.var = R.c(2, 3, 4)
+      # calls methods getwd and ls
+      R.getwd.print
+      R.setwd("..")
+      R.getwd.print
+
+      # get the var variable defined above
+      R.var.print
+
+      opts = R.options
+      p opts
+      opts.names.print
+=begin
+      opts.print
+      opts.timeout.print
+      opts.na__action.print
+      opts.prompt.print
+      opts.help__search__types.print
+      opts.show__error__messages.print
+=end
+
+    end
+
+    #--------------------------------------------------------------------------------------
+    #
+    #--------------------------------------------------------------------------------------
 
     should "be able to check some properties of numbers" do
 
+      assert_equal(false, R.is__na(10)[0])
+      assert_equal(true, R.is__na(NA)[0])
+      assert_equal(false, R.is__na(NaN)[0])
+      assert_equal(true, R.is__nan(NaN)[0])
+
+      vec = R.is__na(R.c(10.35, 10.0, 56, NA))
+      assert_equal(false, vec[0])
+      assert_equal(true, vec[3])
+      assert_equal(true, R.nan?(NaN)[0])
+
+=begin
       # all are not NA (not available)
       assert_equal(false, R.na?(10))
       assert_equal(false, R.na?(10.35))
       assert_equal(false, R.na?(@r1.eval("10L")))
       assert_equal(false, R.na?(@r1.eval("10.456")))
       assert_equal(false, R.na?(nil))
+=end
 
+=begin
       # Double_NaN is not considered NA
-      assert_equal(false, R.na?(R.Double_NaN))
+      assert_equal(FALSE, R.is__na(Double_NaN))
       
-      assert_equal(true, R.na?(R.Int_NA))
+      assert_equal(true, R.na?(Int_NA))
 
       # Those are NaN
-      assert_equal(true, R.nan?(R.Double_NA))
-      assert_equal(true, R.nan?(R.Double_NaN))
+      assert_equal(true, R.nan?(Double_NA))
+      assert_equal(true, R.nan?(Double_NaN))
       
       # Check if the number if finite
       assert_equal(true, R.finite?(10))
       assert_equal(true, R.finite?(10.35))
 
       # chekc numbers to see if they are finite
-      assert_equal(false, R.finite?(R.Double_NaN))
+      assert_equal(false, R.finite?(Double_NaN))
 
-      assert_equal(false, R.finite?(R.Double_NA))
-      assert_equal(false, R.finite?(R.Double_NaN))
+      assert_equal(false, R.finite?(Double_NA))
+      assert_equal(false, R.finite?(Double_NaN))
 
       # The notion of "finite" does not apply to Vectors
       assert_raise (TypeError) { R.finite?(@r1.eval("10L")) }
@@ -80,18 +122,19 @@ class SciComTest < Test::Unit::TestCase
       
       # Int_NA is finite; however Double_NA is not finite.  Is this correct? Should 
       # check with the Renjin team.
-      assert_equal(true, R.finite?(R.Int_NA))
+      assert_equal(true, R.finite?(Int_NA))
 
       # In the same vein as above, shouldn't nil be considered NaN?  Guess not.  In 
       # R the result of is.nan(NULL) is logical(0)
       assert_equal(false, R.nan?(nil))
       assert_equal(false, R.nan?(@r1.eval("NULL")))
-
+=end
     end
 
 =begin
-    #======================================================================================
-    #======================================================================================
+    #--------------------------------------------------------------------------------------
+    #
+    #--------------------------------------------------------------------------------------
 
     should "be able to assign NULL to R object" do
       
@@ -106,9 +149,9 @@ class SciComTest < Test::Unit::TestCase
 
     end
 
-    #======================================================================================
+    #--------------------------------------------------------------------------------------
     #
-    #======================================================================================
+    #--------------------------------------------------------------------------------------
 
     should "be able to assign an integer to an R object" do
 
@@ -132,9 +175,9 @@ class SciComTest < Test::Unit::TestCase
 
 =end
 
-    #======================================================================================
+    #--------------------------------------------------------------------------------------
     #
-    #======================================================================================
+    #--------------------------------------------------------------------------------------
 =begin
     should "be able to assign a string to R" do
 
@@ -150,9 +193,9 @@ class SciComTest < Test::Unit::TestCase
 
     end
 
-    #======================================================================================
+    #--------------------------------------------------------------------------------------
     #
-    #======================================================================================
+    #--------------------------------------------------------------------------------------
 
     should "be able to assign a Ruby array to R" do
 
@@ -162,9 +205,9 @@ class SciComTest < Test::Unit::TestCase
 
     end
     
-    #======================================================================================
+    #--------------------------------------------------------------------------------------
     #
-    #======================================================================================
+    #--------------------------------------------------------------------------------------
 
     should "be able to send an MDArray to R" do
 

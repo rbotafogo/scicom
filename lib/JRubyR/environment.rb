@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
 
 ##########################################################################################
+# @author Rodrigo Botafogo
+#
 # Copyright © 2013 Rodrigo Botafogo. All Rights Reserved. Permission to use, copy, modify, 
 # and distribute this software and its documentation, without fee and without a signed 
 # licensing agreement, is hereby granted, provided that the above copyright notice, this 
@@ -19,63 +21,42 @@
 # OR MODIFICATIONS.
 ##########################################################################################
 
-require 'rubygems'
-require "test/unit"
-require 'shoulda'
+class Environment < RubySexp
 
-require 'env'
-require 'scicom'
 
-class SciComTest < Test::Unit::TestCase
+  #----------------------------------------------------------------------------------------
+  #
+  #----------------------------------------------------------------------------------------
 
-  context "R environment" do
+  def method_missing(symbol, *args)
 
-    #--------------------------------------------------------------------------------------
-    #
-    #--------------------------------------------------------------------------------------
+    stack = Array.new
 
-    setup do 
-      
+    name = symbol.id2name
+    if name =~ /(.*)=$/
+      # should never reach this point.  Parse error... but check
+      raise ArgumentError, "You shouldn't assign nil" if args==[nil]
+      super if args.length != 1
+      ret = R.assign($1,args[0])
+    else
+      name.gsub!(/__/,".")
+      # super if args.length != 0
+      if (args.length == 0)
+        # treat the argument as a named item of the list
+        ret = RubySexp.build(@sexp.getVariable(name))
+      else
+        params, stack = parse(*args)
+        ret = eval("#{name}(#{params})")
+      end
     end
 
-
-    #--------------------------------------------------------------------------------------
-    #
-    #--------------------------------------------------------------------------------------
-
-    should "work with list" do
-
-      x = R.list(first: (1..10), second: R.c("yes","no"), third: R.c(TRUE,FALSE), 
-        fourth: R.gl(2,3))
-      x.first.print
-      x.second.print
-      x.fourth.print
-      x[0].print
-
-      assert_raise ( RuntimeError ) { x.third(3) }
-
-      x.each do |elmt|
-        elmt.print
-      end
-
-      R.var = R.c(2, 3, 4)
-      # list with R options
-      opts = R.options
-
-      opts.each do |opt|
-        opt.print
-      end
-
-      lst = R.list(R.var, R.c(1, 2, 3), opts)
-      lst[0].print
-      lst[2].na__action.print
-
-      longlst = R.append(lst, lst)
-      p "long list"
-      longlst.print
-
+    stack.each do |sexp|
+      sexp.destroy
     end
-    
+
+    ret
+
   end
 
 end
+

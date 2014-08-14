@@ -21,7 +21,7 @@
 # OR MODIFICATIONS.
 ##########################################################################################
 
-class ListVector < RubySexp
+class ListVector < Vector
 
   #----------------------------------------------------------------------------------------
   #
@@ -88,12 +88,30 @@ class ListVector < RubySexp
   end
 
   #----------------------------------------------------------------------------------------
-  #
+  # Treats ruby style methods in lists as named items on the list
   #----------------------------------------------------------------------------------------
 
-  def print
-    R.eval("print(#{r})")
-  end
+  def method_missing(symbol, *args)
 
+    stack = Array.new
+
+    name = symbol.id2name
+    name.gsub!(/__/,".")
+    # super if args.length != 0
+    if (args.length == 0)
+      # treat name as a named item of the list
+      ret = R.eval("#{r}[\"#{name}\"]")[0]
+    else
+      raise "Illegal argument for named list item #{name}"
+    end
+    
+    stack.each do |sexp|
+      sexp.destroy
+    end
+    
+    ret
+    
+  end
+  
 end
 

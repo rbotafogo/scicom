@@ -23,5 +23,8 @@
 
 class DataFrame < ListVector
 
+  def colnames(names)
+    R.eval("colnames(#{r}) = c(#{names})") 
+  end
 
 end

@@ -33,29 +33,12 @@ end
 #
 #==========================================================================================
 
-class RubySexp
-
+module RBSexp
+  include_package "org.renjin"
+  include_package "java.lang"
+  
   attr_reader :sexp
   attr_reader :rvar
-
-  #----------------------------------------------------------------------------------------
-  #
-  #----------------------------------------------------------------------------------------
-
-  def initialize(sexp)
-
-    @sexp = sexp
-    @rvar = nil
-
-  end
-
-  #----------------------------------------------------------------------------------------
-  #
-  #----------------------------------------------------------------------------------------
-
-  def type_name
-    @sexp.getTypeName()
-  end
 
   #----------------------------------------------------------------------------------------
   #
@@ -68,14 +51,6 @@ class RubySexp
       @rvar = nil
     end
 
-  end
-
-  #----------------------------------------------------------------------------------------
-  #
-  #----------------------------------------------------------------------------------------
-
-  def numeric?
-    @sexp.isNumeric()
   end
 
   #----------------------------------------------------------------------------------------
@@ -97,12 +72,61 @@ class RubySexp
   #
   #----------------------------------------------------------------------------------------
 
+  def set_sexp(sexp)
+    @sexp = sexp
+  end
+
+  #----------------------------------------------------------------------------------------
+  # * @return true if this MDArray already points to a sexp in R environment
+  #----------------------------------------------------------------------------------------
+
+  def sexp?
+    sexp != nil
+  end
+
+  #----------------------------------------------------------------------------------------
+  #
+  #----------------------------------------------------------------------------------------
+
+  def print
+    R.eval("print(#{r})")
+  end
+
+end
+
+#==========================================================================================
+#
+#==========================================================================================
+
+class RubySexp
+  include RBSexp
+
+  #----------------------------------------------------------------------------------------
+  #
+  #----------------------------------------------------------------------------------------
+
+  def initialize(sexp)
+    @sexp = sexp
+    @rvar = nil
+  end
+
+
+  #----------------------------------------------------------------------------------------
+  #
+  #----------------------------------------------------------------------------------------
+
   def self.build(sexp)
     
     if (sexp.instance_of? Java::OrgRenjinPrimitivesSequence::IntSequence)
       res = IntSeq.new(sexp)
+    elsif (sexp.instance_of? Java::OrgRenjinSexp::Null)
+      res = RubySexp.new(sexp)
     elsif (sexp.instance_of? Java::OrgRenjinSexp::ListVector)
       res = ListVector.new(sexp)
+    elsif (sexp.instance_of? Java::OrgRenjinSexp::LogicalArrayVector)
+      res = LogicalVector.new(sexp)
+    elsif (sexp.instance_of? Java::OrgRenjinSexp::Environment)
+      res = Environment.new(sexp)
     elsif (sexp.instance_of? Java::RbScicom::MDDoubleVector)
       res = MDArray.build_from_nc_array(:double, sexp.array)
       res.set_sexp(sexp)
@@ -141,6 +165,8 @@ class RubySexp
 
 end
 
+require_relative 'vector'
 require_relative 'sequence'
 require_relative 'list_vector'
-
+require_relative 'logical_value'
+require_relative 'environment'
