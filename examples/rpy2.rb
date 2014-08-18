@@ -19,58 +19,26 @@
 # OR MODIFICATIONS.
 ##########################################################################################
 
-require 'rubygems'
-require "test/unit"
-require 'shoulda'
-
 require 'env'
 require 'scicom'
 
-class SciComTest < Test::Unit::TestCase
 
-  context "R environment" do
+pi = R.pi
+p pi[0]
 
-    #--------------------------------------------------------------------------------------
-    #
-    #--------------------------------------------------------------------------------------
+letters = R.letters
+letters.print
 
-    setup do 
-      
-    end
+cap_letters = R.LETTERS
+cap_letters.print
 
+month_abb = R.month__abb
+month_abb.print
 
-    #--------------------------------------------------------------------------------------
-    #
-    #--------------------------------------------------------------------------------------
+month_name = R.month__name
+month_name.print
 
-    should "work with list" do
+dir = R.dir
+dir.print
 
-      x = R.list(first: (1..10), second: R.c("yes","no"), third: R.c(TRUE,FALSE), 
-        fourth: R.gl(2,3))
-      x.first.print
-      x.second.print
-      x.fourth.print
-      x[0].print
-
-      assert_raise ( RuntimeError ) { x.third(3) }
-
-      x.each do |elmt|
-        elmt.print
-      end
-
-      # list with R options
-      opts = R.options
-
-      opts.each do |opt|
-        opt.print
-      end
-
-      lst = R.list(5, R.c(1, 2, 3), opts)
-      lst[0].print
-      lst[2].na__action.print
-
-    end
-    
-  end
-
-end
+R.eval("globalenv")

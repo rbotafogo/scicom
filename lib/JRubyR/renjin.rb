@@ -112,15 +112,7 @@ class Renjin
   #----------------------------------------------------------------------------------------
 
   def na?(x)
-
-    if (x.is_a?(Fixnum))
-      Java::OrgRenjinSexp.IntVector.isNA(x)
-    elsif (x.is_a?(Float))
-      Java::OrgRenjinSexp.DoubleVector.isNA(x)
-    else
-      false
-    end
-
+    R.is__na(x)
   end
 
   #----------------------------------------------------------------------------------------
@@ -128,7 +120,7 @@ class Renjin
   #----------------------------------------------------------------------------------------
 
   def finite?(x)
-    Java::OrgRenjinSexp.DoubleVector.isFinite(x)
+    R.is__finite(x)
   end
 
   #----------------------------------------------------------------------------------------
@@ -140,18 +132,22 @@ class Renjin
     stack = Array.new
 
     name = symbol.id2name
+    name.sub!(/__/,".")
+
     if name =~ /(.*)=$/
       # should never reach this point.  Parse error... but check
       raise ArgumentError, "You shouldn't assign nil" if args==[nil]
       super if args.length != 1
       ret = assign($1,args[0])
     else
-      name.sub!(/__/,".")
       # super if args.length != 0
       if (args.length == 0)
         is_var = false
         # Try to see if name is a variable or a method.
         # Find all variables in the environment and compare them to the given name
+        # v = eval("print(get(\"#{name}\"))")
+        # v.print
+        # p "value of v: #{v}"
         vars = eval("ls()")
         vars.each do |var|
           if (var == name)
@@ -173,6 +169,30 @@ class Renjin
 
     ret
 
+  end
+
+  #----------------------------------------------------------------------------------------
+  # R built-in constants
+  #----------------------------------------------------------------------------------------
+
+  def pi
+    R.eval("pi")
+  end
+
+  def LETTERS
+    R.eval("LETTERS")
+  end
+
+  def letters
+    R.eval("letters")
+  end
+
+  def month__abb
+    R.eval("month.abb")
+  end
+
+  def month__name
+    R.eval("month.name")
   end
 
   #----------------------------------------------------------------------------------------
@@ -226,6 +246,8 @@ class Renjin
         params << "TRUE"
       elsif (arg.is_a? FalseClass)
         params << "FALSE"
+      elsif (arg == nil)
+        params << "NULL"
       elsif (arg.is_a? Range)
         params << "(#{arg.begin}:#{arg.end})"
       elsif (arg.is_a? Hash)
@@ -354,5 +376,7 @@ end
 R = Renjin.new
 NA = R.eval("NA")
 NaN = R.eval("NaN")
+Inf = R.eval("Inf")
+MInf = R.eval("-Inf")
 # EPSILON = R.eval("EPSILON")
-
+# NA_integer = R.eval("NA_integer")

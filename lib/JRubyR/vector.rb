@@ -48,6 +48,8 @@ class Vector < RubySexp
   #----------------------------------------------------------------------------------------
 
   def [](index)
+    # This is inefficient.  Should be changed!
+    raise "0 length vector" if (@sexp.length == 0)
     get(index)
   end
 
