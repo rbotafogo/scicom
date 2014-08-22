@@ -26,8 +26,27 @@ require 'shoulda'
 require 'env'
 require 'scicom'
 
-require_relative 'test_basic'
-require_relative 'test_column-major'
-require_relative 'test_double'
-require_relative 'test_double_receive'
-require_relative 'test_double_assign'
+
+class SciComTest < Test::Unit::TestCase
+
+  context "R environment" do
+
+    #--------------------------------------------------------------------------------------
+    #
+    #--------------------------------------------------------------------------------------
+
+    setup do 
+
+    end
+
+    #--------------------------------------------------------------------------------------
+    #
+    #--------------------------------------------------------------------------------------
+
+    should "call methods" do
+
+    end
+
+  end
+
+end

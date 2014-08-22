@@ -57,13 +57,17 @@ module RBSexp
   #
   #----------------------------------------------------------------------------------------
 
-  def r(stack = nil)
+  def r
 
     if (@rvar == nil)
       @rvar = "sc_#{SecureRandom.hex(8)}"
       R.assign(@rvar, @sexp)
-      stack << self if stack
+      # Whenever a variable is injected in Renjin, it is also added to the Renjin stack.
+      # After eval, every injected variable is removed from Renjin making sure that we
+      # do not have memory leak.
+      Renjin.stack << self
     end
+
     @rvar
 
   end
@@ -96,7 +100,7 @@ module RBSexp
   #
   #----------------------------------------------------------------------------------------
 
-  def p
+  def pp
     print
   end
 
@@ -131,13 +135,13 @@ class RubySexp
   #----------------------------------------------------------------------------------------
 
   def self.build(sexp)
-    
+
     if (sexp.instance_of? Java::OrgRenjinPrimitivesSequence::IntSequence)
-      res = IntSeq.new(sexp)
+      res = IntSequence.new(sexp)
     elsif (sexp.instance_of? Java::OrgRenjinSexp::Null)
-      res = RubySexp.new(sexp)
+      res = nil
     elsif (sexp.instance_of? Java::OrgRenjinSexp::ListVector)
-      res = ListVector.new(sexp)
+      res = List.new(sexp)
     elsif (sexp.instance_of? Java::OrgRenjinSexp::LogicalArrayVector)
       res = LogicalVector.new(sexp)
     elsif (sexp.instance_of? Java::OrgRenjinSexp::Environment)
@@ -182,6 +186,6 @@ end
 
 require_relative 'vector'
 require_relative 'sequence'
-require_relative 'list_vector'
+require_relative 'list'
 require_relative 'logical_value'
 require_relative 'environment'

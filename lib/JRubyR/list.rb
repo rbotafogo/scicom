@@ -21,7 +21,7 @@
 # OR MODIFICATIONS.
 ##########################################################################################
 
-class ListVector < Vector
+class List < Vector
 
   #----------------------------------------------------------------------------------------
   #
@@ -93,8 +93,6 @@ class ListVector < Vector
 
   def method_missing(symbol, *args)
 
-    stack = Array.new
-
     name = symbol.id2name
     name.gsub!(/__/,".")
     # super if args.length != 0
@@ -104,11 +102,7 @@ class ListVector < Vector
     else
       raise "Illegal argument for named list item #{name}"
     end
-    
-    stack.each do |sexp|
-      sexp.destroy
-    end
-    
+
     ret
     
   end

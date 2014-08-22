@@ -30,8 +30,6 @@ class Environment < RubySexp
 
   def method_missing(symbol, *args)
 
-    stack = Array.new
-
     name = symbol.id2name
     if name =~ /(.*)=$/
       # should never reach this point.  Parse error... but check
@@ -45,13 +43,9 @@ class Environment < RubySexp
         # treat the argument as a named item of the list
         ret = RubySexp.build(@sexp.getVariable(name))
       else
-        params, stack = parse(*args)
+        params = parse(*args)
         ret = eval("#{name}(#{params})")
       end
-    end
-
-    stack.each do |sexp|
-      sexp.destroy
     end
 
     ret

@@ -39,4 +39,14 @@ class LogicalVector < Vector
     end
   end
 
+  #----------------------------------------------------------------------------------------
+  # Renjin bug? toString of a LogicalVector in Renjin is returing a LogicalVector and not
+  # a string.  Need to take care of this here.
+  # to_a converts an Enumerable to an array
+  #----------------------------------------------------------------------------------------
+
+  def to_string
+    to_a.join(",")
+  end
+
 end

@@ -31,6 +31,12 @@ class Renjin
   include_package "javax.script"
   include_package "org.renjin"
 
+  @stack = Array.new
+
+  class << self
+    attr_accessor :stack
+  end
+
   #----------------------------------------------------------------------------------------
   #
   #----------------------------------------------------------------------------------------
@@ -129,14 +135,10 @@ class Renjin
 
   def method_missing(symbol, *args)
 
-    stack = Array.new
-
     name = symbol.id2name
     name.sub!(/__/,".")
 
     if name =~ /(.*)=$/
-      # should never reach this point.  Parse error... but check
-      raise ArgumentError, "You shouldn't assign nil" if args==[nil]
       super if args.length != 1
       ret = assign($1,args[0])
     else
@@ -144,10 +146,6 @@ class Renjin
       if (args.length == 0)
         is_var = false
         # Try to see if name is a variable or a method.
-        # Find all variables in the environment and compare them to the given name
-        # v = eval("print(get(\"#{name}\"))")
-        # v.print
-        # p "value of v: #{v}"
         vars = eval("ls()")
         vars.each do |var|
           if (var == name)
@@ -157,14 +155,10 @@ class Renjin
         end if vars != nil
         ret = (is_var)? eval("#{name}") : eval("#{name}()")
       else
-        params, stack = parse(*args)
+        params = parse(*args)
         # p params
         ret = eval("#{name}(#{params})")
       end
-    end
-
-    stack.each do |sexp|
-      sexp.destroy
     end
 
     ret
@@ -195,19 +189,30 @@ class Renjin
     R.eval("month.name")
   end
 
+  def i(value)
+    R.eval("#{value}L")
+  end
+
   #----------------------------------------------------------------------------------------
   #
   #----------------------------------------------------------------------------------------
 
   def eval(expression)
     begin
-      RubySexp.build(@engine.eval(expression))
+      ret = RubySexp.build(@engine.eval(expression))    
     rescue Java::OrgRenjinEval::EvalException => e 
-      p "Unmatched positional arguments"
       p e.message
     rescue Java::OrgRenjinParser::ParseException => e
       p e.message
     end
+
+    # should be executed after the rescue anyway
+    Renjin.stack.each do |sexp|
+      sexp.destroy
+    end
+    
+    ret
+
   end
 
   #----------------------------------------------------------------------------------------
@@ -218,10 +223,20 @@ class Renjin
 
   def direct_eval(expression)
     begin
-      @engine.eval(expression)
+      ret = @engine.eval(expression)
     rescue Java::OrgRenjinEval::EvalException => e 
-      p "Unmatched positional arguments"
+      p e.message
     end
+
+=begin
+    # should be executed after the rescue anyway
+    Renjin.stack.each do |sexp|
+      sexp.destroy
+    end
+=end
+
+    ret
+
   end
 
   #----------------------------------------------------------------------------------------
@@ -231,7 +246,6 @@ class Renjin
   def parse(*args)
 
     params = Array.new
-    stack = Array.new
 
     args.each do |arg|
       if (arg.is_a? Numeric)
@@ -255,14 +269,14 @@ class Renjin
           params << "#{key.to_s} = #{parse(value)[0]}"
         end
       elsif ((arg.is_a? MDArray)  || (arg.is_a? RubySexp))
-        params << arg.r(stack)
+        params << arg.r
       else
         raise "Unknown parameter type for R: #{arg}"
       end
       
     end
 
-    [params.join(","), stack]
+    params.join(",")
       
   end
 
@@ -331,6 +345,8 @@ class Renjin
         value.immutable
         value = build_vector(value)
       end
+    elsif (value == nil)
+      value = NULL
     end
 
     @engine.put(name, value)
@@ -378,5 +394,6 @@ NA = R.eval("NA")
 NaN = R.eval("NaN")
 Inf = R.eval("Inf")
 MInf = R.eval("-Inf")
+NULL = R.direct_eval("NULL")
 # EPSILON = R.eval("EPSILON")
 # NA_integer = R.eval("NA_integer")
