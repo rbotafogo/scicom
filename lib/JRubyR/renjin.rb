@@ -204,13 +204,12 @@ class Renjin
       p e.message
     rescue Java::OrgRenjinParser::ParseException => e
       p e.message
+    ensure
+      Renjin.stack.each do |sexp|
+        sexp.destroy
+      end
     end
 
-    # should be executed after the rescue anyway
-    Renjin.stack.each do |sexp|
-      sexp.destroy
-    end
-    
     ret
 
   end
@@ -226,14 +225,13 @@ class Renjin
       ret = @engine.eval(expression)
     rescue Java::OrgRenjinEval::EvalException => e 
       p e.message
-    end
-
+    ensure
 =begin
-    # should be executed after the rescue anyway
-    Renjin.stack.each do |sexp|
-      sexp.destroy
-    end
+      Renjin.stack.each do |sexp|
+        sexp.destroy
+      end
 =end
+    end
 
     ret
 
@@ -371,7 +369,7 @@ class Renjin
     shape = array.shape
     index = array.nc_array.getIndex()
     # index = MDArray.index_factory(shape)
-    # representation of shape in R in different from shape in MDArray.  Convert MDArray
+    # representation of shape in R is different from shape in MDArray.  Convert MDArray
     # shape to R shape.
     if (shape.size > 2)
       shape.reverse!

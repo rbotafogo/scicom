@@ -61,7 +61,7 @@ module RBSexp
 
     if (@rvar == nil)
       @rvar = "sc_#{SecureRandom.hex(8)}"
-      R.assign(@rvar, @sexp)
+      (@sexp == nil)? R.assign(@rvar, self) : R.assign(@rvar, @sexp)
       # Whenever a variable is injected in Renjin, it is also added to the Renjin stack.
       # After eval, every injected variable is removed from Renjin making sure that we
       # do not have memory leak.

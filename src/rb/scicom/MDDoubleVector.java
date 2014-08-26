@@ -86,7 +86,8 @@ public class MDDoubleVector extends DoubleVector {
     }
 
     /*
-     * Given an element finds the coresponding counter in column-major order
+     * Given an element finds the coresponding counter in column-major order.  Assumes that
+     * currElement is a valid element of the Vector.
      */
 
     public void setCurrentCounter(int currElement) {
@@ -96,17 +97,23 @@ public class MDDoubleVector extends DoubleVector {
 	int [] current = new int[length];
 	int l2 = (length - 2) >= 0 ? (length - 2) : 1;
 
+	if (length == 1) {
+	    current[0] = currElement * _stride[0];
+	    _index.set(current);
+	    return;
+	}
+
 	if (length > 2) { 
 	    for (int i = 0; i < l2; i++) { 
 		current[i] = currElement / _stride[i];
 		currElement -= current[i] * _stride[i];
 	    }
 	}
-
 	for(int i = l2; i < length; ++i) {
 	    current[i] = currElement % shape[i];
 	    currElement = (currElement - current[i]) / shape[i];
 	}
+	
 	// java.lang.System.out.println("current: " + Arrays.toString(current));
 	_index.set(current); // transfer to subclass fields
     }

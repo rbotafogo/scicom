@@ -78,8 +78,7 @@ EOF
 
       # MDArray instances created in Ruby namespace can also be access in the R
       # namespace with the r method:
-      # Not working!!!!!!!!!!!!!!!!!
-      array = MDArray.typed_arange(:double, 12)
+      array = MDArray.typed_arange(:double, 18)
       R.eval("print(#{array.r})")
       
       # calls methods getwd
@@ -120,6 +119,8 @@ EOF
     should "work with missing numbers" do
 
       assert_equal(false, R.is__na(10)[0])
+      # Since every value is a vector in R, .z returns the 0th index of the vector
+      assert_equal(false, R.is__na(10).z)
       assert_equal(true, R.is__na(NA)[0])
 
       # this will result in error.  In R is.na(NaN) is true and in Renjin it's false
@@ -130,8 +131,10 @@ EOF
       # R.is__na and R.na? are both valid and do the same thing
       assert_equal(false, R.na?(10)[0])
       assert_equal(false, R.na?(10.35)[0])
+      assert_equal(false, R.na?(10.35).z)
       assert_equal(false, R.na?(R.eval("10L"))[0])
       assert_equal(false, R.na?(R.eval("10.456"))[0])
+      assert_equal(false, R.na?(R.eval("10.456")).z)
 
       # Use nil in Ruby when needing a NULL in R
       p "R prints Warning message when is.na is applied to a value and not a vector: "
@@ -145,6 +148,7 @@ EOF
 
       # Check NaN properties
       assert_equal(true, R.is__nan(NaN)[0])
+      assert_equal(true, R.is__nan(NaN).z)
       assert_equal(true, R.nan?(NaN)[0])
       # Those are NaN
       assert_equal(false, R.nan?(NA)[0])
@@ -196,22 +200,7 @@ EOF
     #
     #--------------------------------------------------------------------------------------
 
-    should "work fine with returned MDArrays" do
-
-      res = (R.c(2, 3, 4) == R.c(2, 3, 4))
-      res.print
-
-      # array multiplication
-      (R.c(2, 3, 4) * R.c(5, 6, 7)).pp
-
-    end
-
-    #--------------------------------------------------------------------------------------
-    #
-    #--------------------------------------------------------------------------------------
-
-
-    should "be able to assign NULL to R object" do
+    should "assign NULL to R object" do
       
       # assign NULL value
       R.assign("null", nil)
@@ -230,12 +219,11 @@ EOF
 
     end
 
-
     #--------------------------------------------------------------------------------------
     #
     #--------------------------------------------------------------------------------------
 
-    should "be able to assign an integer to an R object" do
+    should "assign an integer to an R object" do
 
       # To create an int we need to call eval....
       i1 = R.eval("10L")
@@ -252,7 +240,7 @@ EOF
 
       int_vec = R.c(R.i(10), R.i(20), R.i(30), R.i(40))
       int_vec.print
-      R.eval("print(int_vec)")
+      R.eval("print(#{int_vec.r})")
 
       R.eval <<EOF
       print(#{int_vec.r})
@@ -260,25 +248,82 @@ EOF
 
     end
 
-=begin
+    #--------------------------------------------------------------------------------------
+    #
+    #--------------------------------------------------------------------------------------
 
-=end
+    should "create MDArrays from R methods" do
+
+      # R.c creates a MDArray.  In general it will be a double MDArray
+      res = R.c(2, 3, 4, 5)
+      assert_equal("double", res.type)
+      assert_equal(4, res.size)
+
+      # to create an int MDArray with R.c, all elements need to be integer.  To create an
+      # int we need R.i method
+      res = R.c(R.i(2), R.i(3), R.i(4))
+      assert_equal("int", res.type)
+      assert_equal(3, res.size)
+
+      # using == method from MDArray.  It returns an boolean MDArray
+      res = (R.c(2, 3, 4) == R.c(2, 3, 4))
+      assert_equal("boolean", res.type)
+
+      # array multiplication
+      (R.c(2, 3, 4) * R.c(5, 6, 7)).pp
+
+      # A sequence also becomes an MDArray
+      res = R.seq(10, 40)
+      res.print
+
+      res = R.rep(R.c(1, 2, 3), 3)
+      res.print
+
+    end
 
     #--------------------------------------------------------------------------------------
     #
     #--------------------------------------------------------------------------------------
-=begin
+
+    should "use MDArray in R" do
+      
+      # create a double MDArray
+      vec  = MDArray.typed_arange(:double, 12)
+      vec.print
+
+      # assign the MDArray to an R vector "my.vec"
+      R.my__vec = vec
+
+      # print R's "my.vec"
+      R.eval("print(my.vec)")
+
+      # use the .r method in MDArray's to get the MDArray value in R
+      R.eval("print(#{vec.r})")
+
+      # Passing an MDArray without assigning it in a R vector is also possible
+      R.eval("print(#{MDArray.typed_arange(:double, 5).r})")
+
+    end
+
+    #--------------------------------------------------------------------------------------
+    #
+    #--------------------------------------------------------------------------------------
+
     should "be able to assign a string to R" do
 
-      @r1.assign("str", "hello there;")
-      str = @r1.pull("str")
+      # assign and pull are not really necessary, but left since other R integration
+      # solutions use those methods
+      R.assign("str", "hello there;")
+      str = R.pull("str")
 
-      p str.get_as(:int)
-      p str.get_as(:double)
-      p str.get_as(:complex)
-
+      # method get, gets the current element
       assert_equal("hello there;", str.get_as(:string))
       assert_equal("hello there;", str.get)
+
+      R.str2 = "This is another string"
+      assert_equal("This is another string", R.str2.z)
+      p "R variables"
+      R.ls.pp
 
     end
 
@@ -288,23 +333,20 @@ EOF
 
     should "be able to assign a Ruby array to R" do
 
+      # converts the Ruby array to an R list
       names = ["Lisa", "Teasha", "Aaron", "Thomas"]
-      @r1.people = names
-      # @r1.people.get_element_as_string
+      R.people = names
+      R.people.pp
+
+      R.list = [1, 2, 3, 4, 5, 6]
+      R.list.pp
+
+      # Getting error: Unmatched positional arguments !!!!
+      p "shows the structure of an R object"
+      p R.str(R.people)
 
     end
-    
-    #--------------------------------------------------------------------------------------
-    #
-    #--------------------------------------------------------------------------------------
-
-    should "be able to send an MDArray to R" do
-
-
-    end
-=end
 
   end
   
 end
-

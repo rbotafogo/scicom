@@ -27,7 +27,10 @@ require 'env'
 require 'scicom'
 
 require_relative 'test_basic'
+
+=begin
 require_relative 'test_column-major'
 require_relative 'test_double'
 require_relative 'test_double_receive'
 require_relative 'test_double_assign'
+=end
