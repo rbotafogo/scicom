@@ -36,32 +36,22 @@ class SciComTest < Test::Unit::TestCase
 
     setup do 
 
-      # creating two distinct instances of SciCom
-      @r1 = R.new
-      @r2 = R.new
-
     end
 
-#=begin
     #======================================================================================
     #
     #======================================================================================
 
-    should "create a double (single value) in R" do
+    should "create a numeric (single value) in R" do
 
       R.eval("i1 = 10.2387")
       # the returned value is an MDArray and all methods on MDArray can be called
       i1 = R.i1
 
       # by default type is double
-      assert_equal("double", i1.type_name)
-
-      # i1 from r2 should not interfere with i1 from r1
-      @r2.i1 = 20.18 # store data in R engine r2
-      r2_i1 = @r2.i1 # retrive i1 from R engine r2
-
+      assert_equal("double", i1.type)
       assert_equal(10.2387, i1[0])
-      assert_equal(20.18, r2_i1[0])
+      assert_equal(10.2387, i1.z)
 
       # assign to an R variable the MDArray returned previously.  The original variable
       # is still valid
@@ -69,17 +59,29 @@ class SciComTest < Test::Unit::TestCase
       assert_equal(10.2387, R.i2)
       assert_equal(10.2387, R.i1)
 
-      # p @r1.eval("typeof(i2)")
+      # Returned value is a string MDArray
+      R.eval("typeof(i2)").pp
 
+      # create a double with calling eval with a string
+      i2 = R.d(345.7789)
+      assert_equal(345.7789, i2.z)
+
+      # The same can be done for integer type.  However, creating an integer in harder as
+      # by default a double is created
+      my_int = R.i(10)
+      assert_equal(10, my_int.z)
+      assert_equal("int", my_int.type)
+      
     end
 
     #======================================================================================
     #
     #======================================================================================
 
-    should "make MDArrays returned by R immutable" do
+    should "guarantee that MDArrays returned by R are immutable" do
 
-      i1 = R.eval("i1 = 10.2387")
+      # can pass a double to eval.  It will be evaluated to a double vector
+      i1 = R.eval("10.387")
 
       assert_raise ( RuntimeError ) { i1[0] = 20 }
       assert_raise ( RuntimeError ) { i1.set(0, 20) }
@@ -91,13 +93,15 @@ class SciComTest < Test::Unit::TestCase
     #
     #======================================================================================
 
-    should "cast an R object to different types" do
+    should "cast MDArray numeric value to different types" do
 
-      i1 = R.eval("i1 = 10.2387")
+      i1 = R.d(10.2387)
 
       # double cannot be converted to boolean
       assert_raise ( RuntimeError ) { i1.get_as(:boolean) }
 
+      # method .get_as returns the current element of MDArray, which, in this case, is the
+      # first element
       assert_equal(10, i1.get_as(:byte))
       assert_equal(10, i1.get_as(:char))
       assert_equal(10, i1.get_as(:short))
@@ -107,11 +111,6 @@ class SciComTest < Test::Unit::TestCase
       assert_equal(10.2387, i1.get_as(:double))
       assert_equal("10.2387", i1.get_as(:string))
 
-      # logical, raw_logical and complex are not types known to MDArray
-      # assert_equal(true, i1.get_as(:logical))
-      # assert_equal(1, i1.get_as(:raw_logical))
-      # assert_equal(Complex(10.2387, 0), i1.get_as(:complex))
-
     end
 
     #======================================================================================
@@ -120,7 +119,7 @@ class SciComTest < Test::Unit::TestCase
 
     should "be able to create a double vector in R" do
 
-      vec = R.eval("c(1, 2, 3, 4)")
+      vec = R.c(1, 2, 3, 4)
 
       # The vector created in R returns as a MDArray in Ruby and can be treated as such
       assert_equal("1.0 2.0 3.0 4.0 ", vec.to_string)
@@ -139,14 +138,14 @@ class SciComTest < Test::Unit::TestCase
 
     should "work with NA and NaN in double vectors" do
 
-      vec2 = R.eval("c(1, NA, 3, 4)")
+      vec2 = R.c(1, NA, 3, 4)
       vec2.print
 
-      vec3 = R.eval("c(1, NaN, 3, 4)")
+      vec3 = R.c(1, NaN, 3, 4)
       vec3.print
 
     end
-#=end
+
     #======================================================================================
     #
     #======================================================================================

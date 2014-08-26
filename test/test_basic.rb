@@ -88,6 +88,10 @@ EOF
 
       # Check variables created in Renjin (R) environment
       R.ls.pp
+      
+      # look at the structure of R object
+      p "Structure of vector"
+      R.str(vector)
 
     end
 
@@ -341,9 +345,9 @@ EOF
       R.list = [1, 2, 3, 4, 5, 6]
       R.list.pp
 
-      # Getting error: Unmatched positional arguments !!!!
-      p "shows the structure of an R object"
-      p R.str(R.people)
+      # this gives an error in Renjin about Unmatched positional argument.  I think this is a
+      # Renjin bug.
+      R.str(R.list)
 
     end
 

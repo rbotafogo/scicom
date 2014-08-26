@@ -193,13 +193,17 @@ class Renjin
     R.eval("#{value}L")
   end
 
+  def d(value)
+    R.eval("#{value}")
+  end
+
   #----------------------------------------------------------------------------------------
   #
   #----------------------------------------------------------------------------------------
 
   def eval(expression)
     begin
-      ret = RubySexp.build(@engine.eval(expression))    
+      ret = RubySexp.build(@engine.eval(expression))
     rescue Java::OrgRenjinEval::EvalException => e 
       p e.message
     rescue Java::OrgRenjinParser::ParseException => e
