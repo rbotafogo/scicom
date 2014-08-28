@@ -21,34 +21,38 @@
 # OR MODIFICATIONS.
 ##########################################################################################
 
-class Environment < RubySexp
 
+class Renjin
 
-  #----------------------------------------------------------------------------------------
-  #
-  #----------------------------------------------------------------------------------------
+  class Environment < Renjin::RubySexp
 
-  def method_missing(symbol, *args)
+    #----------------------------------------------------------------------------------------
+    #
+    #----------------------------------------------------------------------------------------
 
-    name = symbol.id2name
-    if name =~ /(.*)=$/
-      # should never reach this point.  Parse error... but check
-      raise ArgumentError, "You shouldn't assign nil" if args==[nil]
-      super if args.length != 1
-      ret = R.assign($1,args[0])
-    else
-      name.gsub!(/__/,".")
-      # super if args.length != 0
-      if (args.length == 0)
-        # treat the argument as a named item of the list
-        ret = RubySexp.build(@sexp.getVariable(name))
+    def method_missing(symbol, *args)
+      
+      name = symbol.id2name
+      if name =~ /(.*)=$/
+        # should never reach this point.  Parse error... but check
+        raise ArgumentError, "You shouldn't assign nil" if args==[nil]
+        super if args.length != 1
+        ret = R.assign($1,args[0])
       else
-        params = parse(*args)
-        ret = eval("#{name}(#{params})")
+        name.gsub!(/__/,".")
+        # super if args.length != 0
+        if (args.length == 0)
+          # treat the argument as a named item of the list
+          ret = Renjin::RubySexp.build(@sexp.getVariable(name))
+        else
+          params = parse(*args)
+          ret = eval("#{name}(#{params})")
+        end
       end
+      
+      ret
+      
     end
-
-    ret
 
   end
 

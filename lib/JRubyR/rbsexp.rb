@@ -21,6 +21,8 @@
 # OR MODIFICATIONS.
 ##########################################################################################
 
+require_relative "attributes"
+
 #==========================================================================================
 #
 #==========================================================================================
@@ -39,6 +41,7 @@ module RBSexp
   
   attr_reader :sexp
   attr_reader :rvar
+  attr_reader :attributes
 
   #----------------------------------------------------------------------------------------
   #
@@ -110,76 +113,81 @@ end
 #
 #==========================================================================================
 
-class RubySexp
-  include RBSexp
+class Renjin
 
-  #----------------------------------------------------------------------------------------
-  #
-  #----------------------------------------------------------------------------------------
+  class RubySexp
+    include RBSexp
 
-  def initialize(sexp)
-    @sexp = sexp
-    @rvar = nil
-  end
-
-  #----------------------------------------------------------------------------------------
-  #
-  #----------------------------------------------------------------------------------------
-
-  def to_string
-    R.eval("toString(#{r})")
-  end
-
-  #----------------------------------------------------------------------------------------
-  #
-  #----------------------------------------------------------------------------------------
-
-  def self.build(sexp)
-
-    if (sexp.instance_of? Java::OrgRenjinPrimitivesSequence::IntSequence)
-      res = IntSequence.new(sexp)
-    elsif (sexp.instance_of? Java::OrgRenjinSexp::Null)
-      res = nil
-    elsif (sexp.instance_of? Java::OrgRenjinSexp::ListVector)
-      res = List.new(sexp)
-    elsif (sexp.instance_of? Java::OrgRenjinSexp::LogicalArrayVector)
-      res = LogicalVector.new(sexp)
-    elsif (sexp.instance_of? Java::OrgRenjinSexp::Environment)
-      res = Environment.new(sexp)
-    elsif (sexp.instance_of? Java::RbScicom::MDDoubleVector)
-      res = MDArray.build_from_nc_array(:double, sexp.array)
-      res.set_sexp(sexp)
-      # set return vector as immutable, as Renjin assumes it.
-      res.immutable
-    elsif (sexp.instance_of? Java::OrgRenjinSexp::DoubleArrayVector)
-      res = MDArray.from_jstorage("double", [sexp.length()], sexp.toDoubleArrayUnsafe())
-      if (res != nil)
-        res.set_sexp(sexp)
-        # set return vector as immutable, as Renjin assumes it.
-        res.immutable
-      end
-    elsif (sexp.instance_of? Java::OrgRenjinSexp::IntArrayVector)
-      res = MDArray.from_jstorage("int", [sexp.length()], sexp.toIntArrayUnsafe())
-      if (res != nil)
-        res.set_sexp(sexp)
-        # set return vector as immutable, as Renjin assumes it.
-        res.immutable
-      end
-    elsif (sexp.instance_of? Java::OrgRenjinSexp::StringArrayVector)
-      res = MDArray.from_jstorage("string", [sexp.length()], sexp.values)
-      if (res != nil)
-        res.set_sexp(sexp)
-        # set return vector as immutable, as Renjin assumes it.
-        res.immutable
-      end
-    else
-      p "sexp type needs to be specialized"
-      p sexp
-      res = RubySexp.new(sexp)
+    #----------------------------------------------------------------------------------------
+    #
+    #----------------------------------------------------------------------------------------
+    
+    def initialize(sexp)
+      @sexp = sexp
+      @rvar = nil
+      # @attributes = R.attributes(sexp)
     end
-
-    return res
-
+    
+    #----------------------------------------------------------------------------------------
+    #
+    #----------------------------------------------------------------------------------------
+    
+    def to_string
+      R.eval("toString(#{r})")
+    end
+    
+    #----------------------------------------------------------------------------------------
+    #
+    #----------------------------------------------------------------------------------------
+    
+    def self.build(sexp)
+      
+      if (sexp.instance_of? Java::OrgRenjinPrimitivesSequence::IntSequence)
+        res = Renjin::IntSequence.new(sexp)
+      elsif (sexp.instance_of? Java::OrgRenjinSexp::Null)
+        res = nil
+      elsif (sexp.instance_of? Java::OrgRenjinSexp::ListVector)
+        res = Renjin::List.new(sexp)
+      elsif (sexp.instance_of? Java::OrgRenjinSexp::LogicalArrayVector)
+        res = Renjin::Logical.new(sexp)
+      elsif (sexp.instance_of? Java::OrgRenjinSexp::Environment)
+        res = Renjin::Environment.new(sexp)
+      elsif (sexp.instance_of? Java::RbScicom::MDDoubleVector)
+        res = MDArray.build_from_nc_array(:double, sexp.array)
+        res.set_sexp(sexp)
+        # set return vector as immutable, as Renjin assumes it.
+        res.immutable
+      elsif (sexp.instance_of? Java::OrgRenjinSexp::DoubleArrayVector)
+        res = MDArray.from_jstorage("double", [sexp.length()], sexp.toDoubleArrayUnsafe())
+        if (res != nil)
+          res.set_sexp(sexp)
+          # set return vector as immutable, as Renjin assumes it.
+          res.immutable
+        end
+      elsif (sexp.instance_of? Java::OrgRenjinSexp::IntArrayVector)
+        res = MDArray.from_jstorage("int", [sexp.length()], sexp.toIntArrayUnsafe())
+        if (res != nil)
+          res.set_sexp(sexp)
+          # set return vector as immutable, as Renjin assumes it.
+          res.immutable
+        end
+      elsif (sexp.instance_of? Java::OrgRenjinSexp::StringArrayVector)
+        res = MDArray.from_jstorage("string", [sexp.length()], sexp.values)
+        if (res != nil)
+          res.set_sexp(sexp)
+          # set return vector as immutable, as Renjin assumes it.
+          res.immutable
+        end
+      else
+        p "sexp type needs to be specialized"
+        p sexp
+        res = Renjin::RubySexp.new(sexp)
+      end
+      
+      return res
+      
+    end
+    
   end
 
 end

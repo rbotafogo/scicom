@@ -27,26 +27,30 @@
 
 require 'java'
 
-class LogicalVector < Vector
+class Renjin
 
-  #----------------------------------------------------------------------------------------
-  #
-  #----------------------------------------------------------------------------------------
+  class Logical < Renjin::Vector
 
-  def each(&block)
-    while (@iterator.hasNext())
-      block.call((@iterator.next().getInternalValue() == 1)? true : false)
+    #----------------------------------------------------------------------------------------
+    #
+    #----------------------------------------------------------------------------------------
+    
+    def each(&block)
+      while (@iterator.hasNext())
+        block.call((@iterator.next().getInternalValue() == 1)? true : false)
+      end
     end
+    
+    #----------------------------------------------------------------------------------------
+    # Renjin bug? toString of a LogicalVector in Renjin is returing a LogicalVector and not
+    # a string.  Need to take care of this here.
+    # to_a converts an Enumerable to an array
+    #----------------------------------------------------------------------------------------
+    
+    def to_string
+      to_a.join(",")
+    end
+    
   end
-
-  #----------------------------------------------------------------------------------------
-  # Renjin bug? toString of a LogicalVector in Renjin is returing a LogicalVector and not
-  # a string.  Need to take care of this here.
-  # to_a converts an Enumerable to an array
-  #----------------------------------------------------------------------------------------
-
-  def to_string
-    to_a.join(",")
-  end
-
+  
 end

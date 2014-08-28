@@ -203,7 +203,7 @@ class Renjin
 
   def eval(expression)
     begin
-      ret = RubySexp.build(@engine.eval(expression))
+      ret = Renjin::RubySexp.build(@engine.eval(expression))
     rescue Java::OrgRenjinEval::EvalException => e 
       p e.message
     rescue Java::OrgRenjinParser::ParseException => e
@@ -265,12 +265,13 @@ class Renjin
       elsif (arg == nil)
         params << "NULL"
       elsif (arg.is_a? Range)
-        params << "(#{arg.begin}:#{arg.end})"
+        final_value = (arg.exclude_end?)? (arg.end - 1) : arg.end
+        params << "(#{arg.begin}:#{final_value})"
       elsif (arg.is_a? Hash)
         arg.each_pair do |key, value|
           params << "#{key.to_s} = #{parse(value)[0]}"
         end
-      elsif ((arg.is_a? MDArray)  || (arg.is_a? RubySexp))
+      elsif ((arg.is_a? MDArray)  || (arg.is_a? Renjin::RubySexp))
         params << arg.r
       else
         raise "Unknown parameter type for R: #{arg}"

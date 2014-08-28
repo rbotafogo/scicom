@@ -21,10 +21,15 @@
 # OR MODIFICATIONS.
 ##########################################################################################
 
-class DataFrame < ListVector
+class Renjin
+
+  class DataFrame < Renjin::List
 
   def colnames(names)
     R.eval("colnames(#{r}) = c(#{names})") 
   end
 
+  end
+
 end
+

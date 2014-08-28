@@ -27,12 +27,10 @@ require 'set'
 class Java::UcarMa2::Index
   field_accessor :stride
 
-#=begin
   def currentElement
     getCurrentCounter()
     super
   end
-#=end
 
 end
 
