@@ -28,6 +28,7 @@ require 'scicom'
 
 require_relative 'test_basic'
 require_relative 'test_numeric'
+require_relative 'test_vector'
 
 =begin
 require_relative 'test_column-major'

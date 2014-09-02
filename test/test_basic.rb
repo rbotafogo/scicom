@@ -43,15 +43,52 @@ class SciComTest < Test::Unit::TestCase
     #
     #--------------------------------------------------------------------------------------
 
+    should "work with vector" do
+
+      # Create a vector with R.c
+      var = R.c(2, 3, 4)
+
+      # Create vectors with double value
+      two = R.d(2)
+      three = R.d(3)
+      four = R.d(4)
+
+      R.all__equal(var, var).pp
+
+=begin
+      # Vector can be accessed in R by calling the 'r' method
+      R.eval("#{var.r}[1]")
+
+      # Vector can be accessed in Ruby by normal indexing, but remember, all values are
+      # vectors
+      var[2].pp
+      R.eval("#{var.r}[1]")
+      R.eval("#{two.r}")
+      R.eval("all.equal(#{var.r}[1], #{two.r})").pp
+
+      # assert_equal(TRUE, var[1].eq(two))
+=end
+    end
+
+    #--------------------------------------------------------------------------------------
+    #
+    #--------------------------------------------------------------------------------------
+=begin
     should "save variables and access variables and functions in R" do
+
+      
+      var = R.c(2, 3, 4, 5)
+      var.pp
 
       # method pp prints the content of the Sexp.  "__" in variables and functions are
       # converted to "." in R.  So "my__var" is variable "my.var" in R namespace
 
       # Defininig variable "my.var" in the R namespace.  Need to use the "__" notation:
       R.my__var = R.c(2, 3, 4)
+
       # get the variable "my.var" defined above using a method call on R:
       R.my__var.pp
+
       # Accessimg variable "my.var" through the eval method of R:
       R.eval("print(my.var)")
 
@@ -70,16 +107,11 @@ EOF
       vector = R.c(2, 3, 4)
       
       # Acessing variable vector in the Ruby namespace as any normal Ruby variable
-      vector.print
+      vector.pp
 
       # Ruby variables created through method call to function in the R namespace
       # can be accessed in R with the r method:
       R.eval("print(#{vector.r})")
-
-      # MDArray instances created in Ruby namespace can also be access in the R
-      # namespace with the r method:
-      array = MDArray.typed_arange(:double, 18)
-      R.eval("print(#{array.r})")
       
       # calls methods getwd
       R.getwd.pp
@@ -103,15 +135,15 @@ EOF
 
       # get default R options
       opts = R.options
-
+      
       p "Some R options:"
       print("\n")
       # access the options through their names
-      p "timeout is: #{opts.timeout.to_string}"
-      p "na.action: #{opts.na__action.to_string}"
-      p "prompt: #{opts.prompt.to_string}"
-      p "help.search: #{opts.help__search__types.to_string}"
-      p "show error message: #{opts.show__error__messages.to_string}"
+      p "timeout is: #{opts.timeout.z}"
+      p "na.action: #{opts.na__action.z}"
+      p "prompt: #{opts.prompt.z}"
+      p "help.search: #{opts.help__search__types.z}"
+      p "show error message: #{opts.show__error__messages.z}"
       print("\n")
 
     end
@@ -178,7 +210,9 @@ EOF
 
       assert_equal(Inf, Inf)
       assert_equal(false, R.finite?(Inf)[0])
+      assert_equal(false, R.finite?(Inf).z)
       assert_equal(false, R.finite?(MInf)[0])
+      assert_equal(false, R.finite?(MInf).z)
 
       # Check if the number if finite
       assert_equal(true, R.finite?(10)[0])
@@ -232,15 +266,18 @@ EOF
       # To create an int we need to call eval....
       i1 = R.eval("10L")
 
-      assert_equal(10, i1.get)
+      assert_equal(10, i1.z)
       assert_equal(10, i1[0])
-      assert_equal(10, i1.get_as(:int))
-      assert_equal(10.0, i1.get_as(:double))
-      assert_equal("10", i1.get_as(:string))
+      assert_equal(10, i1.z)
+      assert_equal(10, i1.as__integer)
+      assert_equal(10.0, R.as__double(i1).z)
+      assert_equal("10", R.as__character(i1).z)
+      assert_equal(10.0, i1.as__double)
+      assert_equal("10", i1.as__character)
 
       # ... or call method R.i to create an integer object
       i2 = R.i(13)
-      assert_equal(13, i2.get)
+      # assert_equal(13, i2.get)
 
       int_vec = R.c(R.i(10), R.i(20), R.i(30), R.i(40))
       int_vec.print
@@ -256,63 +293,6 @@ EOF
     #
     #--------------------------------------------------------------------------------------
 
-    should "create MDArrays from R methods" do
-
-      # R.c creates a MDArray.  In general it will be a double MDArray
-      res = R.c(2, 3, 4, 5)
-      assert_equal("double", res.type)
-      assert_equal(4, res.size)
-
-      # to create an int MDArray with R.c, all elements need to be integer.  To create an
-      # int we need R.i method
-      res = R.c(R.i(2), R.i(3), R.i(4))
-      assert_equal("int", res.type)
-      assert_equal(3, res.size)
-
-      # using == method from MDArray.  It returns an boolean MDArray
-      res = (R.c(2, 3, 4) == R.c(2, 3, 4))
-      assert_equal("boolean", res.type)
-
-      # array multiplication
-      (R.c(2, 3, 4) * R.c(5, 6, 7)).pp
-
-      # A sequence also becomes an MDArray
-      res = R.seq(10, 40)
-      res.print
-
-      res = R.rep(R.c(1, 2, 3), 3)
-      res.print
-
-    end
-
-    #--------------------------------------------------------------------------------------
-    #
-    #--------------------------------------------------------------------------------------
-
-    should "use MDArray in R" do
-      
-      # create a double MDArray
-      vec  = MDArray.typed_arange(:double, 12)
-      vec.print
-
-      # assign the MDArray to an R vector "my.vec"
-      R.my__vec = vec
-
-      # print R's "my.vec"
-      R.eval("print(my.vec)")
-
-      # use the .r method in MDArray's to get the MDArray value in R
-      R.eval("print(#{vec.r})")
-
-      # Passing an MDArray without assigning it in a R vector is also possible
-      R.eval("print(#{MDArray.typed_arange(:double, 5).r})")
-
-    end
-
-    #--------------------------------------------------------------------------------------
-    #
-    #--------------------------------------------------------------------------------------
-
     should "be able to assign a string to R" do
 
       # assign and pull are not really necessary, but left since other R integration
@@ -321,8 +301,7 @@ EOF
       str = R.pull("str")
 
       # method get, gets the current element
-      assert_equal("hello there;", str.get_as(:string))
-      assert_equal("hello there;", str.get)
+      assert_equal("hello there;", str.z)
 
       R.str2 = "This is another string"
       assert_equal("This is another string", R.str2.z)
@@ -350,7 +329,7 @@ EOF
       R.str(R.list)
 
     end
-
+=end  
   end
-  
+
 end

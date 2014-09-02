@@ -144,19 +144,12 @@ class Renjin
     else
       # super if args.length != 0
       if (args.length == 0)
-        is_var = false
+        # is_var = false
         # Try to see if name is a variable or a method.
-        vars = eval("ls()")
-        vars.each do |var|
-          if (var == name)
-            is_var = true
-            break
-          end
-        end if vars != nil
-        ret = (is_var)? eval("#{name}") : eval("#{name}()")
+        ret = (eval("\"#{name}\" %in% ls()").z)? eval("#{name}") : eval("#{name}()")
       else
         params = parse(*args)
-        # p params
+        # p "#{name}(#{params})"
         ret = eval("#{name}(#{params})")
       end
     end
@@ -255,7 +248,6 @@ class Renjin
       elsif(arg.is_a? String)
         params << "\"#{arg}\""
       elsif (arg.is_a? Symbol)
-        # params << "\"#{arg.to_s}\""
         var = eval("#{arg.to_s}")
         params << var.r
       elsif (arg.is_a? TrueClass)
@@ -271,7 +263,9 @@ class Renjin
         arg.each_pair do |key, value|
           params << "#{key.to_s} = #{parse(value)[0]}"
         end
-      elsif ((arg.is_a? MDArray)  || (arg.is_a? Renjin::RubySexp))
+      elsif (arg.is_a? Renjin::RubySexp)
+        params << arg.r
+      elsif (arg.is_a? MDArray)
         params << arg.r
       else
         raise "Unknown parameter type for R: #{arg}"
@@ -340,12 +334,11 @@ class Renjin
 
     original_value = value
 
-    if (value.is_a?(MDArray))
+    if ((value.is_a? MDArray) || (value.is_a? RubySexp))
       if (value.sexp != nil)
         # MDArray already represented in R
         value = value.sexp
       else
-        value.immutable
         value = build_vector(value)
       end
     elsif (value == nil)

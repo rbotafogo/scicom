@@ -42,6 +42,52 @@ class SciComTest < Test::Unit::TestCase
     #
     #======================================================================================
 
+    should "acess attributes" do
+
+      # Must be careful... any assignment to a vector (object?) creates a new object
+      # value in Ruby will reference the old object and they will be different.
+      dbl_var = R.eval("var = c(1, 2, 3, 4)")
+      p dbl_var.sexp
+      dbl_var2 = R.eval("var")
+      p dbl_var2.sexp
+
+      R.eval("attr(var, \"name\") = \"my.name\"").print
+      R.eval("print(attributes(var))")
+      # p dbl_var.sexp.getAttributes().names().toString()
+      dbl_var3 = R.eval("var")
+      dbl_var4 = R.eval("#{dbl_var.r}")
+      p dbl_var3.sexp
+      p dbl_var4.sexp
+      R.eval("print(var)")
+      R.eval("print(#{dbl_var.r})")
+
+
+=begin
+      R.eval("print(#{dbl_var.r})")
+      R.eval("print(attributes(#{dbl_var.r}))")
+
+      R.eval("var2 = #{dbl_var.r}")
+      R.eval("print(attributes(var2))")
+=end
+
+=begin
+      R.eval <<EOF
+         l = c(1, 2, 3, 4)
+         attr(l, "name") = "my.name"
+         print(attributes(l))
+
+         l2 = l
+         print(attributes(l2))
+EOF
+
+=end
+
+    end
+
+    #======================================================================================
+    #
+    #======================================================================================
+=begin
     should "create all types of vectors and check basic properties" do
 
       dbl_var = R.c(1, 2.5, 4.5)
@@ -51,18 +97,6 @@ class SciComTest < Test::Unit::TestCase
       assert_equal(false, dbl_var.integer?)
       assert_equal(true, dbl_var.double?)
       assert_equal(true, dbl_var.numeric?)
-
-      R.eval("attr(#{dbl_var.r}, \"name\") <- \"my.attr\"") 
-      R.eval("print(attributes(#{dbl_var.r}))")
-      R.eval("print(attr(#{dbl_var.r}, \"name\"))")
-
-      R.eval <<EOF
-         l = list(1, 2, 3, 4)
-         attr(l, "name") = "my.name"
-         print(attributes(l))
-EOF
-      att = R.attributes(dbl_var)
-      p att
 
       # With the L suffix, you get an integer rather than a double
       int_var = R.c(R.i(1), R.i(6), R.i(10))
@@ -100,7 +134,7 @@ EOF
       v3.print
 
     end
-
+=end
   end
 
 end
