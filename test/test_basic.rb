@@ -46,34 +46,51 @@ class SciComTest < Test::Unit::TestCase
     should "work with vector" do
 
       # Create a vector with R.c
-      var = R.c(2, 3, 4)
+      vec = R.c(2, 3, 4)
+
+      array = vec.as__mdarray
+      array.print
+
+      p vec.get(0)
+      p vec.get(1)
+      p vec.get(2)
+
+      # getting the zero based index is a frequent operation.  For that we have method
+      # gz
+      p vec.gz
 
       # Create vectors with double value
       two = R.d(2)
+      p two.gz
+
       three = R.d(3)
       four = R.d(4)
 
-      R.all__equal(var, var).pp
+      R.all__equal(vec, vec).pp
 
-=begin
+      vec.each do |elmt|
+        p elmt
+      end
+
       # Vector can be accessed in R by calling the 'r' method
-      R.eval("#{var.r}[1]")
+      R.eval("#{vec.r}[1]")
 
       # Vector can be accessed in Ruby by normal indexing, but remember, all values are
       # vectors
-      var[2].pp
-      R.eval("#{var.r}[1]")
+      vec[2].pp
+      R.eval("#{vec.r}[1]")
       R.eval("#{two.r}")
-      R.eval("all.equal(#{var.r}[1], #{two.r})").pp
+      R.eval("all.equal(#{vec.r}[1], #{two.r})").pp
 
-      # assert_equal(TRUE, var[1].eq(two))
-=end
+      # assert_equal(true, vec[1].eq(two))
+
     end
 
     #--------------------------------------------------------------------------------------
     #
     #--------------------------------------------------------------------------------------
 =begin
+
     should "save variables and access variables and functions in R" do
 
       
@@ -231,82 +248,6 @@ EOF
       # Int_NA is finite; however R.NA_double is not finite.  Is this correct? Should 
       # check with the Renjin team.
       assert_equal(false, R.finite?(NA)[0])
-
-    end
-
-    #--------------------------------------------------------------------------------------
-    #
-    #--------------------------------------------------------------------------------------
-
-    should "assign NULL to R object" do
-      
-      # assign NULL value
-      R.assign("null", nil)
-      assert_equal(nil, R.null)
-
-      # variable null is NULL
-      R.eval("print(null)")
-
-      # R.null = nil
-      res = R.pull("null")
-      assert_equal(nil, res)
-      # assert_equal(res, nil)
-
-      R.n2 = nil
-      assert_equal(nil, R.n2)
-
-    end
-
-    #--------------------------------------------------------------------------------------
-    #
-    #--------------------------------------------------------------------------------------
-
-    should "assign an integer to an R object" do
-
-      # To create an int we need to call eval....
-      i1 = R.eval("10L")
-
-      assert_equal(10, i1.z)
-      assert_equal(10, i1[0])
-      assert_equal(10, i1.z)
-      assert_equal(10, i1.as__integer)
-      assert_equal(10.0, R.as__double(i1).z)
-      assert_equal("10", R.as__character(i1).z)
-      assert_equal(10.0, i1.as__double)
-      assert_equal("10", i1.as__character)
-
-      # ... or call method R.i to create an integer object
-      i2 = R.i(13)
-      # assert_equal(13, i2.get)
-
-      int_vec = R.c(R.i(10), R.i(20), R.i(30), R.i(40))
-      int_vec.print
-      R.eval("print(#{int_vec.r})")
-
-      R.eval <<EOF
-      print(#{int_vec.r})
-EOF
-
-    end
-
-    #--------------------------------------------------------------------------------------
-    #
-    #--------------------------------------------------------------------------------------
-
-    should "be able to assign a string to R" do
-
-      # assign and pull are not really necessary, but left since other R integration
-      # solutions use those methods
-      R.assign("str", "hello there;")
-      str = R.pull("str")
-
-      # method get, gets the current element
-      assert_equal("hello there;", str.z)
-
-      R.str2 = "This is another string"
-      assert_equal("This is another string", R.str2.z)
-      p "R variables"
-      R.ls.pp
 
     end
 

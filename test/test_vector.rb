@@ -88,6 +88,15 @@ EOF
     #
     #======================================================================================
 =begin
+
+
+      assert_equal(10, i1.as__integer)
+      assert_equal(10.0, R.as__double(i1).gz)
+      assert_equal("10", R.as__character(i1).gz)
+      assert_equal(10.0, i1.as__double)
+      assert_equal("10", i1.as__character)
+
+
     should "create all types of vectors and check basic properties" do
 
       dbl_var = R.c(1, 2.5, 4.5)

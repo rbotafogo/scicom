@@ -146,7 +146,7 @@ class Renjin
       if (args.length == 0)
         # is_var = false
         # Try to see if name is a variable or a method.
-        ret = (eval("\"#{name}\" %in% ls()").z)? eval("#{name}") : eval("#{name}()")
+        ret = (eval("\"#{name}\" %in% ls()").gz)? eval("#{name}") : eval("#{name}()")
       else
         params = parse(*args)
         # p "#{name}(#{params})"
@@ -357,13 +357,13 @@ class Renjin
   def pull(name)
     eval(name)
   end
-
+  
   #----------------------------------------------------------------------------------------
   # Builds a Renjin vector from an MDArray. Should be private, but public for testing.
   #----------------------------------------------------------------------------------------
-
+  
   def build_vector(array)
-
+    
     shape = array.shape
     index = array.nc_array.getIndex()
     # index = MDArray.index_factory(shape)
