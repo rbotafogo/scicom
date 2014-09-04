@@ -261,7 +261,7 @@ class Renjin
         params << "(#{arg.begin}:#{final_value})"
       elsif (arg.is_a? Hash)
         arg.each_pair do |key, value|
-          params << "#{key.to_s} = #{parse(value)[0]}"
+          params << "#{key.to_s} = #{parse(value)}"
         end
       elsif (arg.is_a? Renjin::RubySexp)
         params << arg.r

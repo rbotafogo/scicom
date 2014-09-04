@@ -157,6 +157,22 @@ EOF
     #
     #--------------------------------------------------------------------------------------
 
+    should "create string vectors" do
+
+      R.str1 = "hello there;"
+
+      # method get, gets the current element
+      assert_equal("hello there;", R.str1.gz)
+
+      R.str2 = "This is another string"
+      assert_equal("This is another string", R.str2.gz)
+
+    end
+
+    #--------------------------------------------------------------------------------------
+    #
+    #--------------------------------------------------------------------------------------
+
     should "create vectors with more than one element (R.c)" do
 
       # To create vectors in R, one uses the 'c' function.  Use R.c to created vectors
@@ -183,6 +199,10 @@ EOF
       # Method get can be used with an index, to get a given element of a vector
       assert_equal(1, vec.get(0))
       assert_equal(4, vec.get(3))
+
+      # method R.c also works with strings
+      str = R.c("this is the first string", "this is the second string")
+      str.pp
 
     end
 
@@ -213,51 +233,58 @@ EOF
       vec2 = R.c((1...4))
       vec2.pp
 
+      # vec2 has only three elements
+      assert_equal(3, vec2.length)
+
+      # Convert vector to an MDArray
+      array = vec2.get
+      
+      # Use array as any other MDArray...
+      array.each do |elmt|
+        p elmt
+      end
+
+      # ... although there is no need to convert a vector to an MDArray to call each:
+      # the each method is also defined for vectors
+      vec1.each do |elmt|
+        p elmt
+      end
+
     end
 
+    #--------------------------------------------------------------------------------------
+    #
+    #--------------------------------------------------------------------------------------
+
+    should "create vectors with method seq" do
+      
+      # create a sequence (from, to)
+      seq1 = R.seq(2, 10)
+      seq1.pp
+
+      # R options can also be used, although the notation is a little different.  In
+      # R we would call seq(2, 10, by = 3).  In SciCom the same call is R.seq(2, 10, by: 3)
+      seq2 = R.seq(2, 10, by: 3)
+      seq2.print
+
+      # giving the number of required elements in the sequence
+      seq3 = R.seq(2, 100, length: 12)
+      seq3.pp
+
+    end
+
+    #--------------------------------------------------------------------------------------
+    #
+    #--------------------------------------------------------------------------------------
+
+    should "create vectors with method rep" do
+
+      vec = R.rep(R.c(1, 2, 3), 3)
+      vec.pp
+
+    end
 
 =begin
-    #--------------------------------------------------------------------------------------
-    #
-    #--------------------------------------------------------------------------------------
-
-    should "integrate Ruby sequence with R sequence" do
-      
-      seq = R.seq(2, 10)
-
-      res = R.eval <<EOF
-      print(#{seq.r});
-      print(#{seq.r});
-print(ls());
-EOF
-
-      # remove the variable from R
-      seq.destroy
-
-      R.eval("print(ls())")
-
-    end
-
-    #--------------------------------------------------------------------------------------
-    #
-    #--------------------------------------------------------------------------------------
-
-    should "be able to assign a string to R" do
-
-      # assign and pull are not really necessary, but left since other R integration
-      # solutions use those methods
-      R.assign("str", "hello there;")
-      str = R.pull("str")
-
-      # method get, gets the current element
-      assert_equal("hello there;", str.z)
-
-      R.str2 = "This is another string"
-      assert_equal("This is another string", R.str2.z)
-      p "R variables"
-      R.ls.pp
-
-    end
 
     #--------------------------------------------------------------------------------------
     #
@@ -285,15 +312,3 @@ end
   end
   
 end
-
-
-=begin
-
-      int_vec = R.c(R.i(10), R.i(20), R.i(30), R.i(40))
-      int_vec.print
-      R.eval("print(#{int_vec.r})")
-
-      R.eval <<EOF
-      print(#{int_vec.r})
-EOF
-=end

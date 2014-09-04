@@ -30,17 +30,54 @@ class SciComTest < Test::Unit::TestCase
 
   context "R Vectors" do
 
-    #======================================================================================
+    #--------------------------------------------------------------------------------------
     #
-    #======================================================================================
+    #--------------------------------------------------------------------------------------
 
     setup do 
 
     end
 
-    #======================================================================================
+    #--------------------------------------------------------------------------------------
     #
-    #======================================================================================
+    #--------------------------------------------------------------------------------------
+
+    should "slice a vector in multiple ways" do
+
+      vec = R.c(1, 2, 3, 4)
+
+      # access a given vector index
+      assert_equal(3, vec[3].gz)
+
+      # negative index returns all elements but the one indexed
+      vec[-3].pp
+
+      # not good!  But a boolean array in R is converted to an int array in Ruby
+      assert_equal(1, (R.c(1, 2, 4).eq vec[-3]).gz)
+  
+      vec[R.c((1..3))].pp
+
+    end
+
+    #--------------------------------------------------------------------------------------
+    #
+    #--------------------------------------------------------------------------------------
+
+    should "assign to a vector" do
+
+      vec = R.c(1, 2, 3)
+      vec.pp
+
+      vec[1] = 0
+      vec.pp
+
+      # assign to a vector slice
+      vec[R.c(1, 2)] = R.c(5, 6)
+      vec.pp
+
+    end
+
+=begin
 
     should "acess attributes" do
 
@@ -62,15 +99,12 @@ class SciComTest < Test::Unit::TestCase
       R.eval("print(#{dbl_var.r})")
 
 
-=begin
       R.eval("print(#{dbl_var.r})")
       R.eval("print(attributes(#{dbl_var.r}))")
 
       R.eval("var2 = #{dbl_var.r}")
       R.eval("print(attributes(var2))")
-=end
 
-=begin
       R.eval <<EOF
          l = c(1, 2, 3, 4)
          attr(l, "name") = "my.name"
@@ -80,14 +114,12 @@ class SciComTest < Test::Unit::TestCase
          print(attributes(l2))
 EOF
 
-=end
-
     end
 
     #======================================================================================
     #
     #======================================================================================
-=begin
+
 
 
       assert_equal(10, i1.as__integer)

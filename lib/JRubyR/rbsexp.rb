@@ -42,6 +42,7 @@ module RBSexp
   def destroy
     
     if (@rvar != nil)
+      @sexp = R.direct_eval("#{@rvar}")
       R.direct_eval("rm('#{@rvar}')")
       @rvar = nil
     end
