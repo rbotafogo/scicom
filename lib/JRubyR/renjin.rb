@@ -146,7 +146,7 @@ class Renjin
       if (args.length == 0)
         # is_var = false
         # Try to see if name is a variable or a method.
-        ret = (eval("\"#{name}\" %in% ls()").gz)? eval("#{name}") : eval("#{name}()")
+        ret = (eval("\"#{name}\" %in% ls()").gt)? eval("#{name}") : eval("#{name}()")
       else
         params = parse(*args)
         # p "#{name}(#{params})"

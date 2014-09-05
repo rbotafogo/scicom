@@ -43,57 +43,8 @@ class SciComTest < Test::Unit::TestCase
     #
     #--------------------------------------------------------------------------------------
 
-    should "work with vector" do
-
-      # Create a vector with R.c
-      vec = R.c(2, 3, 4)
-
-      array = vec.as__mdarray
-      array.print
-
-      p vec.get(0)
-      p vec.get(1)
-      p vec.get(2)
-
-      # getting the zero based index is a frequent operation.  For that we have method
-      # gz
-      p vec.gz
-
-      # Create vectors with double value
-      two = R.d(2)
-      p two.gz
-
-      three = R.d(3)
-      four = R.d(4)
-
-      R.all__equal(vec, vec).pp
-
-      vec.each do |elmt|
-        p elmt
-      end
-
-      # Vector can be accessed in R by calling the 'r' method
-      R.eval("#{vec.r}[1]")
-
-      # Vector can be accessed in Ruby by normal indexing, but remember, all values are
-      # vectors
-      vec[2].pp
-      R.eval("#{vec.r}[1]")
-      R.eval("#{two.r}")
-      R.eval("all.equal(#{vec.r}[1], #{two.r})").pp
-
-      # assert_equal(true, vec[1].eq(two))
-
-    end
-
-    #--------------------------------------------------------------------------------------
-    #
-    #--------------------------------------------------------------------------------------
-=begin
-
     should "save variables and access variables and functions in R" do
 
-      
       var = R.c(2, 3, 4, 5)
       var.pp
 
@@ -117,30 +68,8 @@ EOF
       # Variable my__var is undefined on the Ruby namespace
       assert_raise ( NameError ) { my__var }
 
-
-      # We can also create variables in the Ruby namespace.  In the example bellow
-      # vector is created in the Ruby namespace.  R.c method creates a vector that
-      # is converted to an MDArray.
-      vector = R.c(2, 3, 4)
-      
-      # Acessing variable vector in the Ruby namespace as any normal Ruby variable
-      vector.pp
-
-      # Ruby variables created through method call to function in the R namespace
-      # can be accessed in R with the r method:
-      R.eval("print(#{vector.r})")
-      
-      # calls methods getwd
-      R.getwd.pp
-      R.setwd("..")
-      R.getwd.pp
-
-      # Check variables created in Renjin (R) environment
+      # look up variables defined in R namespace
       R.ls.pp
-      
-      # look at the structure of R object
-      p "Structure of vector"
-      R.str(vector)
 
     end
 
@@ -156,11 +85,11 @@ EOF
       p "Some R options:"
       print("\n")
       # access the options through their names
-      p "timeout is: #{opts.timeout.z}"
-      p "na.action: #{opts.na__action.z}"
-      p "prompt: #{opts.prompt.z}"
-      p "help.search: #{opts.help__search__types.z}"
-      p "show error message: #{opts.show__error__messages.z}"
+      p "timeout is: #{opts.timeout.gz}"
+      p "na.action: #{opts.na__action.gz}"
+      p "prompt: #{opts.prompt.gz}"
+      p "help.search: #{opts.help__search__types.gz}"
+      p "show error message: #{opts.show__error__messages.gz}"
       print("\n")
 
     end
@@ -171,45 +100,52 @@ EOF
 
     should "work with missing numbers" do
 
-      assert_equal(false, R.is__na(10)[0])
-      # Since every value is a vector in R, .z returns the 0th index of the vector
-      assert_equal(false, R.is__na(10).z)
-      assert_equal(true, R.is__na(NA)[0])
+      # Since every value is a vector in R, .gt returns the 0th index of the vector as
+      # a truth value
+      assert_equal(false, R.is__na(10).gt)
+      assert_equal(true, R.is__na(NA).gt)
 
       # this will result in error.  In R is.na(NaN) is true and in Renjin it's false
       # R.eval("print(is.na(NaN))")
-      # assert_equal(true, R.is__na(NaN)[0])
-
+      # assert_equal(true, R.is__na(NaN).gt)
 
       # R.is__na and R.na? are both valid and do the same thing
-      assert_equal(false, R.na?(10)[0])
-      assert_equal(false, R.na?(10.35)[0])
-      assert_equal(false, R.na?(10.35).z)
-      assert_equal(false, R.na?(R.eval("10L"))[0])
-      assert_equal(false, R.na?(R.eval("10.456"))[0])
-      assert_equal(false, R.na?(R.eval("10.456")).z)
+      assert_equal(false, R.na?(10).gt)
+      assert_equal(false, R.na?(10.35).gt)
+      assert_equal(false, R.na?(R.eval("10L")).gt)
+      assert_equal(false, R.na?(R.eval("10.456")).gt)
 
       # Use nil in Ruby when needing a NULL in R
       p "R prints Warning message when is.na is applied to a value and not a vector: "
-      assert_equal(0, R.length(R.na?(nil))[0])
+      #assert_equal(0, R.length(R.na?(nil).gt))
+      
+      p "checking if NULL is na"
       R.eval("is.na(NULL)").pp
 
       # Check NA property on a vector
       vec = R.is__na(R.c(10.35, 10.0, 56, NA))
-      assert_equal(false, vec[0])
-      assert_equal(true, vec[3])
+
+      # remember that in the Renjin::Vector class the first element is index 1
+      assert_equal(false, vec[1].gt)
+      assert_equal(true, vec[4].gt)
+
+      # gt also works with an index.  Remember .gt converts Renjin::Vector to MDArray and
+      # MDArray's first element is idexed by 0.
+      assert_equal(false, vec.gt(0))
+      assert_equal(false, vec.gt(1))
+      assert_equal(false, vec.gt(2))
+      assert_equal(true, vec.gt(3))
 
       # Check NaN properties
-      assert_equal(true, R.is__nan(NaN)[0])
-      assert_equal(true, R.is__nan(NaN).z)
-      assert_equal(true, R.nan?(NaN)[0])
+      assert_equal(true, R.is__nan(NaN).gt)
+      assert_equal(true, R.nan?(NaN).gt)
       # Those are NaN
-      assert_equal(false, R.nan?(NA)[0])
+      assert_equal(false, R.nan?(NA).gt)
       
       # The result of is.nan(NULL) is logical(0). If we try to access a 0 length vector
       # in SciCon a RuntimeError is raised
-      assert_raise ( RuntimeError ) { R.nan?(nil)[0] }
-      assert_raise ( RuntimeError ) { R.nan?(R.eval("NULL"))[0] }
+      assert_raise ( RuntimeError ) { R.nan?(nil).gt }
+      assert_raise ( RuntimeError ) { R.nan?(R.eval("NULL")).gt }
 
     end
 
@@ -220,25 +156,23 @@ EOF
     should "work with infinites" do
 
       # Infinite number
-      p Inf[0]
+      p Inf.gz
 
       # Negative infinite number, equivalent to "-Inf" in R
-      p MInf[0]
+      p MInf.gz
 
       assert_equal(Inf, Inf)
-      assert_equal(false, R.finite?(Inf)[0])
-      assert_equal(false, R.finite?(Inf).z)
-      assert_equal(false, R.finite?(MInf)[0])
-      assert_equal(false, R.finite?(MInf).z)
+      assert_equal(false, R.finite?(Inf).gt)
+      assert_equal(false, R.finite?(MInf).gt)
 
       # Check if the number if finite
-      assert_equal(true, R.finite?(10)[0])
-      assert_equal(true, R.finite?(10.35)[0])
+      assert_equal(true, R.finite?(10).gt)
+      assert_equal(true, R.finite?(10.35).gt)
 
       # chekc numbers to see if they are finite
       # assert_equal(false, R.finite?(R.NaN_double))
 
-      assert_equal(false, R.finite?(NA)[0])
+      assert_equal(false, R.finite?(NA).gt)
       # assert_equal(false, R.finite?(R.NaN_double))
 
       # Check a vector for the finite? property
@@ -247,30 +181,10 @@ EOF
       
       # Int_NA is finite; however R.NA_double is not finite.  Is this correct? Should 
       # check with the Renjin team.
-      assert_equal(false, R.finite?(NA)[0])
+      assert_equal(false, R.finite?(NA).gt)
 
     end
 
-    #--------------------------------------------------------------------------------------
-    #
-    #--------------------------------------------------------------------------------------
-
-    should "be able to assign a Ruby array to R" do
-
-      # converts the Ruby array to an R list
-      names = ["Lisa", "Teasha", "Aaron", "Thomas"]
-      R.people = names
-      R.people.pp
-
-      R.list = [1, 2, 3, 4, 5, 6]
-      R.list.pp
-
-      # this gives an error in Renjin about Unmatched positional argument.  I think this is a
-      # Renjin bug.
-      R.str(R.list)
-
-    end
-=end  
   end
 
 end

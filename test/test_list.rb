@@ -71,6 +71,30 @@ class SciComTest < Test::Unit::TestCase
 
     end
     
+    #--------------------------------------------------------------------------------------
+    #
+    #--------------------------------------------------------------------------------------
+
+    should "be able to assign a Ruby array to R" do
+
+      # converts the Ruby array to an R list
+      names = ["Lisa", "Teasha", "Aaron", "Thomas"]
+      R.people = names
+      R.people.pp
+
+      R.list = [1, 2, 3, 4, 5, 6]
+      R.list.pp
+
+      mix_vec = ["Lisa", 1, "John", 2, :marry, 3, {one: 1, two: 2} ]
+      R.mix = mix_vec
+      R.mix.pp
+
+      # this gives an error in Renjin about Unmatched positional argument.  I think this is a
+      # Renjin bug.
+      R.str(R.list)
+
+    end
+
   end
 
 end
