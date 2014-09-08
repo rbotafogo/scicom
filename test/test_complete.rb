@@ -26,11 +26,12 @@ require 'shoulda'
 require 'env'
 require 'scicom'
 
+require_relative 'test_creation'
 require_relative 'test_basic'
-require_relative 'test_numeric'
-require_relative 'test_vector'
 
 =begin
+require_relative 'test_numeric'
+require_relative 'test_vector'
 require_relative 'test_column-major'
 require_relative 'test_double_receive'
 require_relative 'test_double_assign'

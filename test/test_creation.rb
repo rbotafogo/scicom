@@ -185,14 +185,14 @@ EOF
       oops = vec[0]
       oops.pp
 
-      # Calling get on numeric(0) is nil
-      assert_equal(nil, oops.get)
+      # Calling get on numeric(0) raises an exception
+      assert_raise ( RuntimeError ) { oops.get }
 
       # Accessing a value outside of the defined vector bound returns a vector with 
       # one element, the NA (Not Available)
       na = vec[10]
       na.pp
-      
+
       # Converting to Ruby will return NaN (Not a Number)
       assert_equal(NaN, na.gz)
 

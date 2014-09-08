@@ -154,7 +154,8 @@ class Renjin
     #----------------------------------------------------------------------------------------
 
     def ==(other_val)
-      (other_val == nil)? false : R.eval("#{r} == #{other_val.r}")
+      other_val = (other_val.is_a? Renjin::RubySexp)? other_val.r : other_val
+      (other_val == nil)? false : R.eval("#{r} == #{other_val}")
     end
 
     #----------------------------------------------------------------------------------------

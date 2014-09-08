@@ -29,6 +29,42 @@ class Renjin
 
   class Attributes
 
-  end
+    attr_reader :rbsexp
 
+    #----------------------------------------------------------------------------------------
+    #
+    #----------------------------------------------------------------------------------------
+    
+    def initialize(rbsexp)
+      @rbsexp = rbsexp
+    end
+
+    #----------------------------------------------------------------------------------------
+    #
+    #----------------------------------------------------------------------------------------
+    
+    def method_missing(symbol, *args)
+      
+      name = symbol.id2name
+      name.sub!(/__/,".")
+      # Method 'rclass' is a substitute for R method 'class'.  Needed as 'class' is also
+      # a Ruby method on an object
+      name.gsub!("rclass", "class")
+      
+      if name =~ /(.*)=$/
+        super if args.length != 1
+        args = R.parse(*args)
+        ret = R.eval("attr(#{@rbsexp.r}, \"#{name.delete!('=')}\") = #{args}")
+      else
+        if (args.length == 0)
+          ret = R.eval("attr(#{@rbsexp.r}, \"#{name}\")")
+        else
+          raise "An attribute cannot have parameters"
+        end
+      end
+      
+    end
+    
+  end
+  
 end
