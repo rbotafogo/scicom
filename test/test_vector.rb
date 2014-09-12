@@ -49,13 +49,14 @@ class SciComTest < Test::Unit::TestCase
       # access a given vector index
       assert_equal(3, vec[3].gz)
 
-      # negative index returns all elements but the one indexed
-      vec[-3].pp
+      # Method .gt gets the thruth value of the first element of the array
+      # Vector with negative index: all values are returned but the ones in the index
+      assert_equal(true, (R.c(1, 2, 4).eq vec[-3]).gt)
 
-      # not good!  But a boolean array in R is converted to an int array in Ruby
-      assert_equal(1, (R.c(1, 2, 4).eq vec[-3]).gz)
-  
-      vec[R.c((1..3))].pp
+      # New vector in the given range
+      assert_equal(true, (R.c(1, 2, 3).eq vec[(1..3)]).gt)
+
+      # vec[-(1..3)].pp
 
     end
 
@@ -63,17 +64,31 @@ class SciComTest < Test::Unit::TestCase
     #
     #--------------------------------------------------------------------------------------
 
-    should "assign to a vector" do
+    should "assign to a numeric vector" do
 
       vec = R.c(1, 2, 3)
-      vec.pp
-
       vec[1] = 0
-      vec.pp
+      assert_equal(true, (R.c(0, 2, 3).eq vec).gt)
 
       # assign to a vector slice
       vec[R.c(1, 2)] = R.c(5, 6)
-      vec.pp
+      assert_equal(true, (R.c(5, 6, 3).eq vec).gt)
+
+    end
+
+    #--------------------------------------------------------------------------------------
+    #
+    #--------------------------------------------------------------------------------------
+
+    should "assign to a character vector" do
+
+      vec = R.c("a", "b", "c")
+      vec[1] = "d"
+      assert_equal(true, (R.c("d", "b", "c").eq vec).gt)
+
+      # assign to a vector slice
+      vec[R.c(1, 2)] = R.c("e", "f")
+      assert_equal(true, (R.c("e", "f", "c").eq vec).gt)
 
     end
 

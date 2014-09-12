@@ -34,7 +34,8 @@ module RBSexp
   
   attr_reader :sexp
   attr_reader :rvar
-  attr_reader :attributes
+  attr_reader :attr
+  attr_accessor :scope
 
   #----------------------------------------------------------------------------------------
   #
@@ -44,8 +45,20 @@ module RBSexp
     
     if (@rvar != nil)
       @sexp = R.direct_eval("#{@rvar}")
+      # change value in the scope
+      if (@scope)
+        R.direct_eval("#{scope[0]}(#{scope[1].r}, \"#{scope[2]}\") = #{@rvar}")
+        # @scope = nil
+      end
       R.direct_eval("rm('#{@rvar}')")
       @rvar = nil
+
+=begin
+      p "destroying"
+      p self
+      p "#{scope[0]}(#{scope[1].r}, \"#{scope[2]}\") = #{@rvar}" if @scope
+      R.direct_eval("print(#{@rvar})")
+=end
     end
 
   end
@@ -120,7 +133,7 @@ class Renjin
 
       @sexp = sexp
       @rvar = nil
-      @attributes = Attributes.new(self)
+      @attr = Attributes.new(self)
 
     end
     

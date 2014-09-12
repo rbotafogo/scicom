@@ -57,11 +57,15 @@ class Renjin
         ret = R.eval("attr(#{@rbsexp.r}, \"#{name.delete!('=')}\") = #{args}")
       else
         if (args.length == 0)
+          # p "retrieving attribute: #{name}"
           ret = R.eval("attr(#{@rbsexp.r}, \"#{name}\")")
+          ret.scope = ["attr", @rbsexp, name]
         else
           raise "An attribute cannot have parameters"
         end
       end
+
+      ret
       
     end
     

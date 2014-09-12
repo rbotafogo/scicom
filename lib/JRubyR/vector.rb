@@ -71,7 +71,8 @@ class Renjin
     #----------------------------------------------------------------------------------------
     
     def [](index)
-      index = index.r if index.is_a? Renjin::RubySexp
+      # index = index.r if index.is_a? Renjin::RubySexp
+      index = R.parse(index)
       R.eval("#{r}[#{index}]")
     end
         
@@ -80,8 +81,10 @@ class Renjin
     #----------------------------------------------------------------------------------------
     
     def []=(index, value)
-      index = index.r if index.is_a? Renjin::RubySexp
-      value = value.r if value.is_a? Renjin::RubySexp
+      # index = index.r if index.is_a? Renjin::RubySexp
+      # value = value.r if value.is_a? Renjin::RubySexp
+      index = R.parse(index)
+      value = R.parse(value)
       R.eval("#{r}[#{index}] = #{value}")
     end
 
@@ -163,7 +166,7 @@ class Renjin
     #----------------------------------------------------------------------------------------
 
     def eq(other_val)
-      (other_val == nil)? false : R.eval("all.equal(#{r},#{other_val.r})")
+      (other_val == nil)? false : R.eval("identical(#{r},#{other_val.r})")
     end
 
     #----------------------------------------------------------------------------------------
