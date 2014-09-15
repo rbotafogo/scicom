@@ -40,6 +40,53 @@ class SciComTest < Test::Unit::TestCase
     end
 
 
+    #======================================================================================
+    #
+    #======================================================================================
+
+    should "receive 1 Dimensional MDArrays in R" do
+      
+      vec = MDArray.double([6], [1, 3, 5, 7, 11, 13])
+      # vec is just a normal MDArray that can be changed at anytime
+      vec[0] = 2
+
+      R.prime = vec
+
+      # now vec is immutable, since it is now in Renjin and Renjin requires an immutable
+      # vector
+      assert_raise ( RuntimeError ) { vec[0] = 1 }
+
+      vec2 = R.eval("print(prime)")
+      vec2.print
+
+      assert_raise ( RuntimeError ) { vec2[1] = 7 }
+      
+    end
+
+    #======================================================================================
+    #
+    #======================================================================================
+
+    should "cast MDArray numeric value to different types" do
+
+      i1 = R.d(10.2387)
+
+      # double cannot be converted to boolean
+      assert_raise ( RuntimeError ) { i1.get_as(:boolean) }
+
+      # method .get_as returns the current element of MDArray, which, in this case, is the
+      # first element
+      assert_equal(10, i1.get_as(:byte))
+      assert_equal(10, i1.get_as(:char))
+      assert_equal(10, i1.get_as(:short))
+      assert_equal(10, i1.get_as(:int))
+      assert_equal(10, i1.get_as(:long))
+      assert_equal(10.238699913024902, i1.get_as(:float))
+      assert_equal(10.2387, i1.get_as(:double))
+      assert_equal("10.2387", i1.get_as(:string))
+
+    end
+
     #--------------------------------------------------------------------------------------
     #
     #--------------------------------------------------------------------------------------
@@ -85,6 +132,40 @@ class SciComTest < Test::Unit::TestCase
       res.print
 
     end
+
+    #======================================================================================
+    #
+    #======================================================================================
+
+    should "be able to create a double vector in R" do
+
+      vec = R.c(1, 2, 3, 4)
+
+      
+      assert_equal("1.0 2.0 3.0 4.0 ", vec.to_string)
+
+      # All methods on MDArray can be called normally
+      vec.reset_statistics
+      assert_equal(2.5, vec.mean)
+      assert_equal(1.118033988749895, vec.standard_deviation)
+      assert_equal("11.0 12.0 13.0 14.0 ", (vec + 10).to_string)
+
+    end
+
+    #======================================================================================
+    # Need to check how MDArray works exactly with NaN
+    #======================================================================================
+
+    should "work with NA and NaN in double vectors" do
+
+      vec2 = R.c(1, NA, 3, 4)
+      vec2.print
+
+      vec3 = R.c(1, NaN, 3, 4)
+      vec3.print
+
+    end
+
 
     #--------------------------------------------------------------------------------------
     #

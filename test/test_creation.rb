@@ -111,20 +111,22 @@ EOF
       # Indexing a vector still returns a vector.  First index for vector is 1 and not 0
       # as it is usual with Ruby, this is so in order to be in order with R.
       i3 = i1[1]
-      i3.pp
+      assert_equal(true, (i3.eq i1).gt)
 
       # Method 'get' converts a Vector to an MDArray
       vec = i3.get
-      vec.print
+      assert_equal(true, vec.is_a?(MDArray))
+      assert_equal("int", vec.type)
 
       # For consistancy with R notation one can also call as__mdarray to convert a 
       # vector to an MDArray
       vec2 = i3.as__mdarray
-      vec2.print
+      assert_equal(true, vec2.is_a?(MDArray))
+      assert_equal("int", vec2.type)
 
       # Now 'vec' is an MDArray and its elements can be accessed through indexing, but
       # this time the first index is 0, and the element is an actual number
-      p vec[0]
+      assert_equal(10, vec[0])
 
       # Accessing the first element of a vector is such a common necessity, that method
       # .gz returns such element.
@@ -179,9 +181,10 @@ EOF
       # in SciCom
 
       vec = R.c(1, 2, 3, 4, 5)
-      vec.pp
+      assert_equal(true, (R.d(1).eq vec[1]).gt)
+      assert_equal(true, (R.d(2).eq vec[2]).gt)
 
-      # In R, indexing a vector with zero return numeric(0)
+      # In R, indexing a vector with zero returns Vector numeric(0)
       oops = vec[0]
       oops.pp
 
@@ -191,7 +194,7 @@ EOF
       # Accessing a value outside of the defined vector bound returns a vector with 
       # one element, the NA (Not Available)
       na = vec[10]
-      na.pp
+      assert_equal(NA, na)
 
       # Converting to Ruby will return NaN (Not a Number)
       assert_equal(NaN, na.gz)

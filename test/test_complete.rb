@@ -27,10 +27,11 @@ require 'env'
 require 'scicom'
 
 require_relative 'test_creation'
+require_relative 'test_numeric'
 require_relative 'test_basic'
+require_relative 'test_attributes'
 
 =begin
-require_relative 'test_numeric'
 require_relative 'test_vector'
 require_relative 'test_column-major'
 require_relative 'test_double_receive'

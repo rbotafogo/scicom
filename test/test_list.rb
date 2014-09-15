@@ -95,6 +95,17 @@ class SciComTest < Test::Unit::TestCase
 
     end
 
+=begin
+      # deep lists should work also
+      z = R.list(a1: 1, b1: R.list(b11: "hello", b12: "there"), c1: "test")
+
+      # Not working yet!!!
+      z.attr.names.pp
+      z[1].attr.names.pp
+      z[1].attr.names[1] = "changed"
+      z[1].attr.names.pp
+=end
+
   end
 
 end

@@ -43,7 +43,7 @@ class SciComTest < Test::Unit::TestCase
     # value.  There are two ways of assign variables in R, through method assign or with
     # the '=' method.  To retrieve an R variable just acess it in the R namespace.
     #--------------------------------------------------------------------------------------
-=begin
+
     should "assign attributes to objects" do
 
       vec = R.c(1, 2, 3, 4)
@@ -100,7 +100,7 @@ class SciComTest < Test::Unit::TestCase
       mat.pp
       
     end
-=end
+
     #--------------------------------------------------------------------------------------
     #
     #--------------------------------------------------------------------------------------
@@ -109,6 +109,7 @@ class SciComTest < Test::Unit::TestCase
 
       # define a list with given names as attr
       z = R.list(a: 1, b: "c", c: (1..3))
+
       assert_equal("a", z.attr.names.gz)
       assert_equal("b", z.attr.names.get(1))
       assert_equal("c", z.attr.names.get(2))
@@ -122,47 +123,93 @@ class SciComTest < Test::Unit::TestCase
       assert_equal(true, (R.c("d", "e", "f").eq z.attr.names).gt)
 
       # create a vector with the names attribute. Vector names is now an alias to 
-      # z.attr.names and it is not a copy of the names attribute.  Doing this is not
-      # recomended as it can be hard to debug and identify vectors that "break the rule".
+      # z.attr.names.
       names = z.attr.names
-      names.pp
+      assert_equal(true, (R.c("d", "e", "f").eq names).gt)
       # change the names vector
       names[1] = "g"
-      # assert_equal(true, (R.c("g", "e", "f").eq names).gt)
-      names.pp
+      assert_equal(false, (R.c("d", "e", "f").eq names).gt)
+      assert_equal(true, (R.c("g", "e", "f").eq names).gt)
 
       # differently from R, the names' attribute is also changed
       assert_equal(false, (R.c("d", "e", "f").eq z.attr.names).gt)
       assert_equal(true, (R.c("g", "e", "f").eq z.attr.names).gt)
-      z.attr.names.pp
-
-
-
-      # Vector names2 follows R rules and is a copy of names attribute.
-      names2 = R.attr(z, "names")
-      names2.pp
-      # changing names2...
-      names2[1] = "hello there"
-      names2.pp
-
-      # ... does not change the names attribute
-      z.attr.names.pp
-
-=begin
-      # deep lists should work also
-      z = R.list(a1: 1, b1: R.list(b11: "hello", b12: "there"), c1: "test")
-
-      # Not working yet!!!
-      z.attr.names.pp
-      z[1].attr.names.pp
-      z[1].attr.names[1] = "changed"
-      z[1].attr.names.pp
-=end
-
 
     end
 
+    #--------------------------------------------------------------------------------------
+    #
+    #--------------------------------------------------------------------------------------
+
+    should "unbind a vector from the attributes in chains" do
+
+      # define a list with given names as attr
+      z = R.list(a: 1, b: "c", c: (1..3))
+
+      # change the names using normal call to R.c and channing
+      z.attr.names = R.c("d", "e", "f")
+
+      # create a vector with the names attribute. Vector names is now an alias to 
+      # z.attr.names.
+      names = z.attr.names
+      assert_equal(true, (R.c("d", "e", "f").eq names).gt)
+
+      # unbind names from z.attr.names.
+      names.unbind
+
+      # change the names vector
+      names[1] = "g"
+      assert_equal(false, (R.c("d", "e", "f").eq names).gt)
+      assert_equal(true, (R.c("g", "e", "f").eq names).gt)
+
+      # the names' attribute is NOT changed, as unbind on names was called
+      assert_equal(true, (R.c("d", "e", "f").eq z.attr.names).gt)
+      assert_equal(false, (R.c("g", "e", "f").eq z.attr.names).gt)
+
+    end
     
+    #--------------------------------------------------------------------------------------
+    #
+    #--------------------------------------------------------------------------------------
+
+    should "change attributes through normal R calls" do
+
+     # define a list with given names as attr
+      z = R.list(a: 1, b: "c", c: (1..3))
+
+      # Vector names is a copy of names attribute.
+      names = R.attr(z, "names")
+      assert_equal(true, (R.c("a", "b", "c").eq z.attr.names).gt)
+
+      # changing names...
+      names[1] = "hello there"
+      assert_equal(true, (R.c("hello there", "b", "c").eq names).gt)
+
+      # ... does not change the names attribute and there is no need to call unbind,
+      # as names was never bound to the chain
+      assert_equal(true, (R.c("a", "b", "c").eq z.attr.names).gt)
+
+    end
+
+    #--------------------------------------------------------------------------------------
+    #
+    #--------------------------------------------------------------------------------------
+
+    should "assign attributes between objects" do
+
+      # define a list with given names as attr
+      z = R.list(a: 1, b: "c", c: (1..3))
+
+      # define a vector with the same number of elements as the list
+      vec = R.c((1..3))
+      vec.attr.names = z.attr.names
+      vec.attr.names[1] = "ggg"
+      # changing vec names does not have any impact on z.names
+      assert_equal(true, (R.c("ggg", "b", "c").eq vec.attr.names).gt)
+      assert_equal(true, (R.c("a", "b", "c").eq z.attr.names).gt)
+
+    end
+
   end
 
 end

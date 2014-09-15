@@ -42,133 +42,47 @@ class SciComTest < Test::Unit::TestCase
     #
     #======================================================================================
 
-    should "create a numeric (single value) in R" do
+    should "create a double numeric (single value) in R" do
 
       R.eval("i1 = 10.2387")
-      # the returned value is an MDArray and all methods on MDArray can be called
+      # the returned value is a Renjin::Vector
       i1 = R.i1
+      assert_equal(10.2387, i1.gz)
 
-      # by default type is double
-      assert_equal("double", i1.type)
-      assert_equal(10.2387, i1[0])
-      assert_equal(10.2387, i1.z)
-
-      # assign to an R variable the MDArray returned previously.  The original variable
+      # assign to an R variable the Vector returned previously.  The original variable
       # is still valid
       R.assign("i2", i1)
-      assert_equal(10.2387, R.i2)
-      assert_equal(10.2387, R.i1)
+      assert_equal(10.2387, R.i2.gz)
+      assert_equal(10.2387, R.i1.gz)
 
-      # Returned value is a string MDArray
-      R.eval("typeof(i2)").pp
+      # type of i2 is a double
+      assert_equal("double", R.eval("typeof(i2)").gz)
+      # same call can be done easier.  Remember, i2 is defined only in the R namespace.
+      assert_equal("double", R.typeof(R.i2).gz)
 
-      # create a double with calling eval with a string
+      # create a double without calling eval.  Method .d creates a double vector with
+      # one element. Variable i2 is now defined in the Ruby namespace
       i2 = R.d(345.7789)
-      assert_equal(345.7789, i2.z)
+      assert_equal("double", i2.typeof)
+      assert_equal(345.7789, i2.gz)
 
-      # The same can be done for integer type.  However, creating an integer in harder as
-      # by default a double is created
+    end
+
+    #======================================================================================
+    #
+    #======================================================================================
+
+    should "create an integer numeric (single value) in R" do
+
+      # Integer nuberic Vectors are created with method .i
+      # the returned value is a Renjin::Vector
       my_int = R.i(10)
-      assert_equal(10, my_int.z)
-      assert_equal("int", my_int.type)
+      assert_equal(10, my_int.gz)
+      # method typeof returns the type of this vector
+      assert_equal("integer", my_int.typeof)
       
     end
 
-    #======================================================================================
-    #
-    #======================================================================================
-
-    should "guarantee that MDArrays returned by R are immutable" do
-
-      # can pass a double to eval.  It will be evaluated to a double vector
-      i1 = R.eval("10.387")
-
-      assert_raise ( RuntimeError ) { i1[0] = 20 }
-      assert_raise ( RuntimeError ) { i1.set(0, 20) }
-      assert_raise ( RuntimeError ) { i1.set_next(20) }
-
-    end
-
-    #======================================================================================
-    #
-    #======================================================================================
-
-    should "cast MDArray numeric value to different types" do
-
-      i1 = R.d(10.2387)
-
-      # double cannot be converted to boolean
-      assert_raise ( RuntimeError ) { i1.get_as(:boolean) }
-
-      # method .get_as returns the current element of MDArray, which, in this case, is the
-      # first element
-      assert_equal(10, i1.get_as(:byte))
-      assert_equal(10, i1.get_as(:char))
-      assert_equal(10, i1.get_as(:short))
-      assert_equal(10, i1.get_as(:int))
-      assert_equal(10, i1.get_as(:long))
-      assert_equal(10.238699913024902, i1.get_as(:float))
-      assert_equal(10.2387, i1.get_as(:double))
-      assert_equal("10.2387", i1.get_as(:string))
-
-    end
-
-    #======================================================================================
-    #
-    #======================================================================================
-
-    should "be able to create a double vector in R" do
-
-      vec = R.c(1, 2, 3, 4)
-
-      # The vector created in R returns as a MDArray in Ruby and can be treated as such
-      assert_equal("1.0 2.0 3.0 4.0 ", vec.to_string)
-
-      # All methods on MDArray can be called normally
-      vec.reset_statistics
-      assert_equal(2.5, vec.mean)
-      assert_equal(1.118033988749895, vec.standard_deviation)
-      assert_equal("11.0 12.0 13.0 14.0 ", (vec + 10).to_string)
-
-    end
-
-    #======================================================================================
-    # Need to check how MDArray works exactly with NaN
-    #======================================================================================
-
-    should "work with NA and NaN in double vectors" do
-
-      vec2 = R.c(1, NA, 3, 4)
-      vec2.print
-
-      vec3 = R.c(1, NaN, 3, 4)
-      vec3.print
-
-    end
-
-    #======================================================================================
-    #
-    #======================================================================================
-
-    should "receive 1 Dimensional MDArrays in R" do
-      
-      vec = MDArray.double([6], [1, 3, 5, 7, 11, 13])
-      # vec is just a normal MDArray that can be changed at anytime
-      vec[0] = 2
-
-      R.prime = vec
-
-      # now vec is immutable, since it is now in Renjin and Renjin requires an immutable
-      # vector
-      assert_raise ( RuntimeError ) { vec[0] = 1 }
-
-      vec2 = R.eval("print(prime)")
-      vec2.print
-
-      assert_raise ( RuntimeError ) { vec2[1] = 7 }
-      
-    end
-    
   end
   
 end
