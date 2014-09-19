@@ -1,8 +1,6 @@
 # -*- coding: utf-8 -*-
 
 ##########################################################################################
-# @author Rodrigo Botafogo
-#
 # Copyright © 2013 Rodrigo Botafogo. All Rights Reserved. Permission to use, copy, modify, 
 # and distribute this software and its documentation, without fee and without a signed 
 # licensing agreement, is hereby granted, provided that the above copyright notice, this 
@@ -21,45 +19,44 @@
 # OR MODIFICATIONS.
 ##########################################################################################
 
-class Renjin
+require 'env'
+require 'scicom'
 
-  class List < Renjin::RubySexp
-    include Renjin::Index
 
-    #----------------------------------------------------------------------------------------
-    #
-    #----------------------------------------------------------------------------------------
-    
-    def initialize(sexp)
-      super(sexp)
-      @iterator = @sexp.iterator()
-    end
 
-    #----------------------------------------------------------------------------------------
-    # Treats ruby style methods in lists as named items on the list
-    #----------------------------------------------------------------------------------------
-    
-    def method_missing(symbol, *args)
+in.mandelbrot.set <- function(c, iterations = 100, bound = 1000000)
+{
+  z <- 0
+ 
+  for (i in 1:iterations)
+  {
+    z <- z ** 2 + c
+    if (Mod(z) > bound)
+    {
+      return(FALSE)
+    }
+  }
+ 
+  return(TRUE)
+}
 
-      name = symbol.id2name
-      name.gsub!(/__/,".")
 
-      # super if args.length != 0
-      if name =~ /(.*)=$/
-        super if args.length != 1
-        args = R.parse(*args)
-        ret = R.eval("#{r}[[\"#{name}\"]] = #{args}")
-      elsif (args.length == 0)
-        # treat name as a named item of the list
-        ret = R.eval("#{r}[[\"#{name}\"]]")
-      else
-        raise "Illegal argument for named list item #{name}"
-      end
-      
-      ret
 
-    end
-    
-  end
-  
-end
+resolution <- 0.001
+ 
+sequence <- seq(-1, 1, by = resolution)
+ 
+m <- matrix(nrow = length(sequence), ncol = length(sequence))
+ 
+for (x in sequence)
+{
+  for (y in sequence)
+  {
+    mandelbrot <- in.mandelbrot.set(complex(real = x, imaginary = y))
+    m[round((x + resolution + 1) / resolution), round((y + resolution + 1) / resolution)] <- mandelbrot
+  }
+}
+ 
+png('mandelbrot.png')
+image(m)
+dev.off()

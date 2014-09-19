@@ -69,7 +69,7 @@ class SciComTest < Test::Unit::TestCase
     #
     #--------------------------------------------------------------------------------------
 
-    should "create integer vectors" do
+    should "create integer variable" do
 
       # In R, every number is a vector.  R Vector's are converted to Ruby Renjin::Vector  
       # (a new class defined by SciCom).  
@@ -138,7 +138,7 @@ EOF
     #
     #--------------------------------------------------------------------------------------
 
-    should "create double vectors" do
+    should "create double variable" do
 
       # Creating a double vector is done with R.d.  From now on we will use preferably
       # Ruby integration and not use 'eval'.  'eval' will be used sometimes just to show
@@ -159,7 +159,64 @@ EOF
     #
     #--------------------------------------------------------------------------------------
 
-    should "create string vectors" do
+    should "create complex variable" do
+
+      p "working with complex"
+
+      comp = R.complex(real: 2, imaginary: 3)
+      comp.pp
+      
+      comp = R.as__complex(-1)
+      comp.pp
+
+      p R.is__complex(comp).gt
+
+      p R.Re(comp).gz
+      p R.Im(comp).gz
+
+      # Cannot yet convert a complex Vector to an MDArray.
+      # comp.get.pp
+
+      # The (x, y) representation of numbers is easier to understand at first, but a 
+      # polar coordinates representation is often more practical. You can get the 
+      # relevant components of this representation by finding the modulus and complex 
+      # argument of a complex number. In R, you would use Mod and Arg:
+
+      z = R.complex(real: 0, imaginary: 1)
+ 
+      R.Mod(z).pp
+      # [1] 1
+      
+      R.Arg(z).pp
+      # [1] 1.570796
+      
+      # Not yet defined!!! Fixed
+      # R.pi / 2
+      # [1] 1.570796
+
+      # Finally, you’ll want to be able to take the complex conjugate of a complex 
+      # number; to do that in R, you can use Conj:
+      R.Conj(z).pp
+      # [1] 0-1i
+ 
+      # Not yet defined!!! Fixed
+      # R.Mod(z) == z * Conj(z)
+      # [1] TRUE
+
+      # To get the complex square root, you need to cast your negative number as a 
+      # complex number using as__complex before applying sqrt:
+      R.as__complex(-1).pp
+      # Renjin not implemented yet
+      # R.sqrt(R.as__complex(-1)).pp
+      R.sqrt(-1).pp
+
+    end
+
+    #--------------------------------------------------------------------------------------
+    #
+    #--------------------------------------------------------------------------------------
+
+    should "create string variable" do
 
       R.str1 = "hello there;"
 

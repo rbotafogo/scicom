@@ -30,10 +30,16 @@ require_relative 'test_creation'
 require_relative 'test_numeric'
 require_relative 'test_basic'
 require_relative 'test_attributes'
+require_relative 'test_vector'
 
 =begin
-require_relative 'test_vector'
-require_relative 'test_column-major'
+require_relative 'test_list'
+require_relative 'test_factor'
+require_relative 'test_dataframes'
+require_relative 'test_matrix'
+require_relative 'test_array'
+require_relative 'test_subsetting'
 require_relative 'test_double_receive'
 require_relative 'test_double_assign'
+require_relative 'test_column-major'
 =end

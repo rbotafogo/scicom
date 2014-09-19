@@ -1,8 +1,6 @@
 # -*- coding: utf-8 -*-
 
 ##########################################################################################
-# @author Rodrigo Botafogo
-#
 # Copyright © 2013 Rodrigo Botafogo. All Rights Reserved. Permission to use, copy, modify, 
 # and distribute this software and its documentation, without fee and without a signed 
 # licensing agreement, is hereby granted, provided that the above copyright notice, this 
@@ -21,45 +19,49 @@
 # OR MODIFICATIONS.
 ##########################################################################################
 
-class Renjin
+require 'rubygems'
+require "test/unit"
+require 'shoulda'
 
-  class List < Renjin::RubySexp
-    include Renjin::Index
+require 'env'
+require 'scicom'
 
-    #----------------------------------------------------------------------------------------
+class SciComTest < Test::Unit::TestCase
+
+  context "R Vectors" do
+
+    #--------------------------------------------------------------------------------------
     #
-    #----------------------------------------------------------------------------------------
-    
-    def initialize(sexp)
-      super(sexp)
-      @iterator = @sexp.iterator()
+    #--------------------------------------------------------------------------------------
+
+    setup do 
+
     end
 
-    #----------------------------------------------------------------------------------------
-    # Treats ruby style methods in lists as named items on the list
-    #----------------------------------------------------------------------------------------
-    
-    def method_missing(symbol, *args)
 
-      name = symbol.id2name
-      name.gsub!(/__/,".")
+    #--------------------------------------------------------------------------------------
+    #
+    #--------------------------------------------------------------------------------------
 
-      # super if args.length != 0
-      if name =~ /(.*)=$/
-        super if args.length != 1
-        args = R.parse(*args)
-        ret = R.eval("#{r}[[\"#{name}\"]] = #{args}")
-      elsif (args.length == 0)
-        # treat name as a named item of the list
-        ret = R.eval("#{r}[[\"#{name}\"]]")
-      else
-        raise "Illegal argument for named list item #{name}"
-      end
+    should "slice a vector in multiple ways" do
+
+      vec = R.c(1, 2, 3, 4)
+
+      # access a given vector index
+      assert_equal(3, vec[3].gz)
+
+      # Method .gt gets the thruth value of the first element of the array
+      # Vector with negative index: all values are returned but the ones in the index
+      assert_equal(true, (R.c(1, 2, 4).eq vec[-3]).gt)
+
+      # New vector in the given range
+      assert_equal(true, (R.c(1, 2, 3).eq vec[(1..3)]).gt)
+
       
-      ret
+      vec[-(1..3)].pp
 
     end
-    
+
   end
-  
+
 end

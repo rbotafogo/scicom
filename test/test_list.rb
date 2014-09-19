@@ -43,37 +43,62 @@ class SciComTest < Test::Unit::TestCase
     #
     #--------------------------------------------------------------------------------------
 
-    should "work with list" do
+    should "create and access lists elements" do
 
+      # create a list with named elements
       x = R.list(first: (1..10), second: R.c("yes","no"), third: R.c(TRUE,FALSE), 
         fourth: R.gl(2,3))
-      x.first.print
-      x.second.print
-      x.fourth.print
-      x[0].print
+      
+      # get the first element of the list, usign indexing
+      x[1].pp
 
-      assert_raise ( RuntimeError ) { x.third(3) }
+      # get the third element of the list, usign indexing
+      x[3].pp
 
+      # should also access element of the list by name
+      x["first"].pp
+      x["second"].pp
+
+      p "accessing with [[]] notation"
+      x[[1]].pp
+      x[[2]].pp
+      x[[3]].pp
+      x[[4]].pp
+
+      p "accessing with [[<name>]] notation"
+      x[["first"]].pp
+
+=begin
+
+      p "printing all elements of the list"
       x.each do |elmt|
-        elmt.print
+        elmt.pp
       end
 
-      # list with R options
-      opts = R.options
-
-      opts.each do |opt|
-        opt.print
-      end
-
-      lst = R.list(5, R.c(1, 2, 3), opts)
-      lst[0].print
-      lst[2].na__action.print
-
+=end
     end
     
     #--------------------------------------------------------------------------------------
     #
     #--------------------------------------------------------------------------------------
+
+    should "allow Ruby chaining" do
+
+      # create a list with named elements
+      x = R.list(first: (1..10), second: R.c("yes","no"), third: R.c(TRUE,FALSE), 
+        fourth: R.gl(2,3))
+      
+      p x.first[1]
+      x.second.pp
+      x.third.pp
+      x.fourth.pp
+
+    end
+
+    #--------------------------------------------------------------------------------------
+    #
+    #--------------------------------------------------------------------------------------
+=begin
 
     should "be able to assign a Ruby array to R" do
 
@@ -95,7 +120,6 @@ class SciComTest < Test::Unit::TestCase
 
     end
 
-=begin
       # deep lists should work also
       z = R.list(a1: 1, b1: R.list(b11: "hello", b12: "there"), c1: "test")
 

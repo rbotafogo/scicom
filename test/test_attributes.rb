@@ -78,7 +78,7 @@ class SciComTest < Test::Unit::TestCase
       lst = mat.attr.dimnames
       # dimnames is a list.  In R, dimnames is a list with two elements.  The first is NULL
       # (always?) and the second is an array with the actual names
-      assert_equal("a", lst.get(1).get(0))
+      assert_equal("a", lst[1].get(0))
       assert_equal("pi", lst.get(1).get(1))
 
       # mat does also have attribute dim

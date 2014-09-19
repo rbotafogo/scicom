@@ -27,6 +27,11 @@ require 'securerandom'
 require_relative 'rbsexp'
 require_relative 'index'
 
+
+#==========================================================================================
+#
+#==========================================================================================
+
 class Renjin
   include_package "javax.script"
   include_package "org.renjin"
@@ -256,6 +261,9 @@ class Renjin
         params << "FALSE"
       elsif (arg == nil)
         params << "NULL"
+      elsif (arg.is_a? NegRange)
+        final_value = (arg.exclude_end?)? (arg.end - 1) : arg.end
+        params << "-(#{arg.begin}:#{final_value})"
       elsif (arg.is_a? Range)
         final_value = (arg.exclude_end?)? (arg.end - 1) : arg.end
         params << "(#{arg.begin}:#{final_value})"
@@ -267,6 +275,8 @@ class Renjin
         params << arg.r
       elsif (arg.is_a? MDArray)
         params << arg.r
+      elsif (arg.is_a? Array)
+        params << arg.inspect
       else
         raise "Unknown parameter type for R: #{arg}"
       end

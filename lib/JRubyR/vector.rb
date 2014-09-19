@@ -36,14 +36,6 @@ class Java::OrgRenjinSexp::LogicalArrayVector
   field_reader :values
 end
 
-#==========================================================================================
-#
-#==========================================================================================
-
-module RVector
-
-
-end
 
 #==========================================================================================
 #
@@ -53,6 +45,7 @@ class Renjin
 
   class Vector < Renjin::RubySexp
     include Enumerable
+    include Renjin::Index
 
     attr_reader :mdarray
 
@@ -64,36 +57,6 @@ class Renjin
       super(sexp)
       @mdarray = nil
       @iterator = @sexp.iterator()
-    end
-        
-    #----------------------------------------------------------------------------------------
-    #
-    #----------------------------------------------------------------------------------------
-    
-    def [](index)
-      # index = index.r if index.is_a? Renjin::RubySexp
-      index = R.parse(index)
-      R.eval("#{r}[#{index}]")
-    end
-        
-    #----------------------------------------------------------------------------------------
-    #
-    #----------------------------------------------------------------------------------------
-    
-    def []=(index, value)
-      # index = index.r if index.is_a? Renjin::RubySexp
-      # value = value.r if value.is_a? Renjin::RubySexp
-      index = R.parse(index)
-      value = R.parse(value)
-      R.eval("#{r}[#{index}] = #{value}")
-    end
-
-    #----------------------------------------------------------------------------------------
-    #
-    #----------------------------------------------------------------------------------------
-    
-    def length
-      R.length(R.eval("#{r}")).gz
     end
     
     #----------------------------------------------------------------------------------------
@@ -213,7 +176,7 @@ class Renjin
       else
         p "sexp type needs to be specialized"
         p @sexp
-        @mdarray = Renjin::Ruby@Sexp.new(@sexp)
+        @mdarray = Renjin::RubySexp.new(@sexp)
       end
       
       raise "Cannot convert Vector to MDArray" if (!@mdarray)
@@ -243,16 +206,6 @@ class Renjin
 
     def gt(index = 0)
       (get(index) == 0)? false : true
-    end
-
-    #----------------------------------------------------------------------------------------
-    #
-    #----------------------------------------------------------------------------------------
-    
-    def each(&block)
-      while (@iterator.hasNext())
-        block.call(@iterator.next())
-      end
     end
 
   end
