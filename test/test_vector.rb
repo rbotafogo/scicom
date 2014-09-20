@@ -134,7 +134,7 @@ class SciComTest < Test::Unit::TestCase
     #
     #--------------------------------------------------------------------------------------
 
-    should "acess attributes" do
+    should "acess data by using indexing with names attribute" do
 
       # Must be careful... any assignment to a vector (object?) creates a new object
       # value in Ruby will reference the old object and they will be different.
@@ -157,6 +157,39 @@ class SciComTest < Test::Unit::TestCase
          # print(attributes(l2))
 EOF
 
+    end
+
+    #--------------------------------------------------------------------------------------
+    #
+    #--------------------------------------------------------------------------------------
+
+    should "acess data by using accessor methods from names attribute" do
+
+      dbl_var = R.eval("var = c(1, 2, 3, 4)")
+      dbl_var.attr.names = R.c("one", "two", "three", "four")
+
+      assert_equal(1, dbl_var.one.gz)
+      assert_equal(2, dbl_var.two.gz)
+      assert_equal(3, dbl_var.three.gz)
+      assert_equal(4, dbl_var.four.gz)
+
+    end
+
+    #--------------------------------------------------------------------------------------
+    #
+    #--------------------------------------------------------------------------------------
+
+    should "match two vectors with %in%" do
+
+      vec1 = R.c(1, 2, 3, 4)
+      vec2 = R.c(1, 2, 3, 4)
+      vec3 = R.c(3, 4, 5)
+      vec4 = R.c(4, 5, 6, 7)
+
+      (vec1._ :in, vec2).pp
+      (vec1._ :in, vec3).pp
+      (vec2._ :in, vec4).pp
+      
     end
 
   end

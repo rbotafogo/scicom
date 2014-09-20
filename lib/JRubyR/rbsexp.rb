@@ -78,6 +78,35 @@ class Renjin
     #----------------------------------------------------------------------------------------
     #
     #----------------------------------------------------------------------------------------
+
+    def method_missing(symbol, *args)
+      
+      name = symbol.id2name
+      name.gsub!(/__/,".")
+
+      # super if args.length != 0
+      if name =~ /(.*)=$/
+        super if args.length != 1
+        args = R.parse(*args)
+        ret = R.eval("#{r}[[\"#{name}\"]] = #{args}")
+      elsif (args.length == 0)
+        # treat name as a named item of the list
+        ret = R.eval("#{r}[[\"#{name}\"]]")
+      elsif (name == "_")
+        method = "%#{args.shift.to_s}%"
+        arg2 = R.parse(*args)
+        ret = R.eval("#{r} #{method} #{arg2}")
+      else
+        raise "Illegal argument for named list item #{name}"
+      end
+      
+      ret
+      
+    end
+
+    #----------------------------------------------------------------------------------------
+    #
+    #----------------------------------------------------------------------------------------
     
     def length
       R.length(R.eval("#{r}")).gz
@@ -219,7 +248,7 @@ class Renjin
     def to_string
       R.eval("toString(#{r})")
     end
-    
+
     #----------------------------------------------------------------------------------------
     #
     #----------------------------------------------------------------------------------------
@@ -227,7 +256,7 @@ class Renjin
     def self.build(sexp)
       
       if (sexp.instance_of? Java::OrgRenjinPrimitivesSequence::IntSequence)
-        res = Renjin::IntSequence.new(sexp)
+        res = Renjin::Sequence.new(sexp)
       elsif (sexp.instance_of? Java::OrgRenjinSexp::Null)
         res = nil
       elsif (sexp.instance_of? Java::OrgRenjinSexp::ListVector)

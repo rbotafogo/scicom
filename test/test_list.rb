@@ -49,8 +49,12 @@ class SciComTest < Test::Unit::TestCase
       x = R.list(first: (1..10), second: R.c("yes","no"), third: R.c(TRUE,FALSE), 
         fourth: R.gl(2,3))
       
-      # get the first element of the list, usign indexing
+      # get the first element of the list, usign indexing.  Indexing with [] returns a 
+      # list
       x[1].pp
+
+      p "trying method %in%"
+      (x._ :in, x).pp
 
       # get the third element of the list, usign indexing
       x[3].pp
@@ -58,15 +62,6 @@ class SciComTest < Test::Unit::TestCase
       # should also access element of the list by name
       x["first"].pp
       x["second"].pp
-
-      p "accessing with [[]] notation"
-      x[[1]].pp
-      x[[2]].pp
-      x[[3]].pp
-      x[[4]].pp
-
-      p "accessing with [[<name>]] notation"
-      x[["first"]].pp
 
 =begin
 
@@ -78,6 +73,29 @@ class SciComTest < Test::Unit::TestCase
 =end
     end
     
+    #--------------------------------------------------------------------------------------
+    #
+    #--------------------------------------------------------------------------------------
+=begin
+    should "access individual lists elements with [[]] notation" do
+
+      # create a list with named elements
+      x = R.list(first: (1..10), second: R.c("yes","no"), third: R.c(TRUE,FALSE), 
+        fourth: R.gl(2,3))
+
+      x[[1]].pp
+      x[[2]].pp
+      x[[3]].pp
+      x[[4]].pp
+
+      p "accessing with [[<name>]] notation"
+      x[["first"]].pp
+
+      p "indexing idexed list"
+      x[1][[1]][[1]].pp
+
+    end
+
     #--------------------------------------------------------------------------------------
     #
     #--------------------------------------------------------------------------------------
@@ -94,7 +112,7 @@ class SciComTest < Test::Unit::TestCase
       x.fourth.pp
 
     end
-
+=end
     #--------------------------------------------------------------------------------------
     #
     #--------------------------------------------------------------------------------------

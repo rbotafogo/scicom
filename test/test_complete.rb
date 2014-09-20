@@ -41,5 +41,6 @@ require_relative 'test_array'
 require_relative 'test_subsetting'
 require_relative 'test_double_receive'
 require_relative 'test_double_assign'
+require_relative 'test_user_function'
 require_relative 'test_column-major'
 =end
