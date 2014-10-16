@@ -26,7 +26,7 @@ require 'java'
 class Renjin
 
   class Sequence < Renjin::RubySexp
-    
+    include Renjin::Index
     
   end
 

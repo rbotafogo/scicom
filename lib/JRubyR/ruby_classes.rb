@@ -25,50 +25,34 @@
 #
 #==========================================================================================
 
-class Renjin
+class Range
+  include Renjin::RBSexp
 
-  class Attributes
-
-    attr_reader :rbsexp
-
-    #----------------------------------------------------------------------------------------
-    #
-    #----------------------------------------------------------------------------------------
-    
-    def initialize(rbsexp)
-      @rbsexp = rbsexp
-    end
-
-    #----------------------------------------------------------------------------------------
-    #
-    #----------------------------------------------------------------------------------------
-    
-    def method_missing(symbol, *args)
-      
-      name = symbol.id2name
-      name.sub!(/__/,".")
-      # Method 'rclass' is a substitute for R method 'class'.  Needed, as 'class' is also
-      # a Ruby method on an object
-      name.gsub!("rclass", "class")
-      
-      if name =~ /(.*)=$/
-        super if args.length != 1
-        args = R.parse(*args)
-        ret = R.eval("attr(#{@rbsexp.r}, \"#{name.delete!('=')}\") = #{args}")
-      else
-        if (args.length == 0)
-          # p "retrieving attribute: #{name}"
-          ret = R.eval("attr(#{@rbsexp.r}, \"#{name}\")")
-          ret.scope = ["attr", @rbsexp, name]
-        else
-          raise "An attribute cannot have parameters"
-        end
-      end
-
-      ret
-      
-    end
-    
-  end
+  #----------------------------------------------------------------------------------------
+  # Defines unary minus operation for ranges
+  #----------------------------------------------------------------------------------------
   
+  def -@
+    NegRange.new(self.begin, self.end)
+  end
+
+end
+
+#==========================================================================================
+# Class NegRange exists to represent a negative range, e.g., -(1...10).  Such a range is
+# used to index vectors and means all elements but the ones in the given range.  Class
+# NegRange is parsed to become "-(1:10)" in R.
+#==========================================================================================
+
+class NegRange < Range
+
+end
+
+#==========================================================================================
+#
+#==========================================================================================
+
+class Array
+  include Renjin::RBSexp
+
 end

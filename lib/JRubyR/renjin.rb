@@ -142,6 +142,9 @@ class Renjin
 
     name = symbol.id2name
     name.sub!(/__/,".")
+    # Method 'rclass' is a substitute for R method 'class'.  Needed, as 'class' is also
+    # a Ruby method on an object
+    name.gsub!("rclass", "class")
 
     if name =~ /(.*)=$/
       super if args.length != 1
@@ -246,7 +249,7 @@ class Renjin
   def parse(*args)
 
     params = Array.new
-
+    
     args.each do |arg|
       if (arg.is_a? Numeric)
         params << arg
@@ -271,12 +274,10 @@ class Renjin
         arg.each_pair do |key, value|
           params << "#{key.to_s} = #{parse(value)}"
         end
-      elsif (arg.is_a? Renjin::RubySexp)
+      elsif ((arg.is_a? Renjin::RubySexp) || (arg.is_a? Array) || (arg.is_a? MDArray))
         params << arg.r
-      elsif (arg.is_a? MDArray)
-        params << arg.r
-      elsif (arg.is_a? Array)
-        params << arg.inspect
+      # elsif 
+      #  params << arg.inspect
       else
         raise "Unknown parameter type for R: #{arg}"
       end

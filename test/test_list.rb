@@ -35,108 +35,196 @@ class SciComTest < Test::Unit::TestCase
     #--------------------------------------------------------------------------------------
 
     setup do 
-      
-    end
 
+      # create a list with named elements
+      @x = R.list(first: (1..10), second: R.c("yes","no"), third: R.c(TRUE,FALSE), 
+        fourth: R.gl(2,3))
+      
+      @seq = R.c((1..10))
+      @seq2 = R.c((1...10))
+      @str_vec = R.c("yes", "no")
+      @str_vec2 = R.c("yes", "yes")
+      @trth_vec = R.c(TRUE, FALSE)
+      @trth_vec2 = R.c(FALSE, FALSE)
+      @gl = R.gl(2, 3)
+
+    end
 
     #--------------------------------------------------------------------------------------
     #
     #--------------------------------------------------------------------------------------
 
-    should "create and access lists elements" do
-
-      # create a list with named elements
-      x = R.list(first: (1..10), second: R.c("yes","no"), third: R.c(TRUE,FALSE), 
-        fourth: R.gl(2,3))
+    should "access lists elements with indexing [] and [[]]" do
       
-      # get the first element of the list, usign indexing.  Indexing with [] returns a 
-      # list
-      x[1].pp
+      # get the first element of the list, usign indexing.  
+      # Both [] and [[]] indexing can be used with the same R rules. 
+      # Indexing with [] returns a list
+      assert_equal("list", @x[1].typeof)
 
-      p "trying method %in%"
-      (x._ :in, x).pp
+      # Indexing with [[]] return the sequence type wich is "integer" is this case
+      assert_equal("integer", @x[[1]].typeof)
 
-      # get the third element of the list, usign indexing
-      x[3].pp
+      # Multiple indexing is OK.
+      assert_equal("integer", @x[1][[1]].typeof)
+      assert_equal("integer", @x[1][[1]][1].typeof)
 
-      # should also access element of the list by name
-      x["first"].pp
-      x["second"].pp
+      # Getting the Ruby value of a vector is done with method get. Method gz is equivalent
+      # to get(0)
+      assert_equal(1, @x[1][[1]][1].gz)
+      assert_equal(1, @x[[1]][1].gz)
+      assert_equal(3, @x[[1]][3].gz)
+      assert_equal(10, @x[[1]][10].gz)
 
-=begin
+      # to get the class of an RBSexp we need to call method rclass.  We cannot call method
+      # class on it as it will return the Ruby class ('class' is a Ruby method).
+      assert_equal("list", @x.rclass)
 
-      p "printing all elements of the list"
-      x.each do |elmt|
-        elmt.pp
-      end
-
-=end
     end
     
     #--------------------------------------------------------------------------------------
     #
     #--------------------------------------------------------------------------------------
-=begin
+
+    should "acess list elements by named item" do
+
+      # should also access element of the list by name.  Every element of the lists is a 
+      # list
+      assert_equal("list", @x["second"].typeof)
+      assert_equal("character", @x[["second"]].typeof)
+      assert_equal("yes", @x[["second"]][1].gz)
+      assert_equal(2, @x[["fourth"]][4].gz)
+      
+    end
+
+    #--------------------------------------------------------------------------------------
+    #
+    #--------------------------------------------------------------------------------------
+
+    should "assign to lists elements" do
+
+      # assign to the list
+      @x[1] = "new list element"
+      assert_equal("new list element", @x[[1]].gz)
+
+    end
+
+    #--------------------------------------------------------------------------------------
+    #
+    #--------------------------------------------------------------------------------------
+
     should "access individual lists elements with [[]] notation" do
 
-      # create a list with named elements
-      x = R.list(first: (1..10), second: R.c("yes","no"), third: R.c(TRUE,FALSE), 
-        fourth: R.gl(2,3))
+      assert_equal(true, R.all(@seq == @x[[1]]).gt)
+      assert_equal(false, R.all(@seq2 == @x[[1]]).gt)
 
-      x[[1]].pp
-      x[[2]].pp
-      x[[3]].pp
-      x[[4]].pp
+      assert_equal(true, R.all(@str_vec == @x[[2]]).gt)
+      assert_equal(false, R.all(@str_vec2 == @x[[2]]).gt)
 
-      p "accessing with [[<name>]] notation"
-      x[["first"]].pp
+      assert_equal(true, R.all(@trth_vec == @x[[3]]).gt)
+      assert_equal(false, R.all(@trth_vec2 == @x[[3]]).gt)
 
-      p "indexing idexed list"
-      x[1][[1]][[1]].pp
+      assert_equal(true, R.all(@gl == @x[[4]]).gt)
+
+      # accessing with the [[<name>]] notation
+      assert_equal(true, R.all(@seq == @x[["first"]]).gt)
+      assert_equal(false, R.all(@seq2 == @x[["first"]]).gt)
+
+      assert_equal(true, R.all(@str_vec == @x[["second"]]).gt)
+      assert_equal(false, R.all(@str_vec2 == @x[["second"]]).gt)
+
+      assert_equal(true, R.all(@trth_vec == @x[["third"]]).gt)
+      assert_equal(false, R.all(@trth_vec2 == @x[["third"]]).gt)
+
+      assert_equal(true, R.all(@gl == @x[["fourth"]]).gt)
 
     end
 
     #--------------------------------------------------------------------------------------
     #
     #--------------------------------------------------------------------------------------
-
+#=begin
     should "allow Ruby chaining" do
 
-      # create a list with named elements
-      x = R.list(first: (1..10), second: R.c("yes","no"), third: R.c(TRUE,FALSE), 
-        fourth: R.gl(2,3))
-      
-      p x.first[1]
-      x.second.pp
-      x.third.pp
-      x.fourth.pp
+      assert_equal(true, R.all(@seq == @x.first).gt)
+      assert_equal(false, R.all(@seq2 == @x.first).gt)
+
+      assert_equal(true, R.all(@str_vec == @x.second).gt)
+      assert_equal(false, R.all(@str_vec2 == @x.second).gt)
+
+      assert_equal(true, R.all(@trth_vec == @x.third).gt)
+      assert_equal(false, R.all(@trth_vec2 == @x.third).gt)
+
+      assert_equal(true, R.all(@gl == @x.fourth).gt)
+            
+      # multiple indexing
+      assert_equal(1, @x.first[1].gz)
+      assert_equal(1, @x.first[[1]].gz)
 
     end
-=end
+
     #--------------------------------------------------------------------------------------
     #
     #--------------------------------------------------------------------------------------
-=begin
 
-    should "be able to assign a Ruby array to R" do
+    should "be able to call functions on lists" do
 
-      # converts the Ruby array to an R list
+      p "trying method %in%"
+      (@x._ :in, @x).pp
+
+    end
+
+    #--------------------------------------------------------------------------------------
+    #
+    #--------------------------------------------------------------------------------------
+
+    should "be able to assign a Ruby array to R (not really recommended)" do
+
+      # names is a Ruby array
       names = ["Lisa", "Teasha", "Aaron", "Thomas"]
+
+      # Ruby Arrays can be used as arguments to R functions.  An Ruby Array will be
+      # converted to an R list.
+      people = R.identity(names)
+      people.pp
+
+      # If a Ruby Array is assigned to an R variable, this R variable is a list.  Note
+      # that variable 'people' above and variable 'R.people' are two different variables.
+      # While the first is defined in the Ruby environment, the second is defined in 
+      # R environment.
       R.people = names
       R.people.pp
 
-      R.list = [1, 2, 3, 4, 5, 6]
-      R.list.pp
+      R.lst = [1, 2, 3, 4, 5, 6]
+      R.lst.pp
 
-      mix_vec = ["Lisa", 1, "John", 2, :marry, 3, {one: 1, two: 2} ]
-      R.mix = mix_vec
-      R.mix.pp
+      lst = R.identity([1, 2, 3])
+      lst.pp
+
+      # Using hash inside an Array does not work properly! This list will have 5
+      # elements and the fifth is empty.  
+      mv = ["Lisa", 1, "John", 2, mary: 3, john: 4]
+      print mv
+
+      mix_vec = R.identity(["Lisa", 1, "John", 2, mary: 3, john: 4])
+      mix_vec.pp
 
       # this gives an error in Renjin about Unmatched positional argument.  I think this is a
       # Renjin bug.
-      R.str(R.list)
+      R.str(R.lst)
 
     end
+#=end
+
+  end
+
+end
+
+=begin
+
+      p "printing all elements of the list"
+      @x.each do |elmt|
+        elmt.pp
+      end
 
       # deep lists should work also
       z = R.list(a1: 1, b1: R.list(b11: "hello", b12: "there"), c1: "test")
@@ -146,8 +234,5 @@ class SciComTest < Test::Unit::TestCase
       z[1].attr.names.pp
       z[1].attr.names[1] = "changed"
       z[1].attr.names.pp
+
 =end
-
-  end
-
-end
