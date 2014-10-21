@@ -29,8 +29,8 @@ require 'scicom'
 require_relative 'test_creation'
 require_relative 'test_numeric'
 require_relative 'test_basic'
-require_relative 'test_list'
 require_relative 'test_vector'
+require_relative 'test_list'
 
 =begin
 require_relative 'test_attributes'

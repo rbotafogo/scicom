@@ -42,7 +42,7 @@ class SciComTest < Test::Unit::TestCase
     #
     #--------------------------------------------------------------------------------------
 
-    should "create all types of vectors and check basic properties" do
+    should "create vectors of different types basic properties" do
 
       # double vector
       dbl_var = R.c(1, 2.5, 4.5)
@@ -53,25 +53,93 @@ class SciComTest < Test::Unit::TestCase
       assert_equal(true, dbl_var.double?)
       assert_equal(true, dbl_var.numeric?)
 
-      # With the R.i, you get an integer rather than a double
+      # int vector: with the R.i, you get an integer rather than a double
       int_var = R.c(R.i(1), R.i(6), R.i(10))
       assert_equal("integer", int_var.typeof)
       assert_equal(3, int_var.length)
       assert_equal(true, int_var.integer?)
       
-      # Use TRUE and FALSE to create logical vectors
+      # logical vector: Use TRUE and FALSE to create logical vectors
       log_var = R.c(TRUE, FALSE, TRUE, FALSE)
       assert_equal("logical", log_var.typeof)
       assert_equal(4, log_var.length)
       assert_equal(true, log_var.logical?)
 
-      # create string (character) vectors
+      # string vector: create string (character) vectors
       chr_var = R.c("these are", "some strings")
       assert_equal("character", chr_var.typeof)
       assert_equal(2, chr_var.length)
       assert_equal(true, chr_var.character?)
       assert_equal(true, chr_var.atomic?)
       assert_equal(false, chr_var.numeric?)
+
+      # complex vector: created by calling R.complex. Real and imaginary parts are obtained
+      # by calling R.Re and R.Im functions on the variable.
+      comp_var = R.complex(real: 2, imaginary: 1)
+      assert_equal(2, R.Re(comp_var).gz)
+      assert_equal(1, R.Im(comp_var).gz)
+
+      # Obtain components of a complex number in polar coordinates
+      comp = R.complex(imaginary: 1, real: 0)
+      mod = R.Mod(comp)
+      arg = R.Arg(comp)
+      # assert_equal((R.pi)/2, arg)
+      
+
+    end
+
+    #--------------------------------------------------------------------------------------
+    #
+    #--------------------------------------------------------------------------------------
+
+    should "do basic vector arithmetic" do
+
+      vec1 = R.c(1, 2.5, 4.5)
+      vec2 = R.c(3, 4, 5)
+
+      res = -vec1
+      assert_equal(true, (R.all(R.c(-1, -2.5, -4.5) == res)).gt)
+      assert_equal(false, (R.all(R.c(1, -2.5, -4.5) == res)).gt)
+
+      res = +vec1
+      assert_equal(false, (R.all(R.c(-1, -2.5, -4.5) == res)).gt)
+      assert_equal(true, (R.all(R.c(1, 2.5, 4.5) == res)).gt)
+
+      res = vec1 + vec2
+      assert_equal(true, (R.all(R.c(4, 6.5, 9.5) == res)).gt)
+      assert_equal(false, (R.all(R.c(4, 6.5, 9) == res)).gt)
+
+      res = vec1 - vec2
+      assert_equal(true, (R.all(R.c(-2, -1.5, -0.5) == res)).gt)
+
+      res = vec1 * vec2
+      assert_equal(true, (R.all(R.c(3, 10, 22.5) == res)).gt)
+
+      res = vec1 / vec2
+      assert_equal(true, (R.all(R.c(0.333333333333333333333333, 0.625, 0.9) == res)).gt)
+
+      res = vec1 % vec2
+      assert_equal(true, (R.all(R.c(1, 2.5, 4.5) == res)).gt)
+
+      res = vec2 % vec1
+      assert_equal(true, (R.all(R.c(0, 1.5, 0.5) == res)).gt)
+
+      res = vec1.int_div(vec2)
+      assert_equal(true, (R.all(R.c(0, 0, 0) == res)).gt)
+
+      res = vec2.int_div(vec1)
+      assert_equal(true, (R.all(R.c(3, 1, 1) == res)).gt)
+
+      res = vec1 ** vec2
+      assert_equal(true, (R.all(R.c(1, 39.0625, 1845.28125) == res)).gt)
+
+    end
+
+    #--------------------------------------------------------------------------------------
+    #
+    #--------------------------------------------------------------------------------------
+
+    should "create vectors with basic R functions" do
 
       # R.c "flattens" the vectors
       v1 = R.c(1, R.c(2, R.c(3, 4)))
