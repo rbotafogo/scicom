@@ -42,7 +42,7 @@ class SciComTest < Test::Unit::TestCase
     #
     #--------------------------------------------------------------------------------------
 
-    should "create vectors of different types basic properties" do
+    should "create vectors of different types" do
 
       # double vector
       dbl_var = R.c(1, 2.5, 4.5)
@@ -73,18 +73,59 @@ class SciComTest < Test::Unit::TestCase
       assert_equal(true, chr_var.atomic?)
       assert_equal(false, chr_var.numeric?)
 
-      # complex vector: created by calling R.complex. Real and imaginary parts are obtained
-      # by calling R.Re and R.Im functions on the variable.
-      comp_var = R.complex(real: 2, imaginary: 1)
-      assert_equal(2, R.Re(comp_var).gz)
-      assert_equal(1, R.Im(comp_var).gz)
+    end
 
-      # Obtain components of a complex number in polar coordinates
-      comp = R.complex(imaginary: 1, real: 0)
-      mod = R.Mod(comp)
-      arg = R.Arg(comp)
-      # assert_equal((R.pi)/2, arg)
-      
+    #--------------------------------------------------------------------------------------
+    #
+    #--------------------------------------------------------------------------------------
+
+    should "create vectors with basic R functions" do
+
+      # R.c "flattens" the vectors
+      v1 = R.c(1, R.c(2, R.c(3, 4)))
+      assert_equal(true, (R.c(1, 2, 3, 4).eq v1).gt)
+
+      # R.rep repeats the given vector
+      vec2 = R.rep(R.c("A", "B", "C"), 3)
+      assert_equal(true, (R.c("A", "B", "C", "A", "B", "C", "A", "B", "C").eq vec2).gt)
+
+      # R.table calculates the frequencies of elements
+      vec3 = R.c("A", "B", "C", "A", "A", "A", "A", "B", "B")
+      table = R.table(vec3)
+      assert_equal(true, (R.c(R.i(5), R.i(3), R.i(1)) == table).gt)
+
+      # Ruby does not allow the ":" notation such as "1:3", this can be obtained
+      # by Ruby's range notation (1..3) or (1...3)
+      # does not include the last element
+      v2 = R.c((1...3))
+      assert_equal(true, (R.c(1, 2) == v2).gt)
+
+      # includes the last element
+      v3 = R.c((1..3))
+      assert_equal(true, (R.c(1, 2, 3) == v3).gt)
+
+    end
+
+    #--------------------------------------------------------------------------------------
+    #
+    #--------------------------------------------------------------------------------------
+
+    should "access vector elements" do
+
+      i1 = R.i(10)
+      # In R, and with SciCom vectors, indexing a vector returns a vector.  First index for 
+      # vector is 1 and not 0 as it is usual with Ruby, this is so, in order to be 
+      # consistent with R.
+      i3 = i1[1]
+      assert_equal(true, (i3 == i1).gt)
+
+      # double vector
+      dbl_var = R.c(1, 2.5, 4.5)
+      assert_equal(2.5, dbl_var[2].gz)
+      assert_equal(4.5, dbl_var[3].gz)
+
+      # indexing a vector outside of bound returns NA
+      assert_equal(NA, dbl_var[4].gz)
 
     end
 
@@ -139,30 +180,72 @@ class SciComTest < Test::Unit::TestCase
     #
     #--------------------------------------------------------------------------------------
 
-    should "create vectors with basic R functions" do
+    should "do vector comparison" do
 
-      # R.c "flattens" the vectors
-      v1 = R.c(1, R.c(2, R.c(3, 4)))
-      assert_equal(true, (R.c(1, 2, 3, 4).eq v1).gt)
+      vec1 = R.c(1, 2.5, 4.5)
+      vec2 = R.c(3, 4, 5)
+      vec3 = R.c(1, 3, 4.5)
 
-      # R.rep repeats the given vector
-      vec2 = R.rep(R.c("A", "B", "C"), 3)
-      assert_equal(true, (R.c("A", "B", "C", "A", "B", "C", "A", "B", "C").eq vec2).gt)
+      # R.all checks to see if every element of the vector is TRUE. R.any checks to see if at
+      # least one element of the vector is TRUE.
 
-      # R.table calculates the frequencies of elements
-      vec3 = R.c("A", "B", "C", "A", "A", "A", "A", "B", "B")
-      table = R.table(vec3)
-      assert_equal(true, (R.c(R.i(5), R.i(3), R.i(1)) == table).gt)
+      res = vec1 < vec2
+      assert_equal(true, R.all(res).gt)
 
-      # Ruby does not allow the ":" notation such as "1:3", this can be obtained
-      # by Ruby's range notation (1..3) or (1...3)
-      # does not include the last element
-      v2 = R.c((1...3))
-      assert_equal(true, (R.c(1, 2) == v2).gt)
+      res = vec1 < vec3
+      assert_equal(false, R.all(res).gt)
 
-      # includes the last element
-      v3 = R.c((1..3))
-      assert_equal(true, (R.c(1, 2, 3) == v3).gt)
+      res = vec1 <= vec3
+      assert_equal(true, R.all(res).gt)
+
+      res = vec1 > vec2
+      assert_equal(false, R.all(res).gt)
+
+      res = vec1 > vec3
+      assert_equal(false, R.all(res).gt)
+
+      res = vec2 > vec3
+      assert_equal(true, R.all(res).gt)
+
+      res = vec3 >= vec1
+      assert_equal(true, R.all(res).gt)
+
+      res = vec3 > vec1
+      assert_equal(false, R.all(res).gt)
+      assert_equal(true, R.any(res).gt)
+
+      res = vec2 != vec1
+      assert_equal(true, R.all(res).gt)
+
+      # comparison is done element by element.  R.all is true only if all elements on the 
+      # vector are true.  Is this case, there are elements that are equal
+      res = vec3 != vec1
+      assert_equal(false, R.all(res).gt)
+
+    end
+
+    #--------------------------------------------------------------------------------------
+    #
+    #--------------------------------------------------------------------------------------
+
+    should "do logical vector operations" do
+
+      vec1 = R.c(TRUE, TRUE, FALSE, FALSE)
+      vec2 = R.c(TRUE, FALSE, TRUE, FALSE)
+
+      p "logical"
+      res = !vec1
+      assert_equal(true, (R.c(FALSE, FALSE, TRUE, TRUE) == res).gt)
+
+      res = vec1 & vec2
+      assert_equal(true, (R.c(TRUE, FALSE, FALSE, FALSE) == res).gt)
+      assert_equal(false, (R.c(FALSE, FALSE, FALSE, FALSE) == res).gt)
+
+      # only compares the first element of the vectors.  Equivalent to R's &&
+      res = vec1.l_and(vec2)
+      assert_equal(true, res.gt)
+
+      p "end logical"
 
     end
 

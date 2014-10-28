@@ -39,33 +39,6 @@ class SciComTest < Test::Unit::TestCase
     end
 
     #--------------------------------------------------------------------------------------
-    # Creating a variable in R and assign a value to it.  In this case assign the NULL 
-    # value.  There are two ways of assign variables in R, through method assign or with
-    # the '=' method.  To retrieve an R variable just acess it in the R namespace.
-    #--------------------------------------------------------------------------------------
-
-    should "assign NULL to R object" do
-      
-      # Using method assign, to assign NULL to variable 'null' in R namespace.
-      R.assign("null", nil)
-      assert_equal(nil, R.null)
-
-      # variable null is NULL.  Variable 'null' exists in the R namespace and can be 
-      # access normally in a call to 'eval'
-      R.eval("print(null)")
-
-      # Variable 'res' is available only in the Ruby namespace and not in the R namespace.
-      # a NULL object in R is converted to nil in Ruby.
-      res = R.pull("null")
-      assert_equal(nil, res)
-
-      # Assign a value to an R variable, 'n2'.  
-      R.n2 = nil
-      assert_equal(nil, R.n2)
-
-    end
-
-    #--------------------------------------------------------------------------------------
     #
     #--------------------------------------------------------------------------------------
 
@@ -75,24 +48,6 @@ class SciComTest < Test::Unit::TestCase
       # (a new class defined by SciCom).  
       # An int can be created by calling 'eval'...
       i1 = R.eval("10L")
-
-      # Basic integration with R can always be done by calling eval and passing it a valid
-      # R expression. Although this programming technique is a bit cumbersome.
-      R.eval("r.i = 10L")
-      R.eval("print(r.i)")
-
-      # One can also use here documents:
-      R.eval <<EOF
-        r.i2 = 10L
-        print(r.i2)  
-EOF
-
-      # Variables created in Ruby can be accessed in an eval clause:
-      val = "10L"
-      R.eval <<EOF
-        r.i3 = #{val}
-        print(r.i3)
-EOF
 
       # ... or it can be created by calling the 'i' method.
       i2 = R.i(10)
@@ -104,33 +59,12 @@ EOF
       i1.pp
       i2.pp
 
-      # One can access variables created in R namespace by using R.<var>.  Variable in
-      # R that have a '.' such as 'r.i3' need to have the '.' substituted by '__'
-      R.r__i3.pp
-
-      # Indexing a vector still returns a vector.  First index for vector is 1 and not 0
-      # as it is usual with Ruby, this is so in order to be in order with R.
-      i3 = i1[1]
-      assert_equal(true, (i3.eq i1).gt)
-
-      # Method 'get' converts a Vector to an MDArray
-      vec = i3.get
-      assert_equal(true, vec.is_a?(MDArray))
-      assert_equal("int", vec.type)
-
-      # For consistancy with R notation one can also call as__mdarray to convert a 
-      # vector to an MDArray
-      vec2 = i3.as__mdarray
-      assert_equal(true, vec2.is_a?(MDArray))
-      assert_equal("int", vec2.type)
-
-      # Now 'vec' is an MDArray and its elements can be accessed through indexing, but
-      # this time the first index is 0, and the element is an actual number
-      assert_equal(10, vec[0])
-
-      # Accessing the first element of a vector is such a common necessity, that method
-      # .gz returns such element.
-      assert_equal(10, i1.gz)
+      # Integer nuberic Vectors are created with method .i
+      # the returned value is a Renjin::Vector
+      my_int = R.i(10)
+      assert_equal(10, my_int.gz)
+      # method typeof returns the type of this vector
+      assert_equal("integer", my_int.typeof)
 
     end
 
@@ -140,19 +74,52 @@ EOF
 
     should "create double variable" do
 
+      R.eval("i1 = 10.2387")
+      # the returned value is a Renjin::Vector
+      i1 = R.i1
+      assert_equal(10.2387, i1.gz)
+
+      # assign to an R variable the Vector returned previously.  The original variable
+      # is still valid
+      R.assign("i2", i1)
+      assert_equal(10.2387, R.i2.gz)
+      assert_equal(10.2387, R.i1.gz)
+
+      # type of i2 is a double
+      assert_equal("double", R.eval("typeof(i2)").gz)
+      # same call can be done easier.  Remember, i2 is defined only in the R namespace.
+      assert_equal("double", R.typeof(R.i2).gz)
+
+      # create a double without calling eval.  Method .d creates a double vector with
+      # one element. Variable i2 is now defined in the Ruby namespace
+      i2 = R.d(345.7789)
+      assert_equal("double", i2.typeof)
+      assert_equal(345.7789, i2.gz)
+
       # Creating a double vector is done with R.d.  From now on we will use preferably
       # Ruby integration and not use 'eval'.  'eval' will be used sometimes just to show
       # that it works and that a user that prefers to use SciCom with a standard R 
       # loook and feel can still do it.
       dbl = R.d(10.25)
       # Prints the vector (R notation)
-      dbl.pp
-      
-      # Prints a number - getting the first element of the dbl vector
-      p dbl.gz
+            
+    end
 
+    #--------------------------------------------------------------------------------------
+    #
+    #--------------------------------------------------------------------------------------
+
+    should "acess variable content with .gz and .gt" do
+
+      # In order to access the value of a variable for it to be used in Ruby, method .gz is 
+      # used.  Later will see method get and why the name for the method as .gz.
+      dbl = R.d(10.25)
       assert_equal(10.25, dbl.gz)
-      
+
+      # When looking at a logical vector, method .gt gets the truth value of the vector
+      var = R.c(TRUE)
+      assert_equal(true, var.gt)
+
     end
 
     #--------------------------------------------------------------------------------------
@@ -161,21 +128,19 @@ EOF
 
     should "create complex variable" do
 
-      p "working with complex"
+      # complex vector: created by calling R.complex. Real and imaginary parts are obtained
+      # by calling R.Re and R.Im functions on the variable.
 
-      comp = R.complex(real: 2, imaginary: 3)
-      comp.pp
-      
+      comp_var = R.complex(real: 2, imaginary: 1)
+      assert_equal(2, R.Re(comp_var).gz)
+      assert_equal(1, R.Im(comp_var).gz)
+
+      p "complex"
+
       comp = R.as__complex(-1)
-      comp.pp
-
-      p R.is__complex(comp).gt
-
-      p R.Re(comp).gz
-      p R.Im(comp).gz
-
-      # Cannot yet convert a complex Vector to an MDArray.
-      # comp.get.pp
+      assert_equal(-1, R.Re(comp).gz)
+      assert_equal(0, R.Im(comp).gz)
+      assert_equal(true, R.is__complex(comp).gt)
 
       # The (x, y) representation of numbers is easier to understand at first, but a 
       # polar coordinates representation is often more practical. You can get the 
@@ -190,18 +155,17 @@ EOF
       R.Arg(z).pp
       # [1] 1.570796
       
-      # Not yet defined!!! Fixed
-      # R.pi / 2
-      # [1] 1.570796
-
       # Finally, you’ll want to be able to take the complex conjugate of a complex 
       # number; to do that in R, you can use Conj:
       R.Conj(z).pp
       # [1] 0-1i
  
-      # Not yet defined!!! Fixed
-      # R.Mod(z) == z * Conj(z)
-      # [1] TRUE
+      # Obtain components of a complex number in polar coordinates
+      comp = R.complex(imaginary: 1, real: 0)
+      mod = R.Mod(comp)
+      arg = R.Arg(comp)
+      assert_equal(true, ((R.pi/R.d(2)).gz == arg.gz))
+      assert_equal(false, ((R.pi/R.d(2)).gz == mod.gz))
 
       # To get the complex square root, you need to cast your negative number as a 
       # complex number using as__complex before applying sqrt:
@@ -296,20 +260,6 @@ EOF
       # vec2 has only three elements
       assert_equal(3, vec2.length)
 
-      # Convert vector to an MDArray
-      array = vec2.get
-      
-      # Use array as any other MDArray...
-      array.each do |elmt|
-        p elmt
-      end
-
-      # ... although there is no need to convert a vector to an MDArray to call each:
-      # the each method is also defined for vectors
-      vec1.each do |elmt|
-        p elmt
-      end
-
     end
 
     #--------------------------------------------------------------------------------------
@@ -343,31 +293,6 @@ EOF
       vec.pp
 
     end
-
-=begin
-
-    #--------------------------------------------------------------------------------------
-    #
-    #--------------------------------------------------------------------------------------
-
-    should "integrate MDArray with R vector" do
-      
-      # typed_arange does the same as arange but for arrays of other type
-      arr = MDArray.typed_arange(:double, 60)
-      # MDArray is stored in row-major order
-      arr.reshape!([5, 3, 4])
-      # arr.print
-
-      R.eval <<EOF
-      print(#{arr.r});
-      vec = #{arr.r};
-print(vec);
-print(vec[1, 1, 1]);
-
-EOF
-
-end
-=end
 
   end
   

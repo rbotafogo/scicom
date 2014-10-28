@@ -43,40 +43,6 @@ class SciComTest < Test::Unit::TestCase
     #
     #--------------------------------------------------------------------------------------
 
-    should "save variables and access variables and functions in R" do
-
-      var = R.c(2, 3, 4, 5)
-      var.pp
-
-      # method pp prints the content of the Sexp.  "__" in variables and functions are
-      # converted to "." in R.  So "my__var" is variable "my.var" in R namespace
-
-      # Defininig variable "my.var" in the R namespace.  Need to use the "__" notation:
-      R.my__var = R.c(2, 3, 4)
-
-      # get the variable "my.var" defined above using a method call on R:
-      R.my__var.pp
-
-      # Accessimg variable "my.var" through the eval method of R:
-      R.eval("print(my.var)")
-
-      # Using here docs to develop R scripts
-      R.eval <<EOF
-        print(my.var)
-EOF
-
-      # Variable my__var is undefined on the Ruby namespace
-      assert_raise ( NameError ) { my__var }
-
-      # look up variables defined in R namespace
-      R.ls.pp
-
-    end
-
-    #--------------------------------------------------------------------------------------
-    #
-    #--------------------------------------------------------------------------------------
-
     should "get info from the workspace" do
 
       # get default R options

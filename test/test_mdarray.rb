@@ -40,9 +40,71 @@ class SciComTest < Test::Unit::TestCase
     end
 
 
-    #======================================================================================
+    #--------------------------------------------------------------------------------------
     #
-    #======================================================================================
+    #--------------------------------------------------------------------------------------
+
+    should "convert a vector to an MDArray" do
+
+      # Method 'get' converts a Vector to an MDArray
+      vec = i3.get
+      assert_equal(true, vec.is_a?(MDArray))
+      assert_equal("int", vec.type)
+
+      # For consistancy with R notation one can also call as__mdarray to convert a 
+      # vector to an MDArray
+      vec2 = i3.as__mdarray
+      assert_equal(true, vec2.is_a?(MDArray))
+      assert_equal("int", vec2.type)
+
+      # Now 'vec' is an MDArray and its elements can be accessed through indexing, but
+      # this time the first index is 0, and the element is an actual number
+      assert_equal(10, vec[0])
+
+      # Convert vector to an MDArray
+      array = vec2.get
+      
+      # Use array as any other MDArray...
+      array.each do |elmt|
+        p elmt
+      end
+
+      # ... although there is no need to convert a vector to an MDArray to call each:
+      # the each method is also defined for vectors
+      vec1.each do |elmt|
+        p elmt
+      end
+      
+    end
+
+=begin
+
+    #--------------------------------------------------------------------------------------
+    #
+    #--------------------------------------------------------------------------------------
+
+    should "integrate MDArray with R vector" do
+      
+      # typed_arange does the same as arange but for arrays of other type
+      arr = MDArray.typed_arange(:double, 60)
+      # MDArray is stored in row-major order
+      arr.reshape!([5, 3, 4])
+      # arr.print
+
+      R.eval <<EOF
+      print(#{arr.r});
+      vec = #{arr.r};
+print(vec);
+print(vec[1, 1, 1]);
+
+EOF
+
+end
+=end
+
+    #--------------------------------------------------------------------------------------
+    #
+    #--------------------------------------------------------------------------------------
 
     should "receive 1 Dimensional MDArrays in R" do
       
@@ -63,9 +125,9 @@ class SciComTest < Test::Unit::TestCase
       
     end
 
-    #======================================================================================
+    #--------------------------------------------------------------------------------------
     #
-    #======================================================================================
+    #--------------------------------------------------------------------------------------
 
     should "cast MDArray numeric value to different types" do
 

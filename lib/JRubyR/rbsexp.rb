@@ -83,12 +83,13 @@ class Renjin
       
       name = symbol.id2name
       name.gsub!(/__/,".")
-
+      
       # super if args.length != 0
       if name =~ /(.*)=$/
         super if args.length != 1
-        args = R.parse(*args)
-        ret = R.eval("#{r}[[\"#{name}\"]] = #{args}")
+        # p "#{r}$#{$1} = #{args[0].r}"
+        # ret = R.eval("#{r}[\"#{name}\"] = #{args[0].r}")
+        ret = R.eval("#{r}$#{$1} = #{args[0].r}")
       elsif (args.length == 0)
         # treat name as a named item of the list
         ret = R.eval("#{r}[[\"#{name}\"]]")
