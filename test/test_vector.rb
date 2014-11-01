@@ -73,6 +73,18 @@ class SciComTest < Test::Unit::TestCase
       assert_equal(true, chr_var.atomic?)
       assert_equal(false, chr_var.numeric?)
 
+      # complex vector
+      comp_var = R.c(R.complex(real: 2, imaginary: 1), R.complex(real: 0, imaginary: 1))
+      assert_equal("complex", comp_var.typeof)
+      assert_equal(2, comp_var.length)
+      assert_equal(false, comp_var.integer?)
+      assert_equal(false, comp_var.double?)
+      assert_equal(true, comp_var.complex?)
+      assert_equal(1, comp_var[2].im.gz)
+
+      ## create a complex normal vector
+      z = R.complex(real: R.rnorm(100), imaginary: R.rnorm(100))
+
     end
 
     #--------------------------------------------------------------------------------------
@@ -133,128 +145,9 @@ class SciComTest < Test::Unit::TestCase
     #
     #--------------------------------------------------------------------------------------
 
-    should "do basic vector arithmetic" do
-
-      vec1 = R.c(1, 2.5, 4.5)
-      vec2 = R.c(3, 4, 5)
-
-      res = -vec1
-      assert_equal(true, (R.all(R.c(-1, -2.5, -4.5) == res)).gt)
-      assert_equal(false, (R.all(R.c(1, -2.5, -4.5) == res)).gt)
-
-      res = +vec1
-      assert_equal(false, (R.all(R.c(-1, -2.5, -4.5) == res)).gt)
-      assert_equal(true, (R.all(R.c(1, 2.5, 4.5) == res)).gt)
-
-      res = vec1 + vec2
-      assert_equal(true, (R.all(R.c(4, 6.5, 9.5) == res)).gt)
-      assert_equal(false, (R.all(R.c(4, 6.5, 9) == res)).gt)
-
-      res = vec1 - vec2
-      assert_equal(true, (R.all(R.c(-2, -1.5, -0.5) == res)).gt)
-
-      res = vec1 * vec2
-      assert_equal(true, (R.all(R.c(3, 10, 22.5) == res)).gt)
-
-      res = vec1 / vec2
-      assert_equal(true, (R.all(R.c(0.333333333333333333333333, 0.625, 0.9) == res)).gt)
-
-      res = vec1 % vec2
-      assert_equal(true, (R.all(R.c(1, 2.5, 4.5) == res)).gt)
-
-      res = vec2 % vec1
-      assert_equal(true, (R.all(R.c(0, 1.5, 0.5) == res)).gt)
-
-      res = vec1.int_div(vec2)
-      assert_equal(true, (R.all(R.c(0, 0, 0) == res)).gt)
-
-      res = vec2.int_div(vec1)
-      assert_equal(true, (R.all(R.c(3, 1, 1) == res)).gt)
-
-      res = vec1 ** vec2
-      assert_equal(true, (R.all(R.c(1, 39.0625, 1845.28125) == res)).gt)
-
-    end
-
-    #--------------------------------------------------------------------------------------
-    #
-    #--------------------------------------------------------------------------------------
-
-    should "do vector comparison" do
-
-      vec1 = R.c(1, 2.5, 4.5)
-      vec2 = R.c(3, 4, 5)
-      vec3 = R.c(1, 3, 4.5)
-
-      # R.all checks to see if every element of the vector is TRUE. R.any checks to see if at
-      # least one element of the vector is TRUE.
-
-      res = vec1 < vec2
-      assert_equal(true, R.all(res).gt)
-
-      res = vec1 < vec3
-      assert_equal(false, R.all(res).gt)
-
-      res = vec1 <= vec3
-      assert_equal(true, R.all(res).gt)
-
-      res = vec1 > vec2
-      assert_equal(false, R.all(res).gt)
-
-      res = vec1 > vec3
-      assert_equal(false, R.all(res).gt)
-
-      res = vec2 > vec3
-      assert_equal(true, R.all(res).gt)
-
-      res = vec3 >= vec1
-      assert_equal(true, R.all(res).gt)
-
-      res = vec3 > vec1
-      assert_equal(false, R.all(res).gt)
-      assert_equal(true, R.any(res).gt)
-
-      res = vec2 != vec1
-      assert_equal(true, R.all(res).gt)
-
-      # comparison is done element by element.  R.all is true only if all elements on the 
-      # vector are true.  Is this case, there are elements that are equal
-      res = vec3 != vec1
-      assert_equal(false, R.all(res).gt)
-
-    end
-
-    #--------------------------------------------------------------------------------------
-    #
-    #--------------------------------------------------------------------------------------
-
-    should "do logical vector operations" do
-
-      vec1 = R.c(TRUE, TRUE, FALSE, FALSE)
-      vec2 = R.c(TRUE, FALSE, TRUE, FALSE)
-
-      p "logical"
-      res = !vec1
-      assert_equal(true, (R.c(FALSE, FALSE, TRUE, TRUE) == res).gt)
-
-      res = vec1 & vec2
-      assert_equal(true, (R.c(TRUE, FALSE, FALSE, FALSE) == res).gt)
-      assert_equal(false, (R.c(FALSE, FALSE, FALSE, FALSE) == res).gt)
-
-      # only compares the first element of the vectors.  Equivalent to R's &&
-      res = vec1.l_and(vec2)
-      assert_equal(true, res.gt)
-
-      p "end logical"
-
-    end
-
-    #--------------------------------------------------------------------------------------
-    #
-    #--------------------------------------------------------------------------------------
-
     should "assign to a numeric vector" do
 
+      # assign to a given vector index
       vec = R.c(1, 2, 3)
       vec[1] = 0
       assert_equal(true, (R.c(0, 2, 3) == vec).gt)
@@ -285,51 +178,6 @@ class SciComTest < Test::Unit::TestCase
     #
     #--------------------------------------------------------------------------------------
 
-    should "acess data by using indexing with names attribute" do
-
-      # Must be careful... any assignment to a vector (object?) creates a new object
-      # value in Ruby will reference the old object and they will be different.
-      dbl_var = R.eval("var = c(1, 2, 3, 4)")
-      dbl_var.attr.names = R.c("one", "two", "three", "four")
-      dbl_var.attr.name = "my.name"
-      dbl_var.pp
-
-      # access element on a vector by name 
-      dbl_var["one"].pp
-      assert_equal(2, dbl_var["two"].gz)
-      assert_equal(4, dbl_var["four"].gz)
-
-      R.eval <<EOF
-         l = c(1, 2, 3, 4)
-         attr(l, "name") = "my.name"
-         print(attributes(l))
-
-         # l2 = l
-         # print(attributes(l2))
-EOF
-
-    end
-
-    #--------------------------------------------------------------------------------------
-    #
-    #--------------------------------------------------------------------------------------
-
-    should "acess data by using accessor methods from names attribute" do
-
-      dbl_var = R.eval("var = c(1, 2, 3, 4)")
-      dbl_var.attr.names = R.c("one", "two", "three", "four")
-
-      assert_equal(1, dbl_var.one.gz)
-      assert_equal(2, dbl_var.two.gz)
-      assert_equal(3, dbl_var.three.gz)
-      assert_equal(4, dbl_var.four.gz)
-
-    end
-
-    #--------------------------------------------------------------------------------------
-    #
-    #--------------------------------------------------------------------------------------
-
     should "match two vectors with %in%" do
 
       vec1 = R.c(1, 2, 3, 4)
@@ -337,10 +185,41 @@ EOF
       vec3 = R.c(3, 4, 5)
       vec4 = R.c(4, 5, 6, 7)
 
+      # R has functions defined with '%%' notation.  In order to access those functions
+      # from SciCom we use the '._' method with two arguments, the first argument is the
+      # name of the function, for instance, function %in%, the name of the method is ':in'
+      # Ex: vec1 %in% vec2 => vec1._ :in, vec2 
       (vec1._ :in, vec2).pp
       (vec1._ :in, vec3).pp
       (vec2._ :in, vec4).pp
       
+    end
+
+    #--------------------------------------------------------------------------------------
+    #
+    #--------------------------------------------------------------------------------------
+
+    should "Apply a Function over a List or Vector" do
+
+      x = R.list(a: (1..10), beta: R.exp(-3..3), logic: R.c(TRUE,FALSE,FALSE,TRUE))
+      x.pp
+      # compute the list mean for each list element
+      mean = R.lapply(x, "mean")
+      mean.pp
+
+      # median and quartiles for each list element
+      # quant = R.lapply(x, "quantile")
+      # quant = R.sapply(x, "quantile")
+      # quant.pp
+      # R.eval("x <- lapply(#{x.r}, quantile, c(0.25, 0.50, 0.75))")
+      # R.eval("print(x)")
+
+      # list of vectors
+      i39 = R.sapply((3..9), "seq")
+      i39.pp
+      sap = R.sapply(i39, "fivenum")
+      sap.pp
+
     end
 
   end

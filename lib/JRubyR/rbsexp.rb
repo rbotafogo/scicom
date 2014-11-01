@@ -282,8 +282,14 @@ class Renjin
         res = Renjin::Logical.new(sexp)
       elsif (sexp.instance_of? Java::OrgRenjinSexp::Environment)
         res = Renjin::Environment.new(sexp)
+      elsif (sexp.is_a? Java::OrgRenjinSexp::ComplexVector)
+        res = Renjin::ComplexVector.new(sexp)
       elsif (sexp.is_a? Java::OrgRenjinSexp::Vector)
         res = Renjin::Vector.new(sexp)
+      elsif (sexp.is_a? Java::OrgRenjinSexp::Closure)
+        res = Renjin::Closure.new(sexp)
+      # elsif (sexp.is_a? Java::OrgRenjinPrimitives::R$primitive$sum)
+        # res = Renjin::Primitive.new(sexp)
       else
         p "sexp type needs to be specialized"
         p sexp
@@ -302,6 +308,7 @@ require_relative 'ruby_classes'
 require_relative 'vector'
 require_relative 'sequence'
 require_relative 'list'
+require_relative 'function'
 require_relative 'logical_value'
 require_relative 'environment'
 
@@ -314,4 +321,34 @@ require_relative 'environment'
     def set_sexp(sexp)
       @sexp = sexp
     end
+
+    #----------------------------------------------------------------------------------------
+    #
+    #----------------------------------------------------------------------------------------
+
+    def method_missing(symbol, *args)
+      
+      name = symbol.id2name
+      name.gsub!(/__/,".")
+
+      # super if args.length != 0
+      if name =~ /(.*)=$/
+        super if args.length != 1
+        args = R.parse(*args)
+        ret = R.eval("#{r}[[\"#{name}\"]] = #{args}")
+      elsif (args.length == 0)
+        # treat name as a named item of the list
+        ret = R.eval("#{r}[[\"#{name}\"]]")
+      elsif (name == "_")
+        method = "%#{args.shift.to_s}%"
+        arg2 = R.parse(*args)
+        ret = R.eval("#{r} #{method} #{arg2}")
+      else
+        raise "Illegal argument for named list item #{name}"
+      end
+      
+      ret
+      
+  end
+
 =end

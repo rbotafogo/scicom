@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
 
 ##########################################################################################
+# @author Rodrigo Botafogo
+#
 # Copyright © 2013 Rodrigo Botafogo. All Rights Reserved. Permission to use, copy, modify, 
 # and distribute this software and its documentation, without fee and without a signed 
 # licensing agreement, is hereby granted, provided that the above copyright notice, this 
@@ -19,30 +21,41 @@
 # OR MODIFICATIONS.
 ##########################################################################################
 
-require 'rubygems'
-require "test/unit"
-require 'shoulda'
+require_relative "attributes"
 
-require 'env'
-require 'scicom'
+#==========================================================================================
+#
+#==========================================================================================
 
-require_relative 'test_R_interface'
-require_relative 'test_creation'
-require_relative 'test_basic'
-require_relative 'test_vector'
-require_relative 'test_list'
+class Renjin
 
-=begin
-require_relative 'test_operators'
-require_relative 'test_attributes'
-require_relative 'test_factor'
-require_relative 'test_dataframes'
-require_relative 'test_matrix'
-require_relative 'test_array'
-require_relative 'test_subsetting'
-require_relative 'test_double_receive'
-require_relative 'test_double_assign'
-require_relative 'test_functions'
-require_relative 'test_user_function'
-require_relative 'test_column-major'
-=end
+  #========================================================================================
+  #
+  #========================================================================================
+
+  class Function < Renjin::RubySexp
+
+    def call(*args)
+      args = R.parse(*args)
+      R.eval("#{r}(#{args})")
+    end
+
+  end
+
+  #========================================================================================
+  #
+  #========================================================================================
+
+  class Closure < Function
+
+  end
+
+  #========================================================================================
+  #
+  #========================================================================================
+
+  class Primitive < Function
+
+  end
+
+end

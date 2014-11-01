@@ -115,6 +115,27 @@ class SciComTest < Test::Unit::TestCase
 
     end
 
+    #--------------------------------------------------------------------------------------
+    #
+    #--------------------------------------------------------------------------------------
+
+    should "Read file and apply linear model to dataset" do
+
+        # This dataset comes from Baseball-Reference.com.
+        baseball = R.read__csv("baseball.csv")
+        # Lets look at the data available for Momeyball.
+        # (baseball.Year < R.d(2002)).pp
+        moneyball = R.subset(baseball, baseball.Year < R.d(2002))
+
+        # Let's see if we can predict the number of wins, by looking at
+        # runs allowed (RA) and runs scored (RS).  RD is the runs difference.
+        # We are making a linear model for predicting wins (W) based on RD
+        moneyball.RD = moneyball.RS - moneyball.RA
+        wins_reg = R.lm("W ~ RD", data: moneyball)
+        R.summary(wins_reg).pp
+
+    end
+
   end
   
 end

@@ -211,6 +211,51 @@ class SciComTest < Test::Unit::TestCase
 
     end
 
+    #--------------------------------------------------------------------------------------
+    #
+    #--------------------------------------------------------------------------------------
+
+    should "acess vector data by using indexing with 'names' attribute" do
+
+      # Must be careful... any assignment to a vector (object?) creates a new object
+      # value in Ruby will reference the old object and they will be different.
+      dbl_var = R.eval("var = c(1, 2, 3, 4)")
+      dbl_var.attr.names = R.c("one", "two", "three", "four")
+      dbl_var.attr.name = "my.name"
+      dbl_var.pp
+
+      # access element on a vector by name 
+      dbl_var["one"].pp
+      assert_equal(2, dbl_var["two"].gz)
+      assert_equal(4, dbl_var["four"].gz)
+
+      R.eval <<EOF
+         l = c(1, 2, 3, 4)
+         attr(l, "name") = "my.name"
+         print(attributes(l))
+
+         # l2 = l
+         # print(attributes(l2))
+EOF
+
+    end
+
+    #--------------------------------------------------------------------------------------
+    #
+    #--------------------------------------------------------------------------------------
+
+    should "acess data by using accessor methods from 'names' attribute" do
+
+      dbl_var = R.eval("var = c(1, 2, 3, 4)")
+      dbl_var.attr.names = R.c("one", "two", "three", "four")
+
+      assert_equal(1, dbl_var.one.gz)
+      assert_equal(2, dbl_var.two.gz)
+      assert_equal(3, dbl_var.three.gz)
+      assert_equal(4, dbl_var.four.gz)
+
+    end
+
   end
 
 end
