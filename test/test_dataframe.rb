@@ -81,7 +81,7 @@ class SciComTest < Test::Unit::TestCase
       df = R.data__frame(name, age, hgt, wgt, race, sat)
       col = R.colnames(df)
       R.colnames(df).print
-      df.colnames('name', 'age', 'height', 'weigth', 'race', 'SAT')
+      # df.colnames('name', 'age', 'height', 'weigth', 'race', 'SAT')
       R.colnames(df).print
       
 
@@ -97,9 +97,6 @@ class SciComTest < Test::Unit::TestCase
       # this proves that vec is actually a new vec.  We have kept the old vector in 
       # variable rbvec.
       rbvec.print
-      # raises an exception
-      assert_raise ( RuntimeError ) {rbvec[1] = 10}
-
 
 =begin
       # R.colnames(df) = R.c("name", "age", "height", "weigth", "race", "SAT")
@@ -125,7 +122,7 @@ class SciComTest < Test::Unit::TestCase
         baseball = R.read__csv("baseball.csv")
         # Lets look at the data available for Momeyball.
         # (baseball.Year < R.d(2002)).pp
-        moneyball = R.subset(baseball, baseball.Year < R.d(2002))
+        moneyball = R.subset(baseball, baseball.Year < 2002)
 
         # Let's see if we can predict the number of wins, by looking at
         # runs allowed (RA) and runs scored (RS).  RD is the runs difference.

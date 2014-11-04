@@ -330,7 +330,7 @@ require_relative 'environment'
       
       name = symbol.id2name
       name.gsub!(/__/,".")
-
+      
       # super if args.length != 0
       if name =~ /(.*)=$/
         super if args.length != 1
@@ -349,6 +349,6 @@ require_relative 'environment'
       
       ret
       
-  end
+    end
 
 =end

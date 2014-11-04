@@ -47,39 +47,50 @@ class SciComTest < Test::Unit::TestCase
       vec1 = R.c(1, 2.5, 4.5)
       vec2 = R.c(3, 4, 5)
 
+      # unary minus
       res = -vec1
       assert_equal(true, (R.all(R.c(-1, -2.5, -4.5) == res)).gt)
       assert_equal(false, (R.all(R.c(1, -2.5, -4.5) == res)).gt)
 
+      # unary plus
       res = +vec1
       assert_equal(false, (R.all(R.c(-1, -2.5, -4.5) == res)).gt)
       assert_equal(true, (R.all(R.c(1, 2.5, 4.5) == res)).gt)
 
+      # addition
       res = vec1 + vec2
       assert_equal(true, (R.all(R.c(4, 6.5, 9.5) == res)).gt)
       assert_equal(false, (R.all(R.c(4, 6.5, 9) == res)).gt)
 
+      # subtraction
       res = vec1 - vec2
       assert_equal(true, (R.all(R.c(-2, -1.5, -0.5) == res)).gt)
 
+      # multiplication
       res = vec1 * vec2
       assert_equal(true, (R.all(R.c(3, 10, 22.5) == res)).gt)
 
+      # division
       res = vec1 / vec2
       assert_equal(true, (R.all(R.c(0.333333333333333333333333, 0.625, 0.9) == res)).gt)
 
+      # modulus (x mod y)
       res = vec1 % vec2
       assert_equal(true, (R.all(R.c(1, 2.5, 4.5) == res)).gt)
 
+      # modulus (x mod y)
       res = vec2 % vec1
       assert_equal(true, (R.all(R.c(0, 1.5, 0.5) == res)).gt)
 
+      # integer division
       res = vec1.int_div(vec2)
       assert_equal(true, (R.all(R.c(0, 0, 0) == res)).gt)
 
+      # integer division
       res = vec2.int_div(vec1)
       assert_equal(true, (R.all(R.c(3, 1, 1) == res)).gt)
 
+      # exponetiation
       res = vec1 ** vec2
       assert_equal(true, (R.all(R.c(1, 39.0625, 1845.28125) == res)).gt)
 
@@ -142,16 +153,72 @@ class SciComTest < Test::Unit::TestCase
       vec1 = R.c(TRUE, TRUE, FALSE, FALSE)
       vec2 = R.c(TRUE, FALSE, TRUE, FALSE)
 
+      # not
       res = !vec1
-      assert_equal(true, (R.c(FALSE, FALSE, TRUE, TRUE) == res).gt)
+      assert_equal(true, (R.all(R.c(FALSE, FALSE, TRUE, TRUE) == res)).gt)
 
+      # and
       res = vec1 & vec2
-      assert_equal(true, (R.c(TRUE, FALSE, FALSE, FALSE) == res).gt)
-      assert_equal(false, (R.c(FALSE, FALSE, FALSE, FALSE) == res).gt)
+      assert_equal(true, (R.all(R.c(TRUE, FALSE, FALSE, FALSE) == res)).gt)
+      assert_equal(false, (R.all(R.c(FALSE, FALSE, FALSE, FALSE) == res)).gt)
+
+      # or
+      res = vec1 | vec2
+      assert_equal(false, (R.all(R.c(TRUE, FALSE, FALSE, FALSE) == res)).gt)
+      assert_equal(true, (R.all(R.c(TRUE, TRUE, TRUE, FALSE) == res)).gt)
 
       # only compares the first element of the vectors.  Equivalent to R's &&
       res = vec1.l_and(vec2)
       assert_equal(true, res.gt)
+
+    end
+
+    #--------------------------------------------------------------------------------------
+    #
+    #--------------------------------------------------------------------------------------
+
+    should "do arithmetic with scalars" do
+
+      vec1 = R.c(1, 2.5, 4.5)
+      vec2 = R.c(3, 4, 5)
+
+      res = vec1 + 2
+      assert_equal(true, (R.all(R.c(3, 4.5, 6.5) == res)).gt)
+
+      res = vec1 - 2
+      res = vec1 * 2
+      res = vec1 / 2 
+      res = vec1 % 2 
+      res = vec1 ** 2 
+      res = vec1 | 2
+      res = vec1 & 2
+      res = vec1 > 2
+      res = vec1 >= 2
+      res = vec1 < 2.5
+      res = vec1 <= 2.5
+      
+    end
+
+    #--------------------------------------------------------------------------------------
+    #
+    #--------------------------------------------------------------------------------------
+
+    should "coerce scalar to vector when needed" do
+
+      vec1 = R.c(1, 2.5, 4.5)
+      vec2 = R.c(3, 4, 5)
+
+      res = 2 * vec2
+      res.pp
+
+      res = 2 - vec2
+      res.pp
+
+      res = 2 > vec2
+      res.pp
+
+      res = 2 <= vec1
+      res.pp
 
     end
 

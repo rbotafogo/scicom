@@ -237,7 +237,11 @@ class Renjin
     #----------------------------------------------------------------------------------------
 
     def +(other_vec)
+      if (other_vec.is_a? Numeric)
+        other_vec = R.d(other_vec)
+      end
       R.eval("#{r} + #{other_vec.r}")
+
     end
 
     #----------------------------------------------------------------------------------------
@@ -245,6 +249,9 @@ class Renjin
     #----------------------------------------------------------------------------------------
 
     def -(other_vec)
+      if (other_vec.is_a? Numeric)
+        other_vec = R.d(other_vec)
+      end
       R.eval("#{r} - #{other_vec.r}")
     end
 
@@ -253,6 +260,9 @@ class Renjin
     #----------------------------------------------------------------------------------------
 
     def *(other_vec)
+      if (other_vec.is_a? Numeric)
+        other_vec = R.d(other_vec)
+      end
       R.eval("#{r} * #{other_vec.r}")
     end
 
@@ -261,14 +271,20 @@ class Renjin
     #----------------------------------------------------------------------------------------
 
     def /(other_vec)
+      if (other_vec.is_a? Numeric)
+        other_vec = R.d(other_vec)
+      end
       R.eval("#{r} / #{other_vec.r}")
     end
 
     #----------------------------------------------------------------------------------------
-    #
+    # modulus
     #----------------------------------------------------------------------------------------
 
     def %(other_vec)
+      if (other_vec.is_a? Numeric)
+        other_vec = R.d(other_vec)
+      end
       R.eval("#{r} %% #{other_vec.r}")
     end
 
@@ -277,14 +293,20 @@ class Renjin
     #----------------------------------------------------------------------------------------
 
     def int_div(other_vec)
+      if (other_vec.is_a? Numeric)
+        other_vec = R.d(other_vec)
+      end
       R.eval("#{r} %/% #{other_vec.r}")
     end
 
     #----------------------------------------------------------------------------------------
-    #
+    # exponentiation
     #----------------------------------------------------------------------------------------
 
     def **(other_vec)
+      if (other_vec.is_a? Numeric)
+        other_vec = R.d(other_vec)
+      end
       R.eval("#{r} ** #{other_vec.r}")
     end
 
@@ -293,6 +315,9 @@ class Renjin
     #----------------------------------------------------------------------------------------
 
     def >(other_vec)
+      if (other_vec.is_a? Numeric)
+        other_vec = R.d(other_vec)
+      end
       R.eval("#{r} > #{other_vec.r}")
     end
 
@@ -301,6 +326,9 @@ class Renjin
     #----------------------------------------------------------------------------------------
 
     def >=(other_vec)
+      if (other_vec.is_a? Numeric)
+        other_vec = R.d(other_vec)
+      end
       R.eval("#{r} >= #{other_vec.r}")
     end
 
@@ -309,6 +337,9 @@ class Renjin
     #----------------------------------------------------------------------------------------
 
     def <(other_vec)
+      if (other_vec.is_a? Numeric)
+        other_vec = R.d(other_vec)
+      end
       R.eval("#{r} < #{other_vec.r}")
     end
 
@@ -317,6 +348,9 @@ class Renjin
     #----------------------------------------------------------------------------------------
 
     def <=(other_vec)
+      if (other_vec.is_a? Numeric)
+        other_vec = R.d(other_vec)
+      end
       R.eval("#{r} <= #{other_vec.r}")
     end
 
@@ -325,6 +359,9 @@ class Renjin
     #----------------------------------------------------------------------------------------
 
     def !=(other_vec)
+      if (other_vec.is_a? Numeric)
+        other_vec = R.d(other_vec)
+      end
       R.eval("#{r} != #{other_vec.r}")
     end
 
@@ -341,15 +378,62 @@ class Renjin
     #----------------------------------------------------------------------------------------
 
     def &(other_vec)
+      if (other_vec.is_a? Numeric)
+        other_vec = R.d(other_vec)
+      end
       R.eval("#{r} & #{other_vec.r}")
+    end
+
+    #----------------------------------------------------------------------------------------
+    # l_and looks at only the first element of the vector
+    #----------------------------------------------------------------------------------------
+
+    def l_and(other_vec)
+      if (other_vec.is_a? Numeric)
+        other_vec = R.d(other_vec)
+      end
+      R.eval("#{r} && #{other_vec.r}")
+    end
+
+    #----------------------------------------------------------------------------------------
+    # or
+    #----------------------------------------------------------------------------------------
+
+    def |(other_vec)
+      if (other_vec.is_a? Numeric)
+        other_vec = R.d(other_vec)
+      end
+      R.eval("#{r} | #{other_vec.r}")
     end
 
     #----------------------------------------------------------------------------------------
     #
     #----------------------------------------------------------------------------------------
 
-    def l_and(other_vec)
-      R.eval("#{r} && #{other_vec.r}")
+    def l_or(other_vec)
+      if (other_vec.is_a? Numeric)
+        other_vec = R.d(other_vec)
+      end
+      R.eval("#{r} || #{other_vec.r}")
+    end
+
+    #----------------------------------------------------------------------------------------
+    #
+    #----------------------------------------------------------------------------------------
+
+    def xor(other_vec)
+      if (other_vec.is_a? Numeric)
+        other_vec = R.d(other_vec)
+      end
+      R.eval("#{r} xor #{other_vec.r}")
+    end
+
+    #----------------------------------------------------------------------------------------
+    #
+    #----------------------------------------------------------------------------------------
+
+    def coerce(scalar)
+      [R.d(scalar), self]
     end
 
   end

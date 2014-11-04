@@ -30,11 +30,11 @@ require_relative 'test_R_interface'
 require_relative 'test_creation'
 require_relative 'test_basic'
 require_relative 'test_vector'
+require_relative 'test_operators'
 require_relative 'test_list'
+require_relative 'test_attributes'
 
 =begin
-require_relative 'test_operators'
-require_relative 'test_attributes'
 require_relative 'test_factor'
 require_relative 'test_dataframes'
 require_relative 'test_matrix'
