@@ -43,7 +43,7 @@ class SciComTest < Test::Unit::TestCase
     # 
     #--------------------------------------------------------------------------------------
 =begin
-    should "create data-frame single vector" do
+    should "create data-frame from a single vector" do
 
       vec = R.seq(20)
       vec.attr.dim = R.c(4, 5)
@@ -58,12 +58,123 @@ class SciComTest < Test::Unit::TestCase
       df["V4"].pp
 
     end
+
+    #--------------------------------------------------------------------------------------
+    # 
+    #--------------------------------------------------------------------------------------
+
+    should "work with build-in data-frames" do
+
+      # We use built-in data frames in R for our tutorials. For example, here is a built-in 
+      # data frame in R, called mtcars.
+
+      # to access a build-in data-frame, use method R.d with the data-frame's name
+      mtcars = R.d("mtcars")
+
+      p "mtcars build-in data-frame"
+      mtcars.pp
+
+      # Here is the cell value from the first row, second column of mtcars.
+      assert_equal(6, mtcars[1, 2].gz)
+
+      # Moreover, we can use the row and column names instead of the numeric coordinates.
+      assert_equal(6, mtcars["Mazda RX4", "cyl"].gz)
+
+      # Lastly, the number of data rows in the data frame is given by the nrow function.
+      assert_equal(32, mtcars.nrow.gz)    # number of data rows 
+
+      # And the number of columns of a data frame is given by the ncol function.
+      assert_equal(11, mtcars.ncol.gz)    # number of columns 
+
+      p "mtcars head"
+      mtcars.head.pp
+
+    end
+
+    #--------------------------------------------------------------------------------------
+    # 
+    #--------------------------------------------------------------------------------------
+
+    should "access data-frames by column vector" do
+
+      mtcars = R.d("mtcars")
+
+      # We reference a data frame column with the double square bracket "[[]]" operator.
+      # For example, to retrieve the ninth column vector of the built-in data set mtcars, 
+      # we write mtcars[[9]].
+      mtcars[[9]].pp
+
+      # We can retrieve the same column vector by its name.
+      mtcars[["am"]].pp
+
+      # We can also retrieve with the "." operator in lieu of the double square 
+      # bracket operator.
+      mtcars.am.pp 
+
+      # Yet another way to retrieve the same column vector is to use the single square 
+      # bracket "[]" operator. We prepend the column name with 'nil', which signals a 
+      # wildcard match for the row position.
+      mtcars[nil, "am"].pp
+
+    end
+
+    #--------------------------------------------------------------------------------------
+    # 
+    #--------------------------------------------------------------------------------------
+
+    should "access data-frames by column slice" do
+
+      mtcars = R.d("mtcars")
+
+      # We retrieve a data frame column slice with the single square bracket "[]" operator.
+
+      # Numeric Indexing
+      # The following is a slice containing the first column of the built-in data set 
+      # mtcars.
+      mtcars[1].pp
+
+      # Name Indexing
+      # We can retrieve the same column slice by its name.
+      mtcars["mpg"].pp
+
+      # To retrieve a data frame slice with the two columns mpg and hp, we pack the 
+      # column names in an index vector inside the single square bracket operator.
+      mtcars[R.c("mpg", "hp")].pp
+
+    end
 =end
+
+    #--------------------------------------------------------------------------------------
+    # 
+    #--------------------------------------------------------------------------------------
+
+    should "access data-frames by row slice" do
+
+      mtcars = R.d("mtcars")
+
+      # We retrieve rows from a data frame with the single square bracket operator, just 
+      # like what we did with columns. However, in additional to an index vector of row 
+      # positions, we append an nil. This is important, as the nil signals a wildcard match 
+      # for the second coordinate for column positions.
+
+      # Numeric Indexing
+      # For example, the following retrieves a row record of the built-in data set mtcars. 
+      # Please notice the nil in the square bracket operator. It states that the 1974 Camaro 
+      # Z28 has a gas mileage of 13.3 miles per gallon, and an eight cylinder 245 horse power 
+      # engine, ..., etc.
+      mtcars[24, nil].pp
+
+      # To retrieve more than one rows, we use a numeric index vector.
+      mtcars[R.c(3, 24), nil].pp 
+
+    end
+
     #--------------------------------------------------------------------------------------
     # 
     #--------------------------------------------------------------------------------------
 
     should "create data-frame from multiple vectors" do
+=begin
 
       # name     age  hgt  wgt  race year   SAT 
       # Bob       21   70  180  Cauc   Jr  1080
@@ -80,11 +191,9 @@ class SciComTest < Test::Unit::TestCase
       sat = R.c(1080, 1210, 840, 1340, 880)
 
       df = R.data__frame(name, age, hgt, wgt, race, sat)
-      R.colnames(df).pp
-      # df.colnames(prefix: "col")
-      R.colnames(df).pp
+      df.colnames.pp
+      df.colnames(prefix: "sc").pp
 
-=begin
 
       # Renjin allows changes to variable properties
       R.eval("colnames(#{df.r}) = c('name', 'age', 'height', 'weigth', 'race', 'SAT')")

@@ -35,11 +35,8 @@ class Renjin
     #
     #----------------------------------------------------------------------------------------
     
-    def [](index)
-      # p "parse is: #{parse(index)}"
-      # index = R.parse(index)
+    def [](*index)
       index = parse(index)
-      # p "index is: #{index}"
       R.eval("#{r}[#{index}]")
     end
         
@@ -47,10 +44,8 @@ class Renjin
     #
     #----------------------------------------------------------------------------------------
     
-    def []=(index, value)
-      # value = value.r if value.is_a? Renjin::RubySexp
+    def []=(*index, value)
       index = parse(index)
-      # index = R.parse(index)
       value = R.parse(value)
       R.eval("#{r}[#{index}] = #{value}")
     end
@@ -63,15 +58,21 @@ class Renjin
 
       params = Array.new
 
-      if (index.is_a? Array)
-        params << index[0]
-        # params << index.inspect
-        # params = params.join(",")
-      else
-        params = R.parse(index)
+      index.each do |i|
+        if (i.is_a? Array)
+          params << i
+        else
+          params << R.parse(i)
+        end
       end
       
-      params
+      ps = String.new
+      params.each_with_index do |p, i|
+        ps << "," if i > 0
+        ps << ((p == "NULL")? "" : p.to_s)
+      end
+
+      ps
 
     end
 
@@ -101,12 +102,6 @@ class Renjin
         else
           ret = R.eval("#{name}(#{r})") if ret == nil 
         end
-=begin
-        p "#{r}[[\"#{name}\"]]"
-        ret = R.eval("#{r}[[\"#{name}\"]]")
-        ret = R.eval("#{name}(#{r})") if ret == nil 
-=end
-
       elsif (args.length > 0)
         # p "#{name}(#{r}, #{R.parse(*args)})"
         ret = R.eval("#{name}(#{r}, #{R.parse(*args)})")
