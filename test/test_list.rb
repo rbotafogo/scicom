@@ -59,14 +59,14 @@ class SciComTest < Test::Unit::TestCase
       # get the first element of the list, usign indexing.  
       # Both [] and [[]] indexing can be used with the same R rules. 
       # Indexing with [] returns a list
-      assert_equal("list", @x[1].typeof)
+      assert_equal("list", @x[1].typeof.gz)
 
       # Indexing with [[]] return the sequence type wich is "integer" is this case
-      assert_equal("integer", @x[[1]].typeof)
+      assert_equal("integer", @x[[1]].typeof.gz)
 
       # Multiple indexing is OK.
-      assert_equal("integer", @x[1][[1]].typeof)
-      assert_equal("integer", @x[1][[1]][1].typeof)
+      assert_equal("integer", @x[1][[1]].typeof.gz)
+      assert_equal("integer", @x[1][[1]][1].typeof.gz)
 
       # Getting the Ruby value of a vector is done with method get. Method gz is equivalent
       # to get(0)
@@ -77,7 +77,7 @@ class SciComTest < Test::Unit::TestCase
 
       # to get the class of an RBSexp we need to call method rclass.  We cannot call method
       # class on it as it will return the Ruby class ('class' is a Ruby method).
-      assert_equal("list", @x.rclass)
+      assert_equal("list", @x.rclass.gz)
 
     end
     
@@ -89,8 +89,8 @@ class SciComTest < Test::Unit::TestCase
 
       # should also access element of the list by name.  Every element of the lists is a 
       # list
-      assert_equal("list", @x["second"].typeof)
-      assert_equal("character", @x[["second"]].typeof)
+      assert_equal("list", @x["second"].typeof.gz)
+      assert_equal("character", @x[["second"]].typeof.gz)
       assert_equal("yes", @x[["second"]][1].gz)
       assert_equal(2, @x[["fourth"]][4].gz)
       

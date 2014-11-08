@@ -64,7 +64,7 @@ class SciComTest < Test::Unit::TestCase
       my_int = R.i(10)
       assert_equal(10, my_int.gz)
       # method typeof returns the type of this vector
-      assert_equal("integer", my_int.typeof)
+      assert_equal("integer", my_int.typeof.gz)
 
     end
 
@@ -93,7 +93,7 @@ class SciComTest < Test::Unit::TestCase
       # create a double without calling eval.  Method .d creates a double vector with
       # one element. Variable i2 is now defined in the Ruby namespace
       i2 = R.d(345.7789)
-      assert_equal("double", i2.typeof)
+      assert_equal("double", i2.typeof.gz)
       assert_equal(345.7789, i2.gz)
 
       # Creating a double vector is done with R.d.  From now on we will use preferably

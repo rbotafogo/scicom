@@ -141,7 +141,7 @@ class Renjin
   def method_missing(symbol, *args)
 
     name = symbol.id2name
-    name.sub!(/__/,".")
+    name.gsub!(/__/,".")
     # Method 'rclass' is a substitute for R method 'class'.  Needed, as 'class' is also
     # a Ruby method on an object
     name.gsub!("rclass", "class")

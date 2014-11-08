@@ -36,29 +36,34 @@ class SciComTest < Test::Unit::TestCase
 
     setup do 
 
-      # creating two distinct instances of SciCom
-      @r1 = Renjin.new
-
     end
 
 
     #--------------------------------------------------------------------------------------
-    # We should be able to create MDArray with different layouts such as row-major, 
-    # column-major, or R layout.
+    # 
+    #--------------------------------------------------------------------------------------
+=begin
+    should "create data-frame single vector" do
+
+      vec = R.seq(20)
+      vec.attr.dim = R.c(4, 5)
+      df = R.as__data__frame(vec)
+      df.pp
+      assert_equal(4, df.nrow.gz)
+      assert_equal(5, df.ncol.gz)
+
+      df[0].pp
+      df[1].pp
+      df["V2"].pp
+      df["V4"].pp
+
+    end
+=end
+    #--------------------------------------------------------------------------------------
+    # 
     #--------------------------------------------------------------------------------------
 
-    should "work with data-frames" do
-
-      R.eval("vec = seq(20)")
-      R.eval("dim(vec) = c(4, 5)")
-      df = R.eval("df = as.data.frame(vec)")
-      R.eval("print(df)")
-      R.eval("print(nrow(df))")
-
-      df[0].print
-      df[1].print
-      df["V1"].print
-      df["V5"].print
+    should "create data-frame from multiple vectors" do
 
       # name     age  hgt  wgt  race year   SAT 
       # Bob       21   70  180  Cauc   Jr  1080
@@ -74,16 +79,12 @@ class SciComTest < Test::Unit::TestCase
       race = R.c("Cauc", "Af. Am", "Af. Am", "Cauc", "Asian")
       sat = R.c(1080, 1210, 840, 1340, 880)
 
-      list = R.list(name, age, hgt, wgt, race, sat)
-      list.print
-
-      # should I change the datatype????????
       df = R.data__frame(name, age, hgt, wgt, race, sat)
-      col = R.colnames(df)
-      R.colnames(df).print
-      # df.colnames('name', 'age', 'height', 'weigth', 'race', 'SAT')
-      R.colnames(df).print
-      
+      R.colnames(df).pp
+      # df.colnames(prefix: "col")
+      R.colnames(df).pp
+
+=begin
 
       # Renjin allows changes to variable properties
       R.eval("colnames(#{df.r}) = c('name', 'age', 'height', 'weigth', 'race', 'SAT')")
@@ -98,7 +99,7 @@ class SciComTest < Test::Unit::TestCase
       # variable rbvec.
       rbvec.print
 
-=begin
+
       # R.colnames(df) = R.c("name", "age", "height", "weigth", "race", "SAT")
       df.print
       summ = R.summary(df.r)
@@ -109,27 +110,6 @@ class SciComTest < Test::Unit::TestCase
       col = R.colnames(:df)
       col.print
 =end
-
-    end
-
-    #--------------------------------------------------------------------------------------
-    #
-    #--------------------------------------------------------------------------------------
-
-    should "Read file and apply linear model to dataset" do
-
-        # This dataset comes from Baseball-Reference.com.
-        baseball = R.read__csv("baseball.csv")
-        # Lets look at the data available for Momeyball.
-        # (baseball.Year < R.d(2002)).pp
-        moneyball = R.subset(baseball, baseball.Year < 2002)
-
-        # Let's see if we can predict the number of wins, by looking at
-        # runs allowed (RA) and runs scored (RS).  RD is the runs difference.
-        # We are making a linear model for predicting wins (W) based on RD
-        moneyball.RD = moneyball.RS - moneyball.RA
-        wins_reg = R.lm("W ~ RD", data: moneyball)
-        R.summary(wins_reg).pp
 
     end
 

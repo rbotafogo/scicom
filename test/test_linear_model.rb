@@ -26,7 +26,6 @@ require 'shoulda'
 require 'env'
 require 'scicom'
 
-
 class SciComTest < Test::Unit::TestCase
 
   context "R environment" do
@@ -43,22 +42,20 @@ class SciComTest < Test::Unit::TestCase
     #
     #--------------------------------------------------------------------------------------
 
-    should "keep reference and call R functions" do
+    should "Read file and apply linear model to dataset" do
 
-      var = R.c((0..10), 50)
-      R.mean(var).pp
-      R.mean(var, trim: 0.10).pp
+        # This dataset comes from Baseball-Reference.com.
+        baseball = R.read__csv("baseball.csv")
+        # Lets look at the data available for Momeyball.
+        # (baseball.Year < R.d(2002)).pp
+        moneyball = R.subset(baseball, baseball.Year < 2002)
 
-      f = R.eval("mean")
-      f.call(R.c(2, 3)).pp
-      f.call(var, trim: 0.10).pp
-
-      ff = R.d("mean")
-      ff.call(var, trim: 0.10).pp
-
-      sum = R.eval("sum")
-      dgamma = R.eval("dgamma")
-      p dgamma
+        # Let's see if we can predict the number of wins, by looking at
+        # runs allowed (RA) and runs scored (RS).  RD is the runs difference.
+        # We are making a linear model for predicting wins (W) based on RD
+        moneyball.RD = moneyball.RS - moneyball.RA
+        wins_reg = R.lm("W ~ RD", data: moneyball)
+        R.summary(wins_reg).pp
 
     end
 

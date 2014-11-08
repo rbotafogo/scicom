@@ -90,13 +90,26 @@ class Renjin
         # p "#{r}$#{$1} = #{args[0].r}"
         # ret = R.eval("#{r}[\"#{name}\"] = #{args[0].r}")
         ret = R.eval("#{r}$#{$1} = #{args[0].r}")
-      elsif (args.length == 0)
-        # treat name as a named item of the list
-        ret = R.eval("#{r}[[\"#{name}\"]]")
       elsif (name == "_")
         method = "%#{args.shift.to_s}%"
         arg2 = R.parse(*args)
         ret = R.eval("#{r} #{method} #{arg2}")
+      elsif (args.length == 0)
+        # treat name as a named item of the list
+        if (R.eval("\"#{name}\" %in% names(#{r})").gt)
+          ret = R.eval("#{r}[[\"#{name}\"]]")
+        else
+          ret = R.eval("#{name}(#{r})") if ret == nil 
+        end
+=begin
+        p "#{r}[[\"#{name}\"]]"
+        ret = R.eval("#{r}[[\"#{name}\"]]")
+        ret = R.eval("#{name}(#{r})") if ret == nil 
+=end
+
+      elsif (args.length > 0)
+        # p "#{name}(#{r}, #{R.parse(*args)})"
+        ret = R.eval("#{name}(#{r}, #{R.parse(*args)})")
       else
         raise "Illegal argument for named list item #{name}"
       end
@@ -198,7 +211,7 @@ class Renjin
     #----------------------------------------------------------------------------------------
 
     def typeof
-      R.typeof(R.eval("#{r}")).gz
+      R.typeof(R.eval("#{r}"))
     end
 
     #----------------------------------------------------------------------------------------
@@ -206,7 +219,7 @@ class Renjin
     #----------------------------------------------------------------------------------------
 
     def rclass
-      R.rclass(R.eval("#{r}")).gz
+      R.rclass(R.eval("#{r}"))
     end
 
     #----------------------------------------------------------------------------------------
@@ -225,6 +238,22 @@ class Renjin
       print
     end
     
+    #----------------------------------------------------------------------------------------
+    #
+    #----------------------------------------------------------------------------------------
+
+    def nrow
+      R.nrow(self)
+    end
+
+    #----------------------------------------------------------------------------------------
+    #
+    #----------------------------------------------------------------------------------------
+
+    def ncol
+      R.ncol(self)
+    end
+
   end
   
 end

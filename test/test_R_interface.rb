@@ -60,6 +60,7 @@ class SciComTest < Test::Unit::TestCase
 
       R.eval("vec = c(10, 20, 30, 40, 50)")
       R.eval("print(vec)")
+      R.eval("print(vec[1])")
 
     end
 

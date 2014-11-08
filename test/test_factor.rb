@@ -84,11 +84,23 @@ class SciComTest < Test::Unit::TestCase
 
 
       data = R.c(1,2,2,3,1,2,3,3,1,2,3,3,1)
+
+      # The same as above, but more like R, i.e. calling function 'factor' with data as
+      # argument
       fdata = R.factor(data)
       fdata.pp
 
-      rdata = R.factor(data, labels: R.c("I","II","III"))
-      rdata.pp
+      # Calling "method" 'factor' on the data vector.  Same result as above, but shorter
+      # without having to use 'R.factor'
+      data.factor.pp
+
+      # calling 'factor' method with arguments
+      data.factor(labels: R.c("I","II","III")).pp
+
+      # To convert the default factor fdata to roman numerals, we need to set its levels
+      # attribute
+      fdata.attr.levels = R.c('I','II','III')
+      fdata.pp
 
       # Factors represent a very efficient way to store character values, because each 
       # unique character value is stored only once, and the data itself is stored as a 
@@ -108,6 +120,9 @@ class SciComTest < Test::Unit::TestCase
       mons = R.factor(mons)
       R.table(mons).pp
 
+      # This does the same as above
+      mons.factor.table.pp
+
       # Although the months clearly have an ordering, this is not reflected in the 
       # output of the table function. Additionally, comparison operators are not 
       # supported for unordered factors. Creating an ordered factor solves these 
@@ -115,10 +130,9 @@ class SciComTest < Test::Unit::TestCase
       
       mons = R.factor(mons, levels: R.c("January","February","March",\
         "April","May","June","July","August","September",\
-        "October","November","December"),ordered: TRUE)
+        "October","November","December"), ordered: TRUE)
       (mons[1] < mons[2]).pp
-      R.table(mons).pp
-
+      mons.table.pp
 
       # While it may be necessary to convert a numeric variable to a factor for a 
       # particular application, it is often very useful to convert the factor back to 
@@ -130,18 +144,24 @@ class SciComTest < Test::Unit::TestCase
       # Suppose we are studying the effects of several levels of a fertilizer on the 
       # growth of a plant. For some analyses, it might be useful to convert the 
       # fertilizer levels to an ordered factor:
-      
       fert = R.c(10,20,20,50,10,20,10,50,20)
-      fert = R.factor(fert, levels: R.c(10,20,50), ordered: TRUE)
+      fert = R.factor(fert, levels: R.c(10, 20, 50), ordered: TRUE)
       fert.pp
+
+      # now calling factor with arguments
+      fert.factor(levels: R.c(10, 20, 50), ordered: TRUE).pp
 
       # If we wished to calculate the mean of the original numeric values of the fert 
       # variable, we would have to convert the values using the levels function:
-      
+
+      # This prints NA
       R.mean(fert).pp
 
+      # actually calculates the mean
       R.mean(R.as__numeric(R.levels(fert)[fert])).pp
 
+      # the same, but more Ruby like
+      fert.levels[fert].as__numeric.mean.pp
 
       # Indexing the return value from the levels function is the most reliable way 
       # to convert numeric factors to their original numeric values.
@@ -173,12 +193,15 @@ class SciComTest < Test::Unit::TestCase
       # first be converted back to their original values (through the levels function), 
       # then catenated and converted to a new factor:
       
-      l1 = R.factor(R.sample(R.letters, size: 10,replace: TRUE))
-      l2 = R.factor(R.sample(R.letters, size: 10,replace: TRUE))
+      l1 = R.factor(R.sample(R.letters, size: 10, replace: TRUE))
+      l2 = R.factor(R.sample(R.letters, size: 10, replace: TRUE))
       l1.pp
       l2.pp
       l12 = R.factor(R.c(R.levels(l1)[l1], R.levels(l2)[l2]))
       l12.pp
+
+      # l12 in with chainning
+      R.factor(R.c(l1.levels[l1], l2.levels[l2])).pp
 
       # The cut function is used to convert a numeric variable into a factor. The 
       # breaks argument to cut is used to describe how ranges of numbers will be 
@@ -193,17 +216,17 @@ class SciComTest < Test::Unit::TestCase
       # a sample of women. If we wanted to create a factor corresponding to weight, with 
       # three equally-spaced levels, we could use the following:
 
-      # NEED TO IMPROVE ON THIS WAY OF ACCESSING DATASETS
-      wfact = R.cut(R.d("women$weight"), 3)
-      R.table(wfact).pp
+      # With R.d to access a build in dataset: "women"
+      women = R.d("women")
+      wfact = R.cut(women.weight, 3)
+      wfact.table.pp
 
       # To produce factors based on percentiles of your data (for example quartiles or deciles), 
       # the quantile function can be used to generate the breaks argument, insuring nearly equal 
       # numbers of observations in each of the levels of the factor:
 
-      wfact = R.cut(R.d("women$weight"), R.quantile(R.d("women$weight"), R.c((0..4))/4))
-      R.table(wfact).pp
-
+      wfact = R.cut(women.weight, R.quantile(women.weight, R.c((0..4))/4))
+      wfact.table.pp
 
       # As mentioned in Section , there are a number of ways to create factors from date/time 
       # objects. If you wish to create a factor based on one of the components of that date, you 
@@ -218,10 +241,17 @@ class SciComTest < Test::Unit::TestCase
       
       cmonth = R.format(everyday, '%b')
       months = R.factor(cmonth, levels: R.unique(cmonth), ordered: TRUE)
-      R.table(months).pp
+      months.table.pp
+
+      # simplifying the above -- Javascript like:
+      cmonth = everyday.format('%b')
+      cmonth
+        .factor(levels: cmonth.unique, ordered: TRUE)
+        .table
+        .pp
 
       # Since R.unique returns unique values in the order they are encountered, the levels 
-      # argument will provide the month abbreviations in the correct order to produce an properly 
+      # argument will provide the month abbreviations in the correct order to produce a properly 
       # ordered factor.
       #
       # Sometimes more flexibility can be acheived by using the cut function, which understands 
@@ -232,6 +262,9 @@ class SciComTest < Test::Unit::TestCase
       # NOT WORKING... check! Renjin is trying to cast a DoubleArrayVector into a IntVector
       # wks = R.cut(everyday, breaks: 'week')
       # R.head(wks).pp
+      # p "Renjin bug"
+      # R.eval("everyday = seq(from= as.Date('2005-1-1'), to= as.Date('2005-12-31'), by= 'day')")
+      # R.eval("cut(everyday, breaks= 'week')")
 
       # Note that the first observation had a date earlier than any of the dates in the everyday 
       # vector, since the first date was in middle of the week. By default, cut starts weeks on 
@@ -249,13 +282,3 @@ class SciComTest < Test::Unit::TestCase
 
 end
 
-=begin
-      # To convert the default factor fdata to roman numerals, we use the assignment 
-      # form of the levels function:
-      # Ruby does not accept assignment to function!! Need to think of a way of doing 
-      # this.
-      levels = R.levels(fdata)
-      levels = R.c('I','II','III')
-      fdata.pp
-      # fdata
-=end
