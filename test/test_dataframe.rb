@@ -167,6 +167,27 @@ class SciComTest < Test::Unit::TestCase
       # To retrieve more than one rows, we use a numeric index vector.
       mtcars[R.c(3, 24), nil].pp 
 
+      # Name Indexing
+      # We can retrieve a row by its name.
+      mtcars["Camaro Z28", nil].pp
+
+      # And we can pack the row names in an index vector in order to retrieve multiple 
+      # rows.
+      mtcars[R.c("Datsun 710", "Camaro Z28"), nil].pp
+
+      # Logical Indexing
+      # Lastly, we can retrieve rows with a logical index vector. In the following 
+      # vector L, the member value is TRUE if the car has automatic transmission, and 
+      # FALSE if otherwise.
+      auto = mtcars.am == 0
+      auto.pp
+
+      # Here is the list of vehicles with automatic transmission.
+      mtcars[auto, nil].pp
+
+      # And here is the gas mileage data for automatic transmission.
+      mtcars[auto, nil].mpg.pp 
+
     end
 
     #--------------------------------------------------------------------------------------
