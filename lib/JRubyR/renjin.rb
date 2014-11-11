@@ -370,6 +370,31 @@ class Renjin
   end
   
   #----------------------------------------------------------------------------------------
+  # function is either a function name alone represented by a ruby symbol or a hash 
+  # with the function name and its arguments or indexes
+  # Ex: 
+  #   fassign(sexp, :rowname, "x1")
+  #   fassign(sexp, {f: :rowname, index: [[1]]}, "x1")
+  #   fassign(sexp, {f: :somefunc, params: "(2, 3, 4)"}, "x1")
+  #----------------------------------------------------------------------------------------
+
+  def fassign(sexp, function, value)
+
+    if (function.is_a? Hash)
+      index = function[:index]
+      params = function[:params]
+      function = function[:f]
+      if (index)
+        R.eval("#{function.to_s}(#{sexp.r})#{index} = #{value.r}")
+      else
+      end
+    else
+      R.eval("#{function.to_s}(#{sexp.r}) = #{value.r}")
+    end
+
+  end
+
+  #----------------------------------------------------------------------------------------
   # Builds a Renjin vector from an MDArray. Should be private, but public for testing.
   #----------------------------------------------------------------------------------------
   
