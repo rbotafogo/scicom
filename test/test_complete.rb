@@ -35,13 +35,11 @@ require_relative 'test_list'
 require_relative 'test_attributes'
 require_relative 'test_factor'
 require_relative 'test_array'
-
-
+require_relative 'test_matrix'
 require_relative 'test_dataframe'
 require_relative 'test_linear_model'
 
 =begin
-require_relative 'test_matrix'
 require_relative 'test_subsetting'
 require_relative 'test_double_receive'
 require_relative 'test_double_assign'

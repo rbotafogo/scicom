@@ -142,7 +142,7 @@ class SciComTest < Test::Unit::TestCase
     #--------------------------------------------------------------------------------------
     #
     #--------------------------------------------------------------------------------------
-#=begin
+
     should "allow Ruby chaining" do
 
       assert_equal(true, R.all(@seq == @x.first).gt)
@@ -208,31 +208,13 @@ class SciComTest < Test::Unit::TestCase
       mix_vec = R.identity(["Lisa", 1, "John", 2, mary: 3, john: 4])
       mix_vec.pp
 
-      # this gives an error in Renjin about Unmatched positional argument.  I think this is a
-      # Renjin bug.
-      R.str(R.lst)
+      # this gives an error in Renjin about Unmatched positional argument. Renjin bug already
+      # reported
+      # R.str(R.lst)
 
     end
-#=end
+
 
   end
 
 end
-
-=begin
-
-      p "printing all elements of the list"
-      @x.each do |elmt|
-        elmt.pp
-      end
-
-      # deep lists should work also
-      z = R.list(a1: 1, b1: R.list(b11: "hello", b12: "there"), c1: "test")
-
-      # Not working yet!!!
-      z.attr.names.pp
-      z[1].attr.names.pp
-      z[1].attr.names[1] = "changed"
-      z[1].attr.names.pp
-
-=end

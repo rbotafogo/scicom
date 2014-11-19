@@ -243,6 +243,7 @@ class SciComTest < Test::Unit::TestCase
       months = R.factor(cmonth, levels: R.unique(cmonth), ordered: TRUE)
       months.table.pp
 
+      p "this is it"
       # simplifying the above -- Javascript like:
       cmonth = everyday.format('%b')
       cmonth

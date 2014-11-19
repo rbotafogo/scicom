@@ -1,9 +1,37 @@
 require 'rbconfig'
 
-$DVLP = true
+##########################################################################################
+# Configuration. Remove setting before publishing Gem.
+##########################################################################################
 
-# Development environment.  Set to 'cygwin' when in cygwin
-$ENV = 'cygwin'
+# set to true if development environment
+# $DVLP = true
+
+# Set to 'cygwin' when in cygwin
+# $ENV = 'cygwin'
+
+# Set development dependency: those are gems that are also in development and thus not
+# installed in the gem directory.  Need a way of accessing them
+# $DEPEND=["MDArray"]
+
+##########################################################################################
+
+# the platform
+@platform = 
+  case RUBY_PLATFORM
+  when /mswin/ then 'windows'
+  when /mingw/ then 'windows'
+  when /bccwin/ then 'windows'
+  when /cygwin/ then 'windows-cygwin'
+  when /java/
+    require 'java' #:nodoc:
+    if java.lang.System.getProperty("os.name") =~ /[Ww]indows/
+      'windows-java'
+    else
+      'default-java'
+    end
+  else 'default'
+  end
 
 #---------------------------------------------------------------------------------------
 # Add path to load path
@@ -47,45 +75,48 @@ else
   
 end
 
-  
-##########################################################################################
-# Prepare dependencies
-##########################################################################################
-
-#---------------------------------------------------------------------------------------
-# Set the project directory
-#---------------------------------------------------------------------------------------
-
-def project_dir(name)
-  ENV.each do |val|
-    if val[0] == "PWD"
-      pwd = set_path(val[1])
-      i =  pwd.index(name)
-      $PROJECT_DIR = pwd.slice(0..(i + name.size - 1))
-    end
-  end
-end
-
 #---------------------------------------------------------------------------------------
 # Set the project directories
 #---------------------------------------------------------------------------------------
 
-def home_dirs(name)
+class SciCom
+
+  @home_dir = File.expand_path File.dirname(__FILE__)
+
+  class << self
+    attr_reader :home_dir
+  end
+
+  @project_dir = SciCom.home_dir + "/.."
+  @doc_dir = SciCom.home_dir + "/doc"
+  @lib_dir = SciCom.home_dir + "/lib"
+  @src_dir = SciCom.home_dir + "/src"
+  @target_dir = SciCom.home_dir + "/target"
+  @test_dir = SciCom.home_dir + "/test"
+  @vendor_dir = SciCom.home_dir + "/vendor"
   
-  $HOME_DIR = $PROJECT_DIR + "/" + name
-  
-  $DOC_DIR = $HOME_DIR + "/doc"
-  $LIB_DIR = $HOME_DIR + "/lib"
-  $SRC_DIR = $HOME_DIR + "/src"
-  $TARGET_DIR = $HOME_DIR + "/target"
-  $TEST_DIR = $HOME_DIR + "/test"
-  $VENDOR_DIR = $HOME_DIR + "/vendor"
-  
-  $BUILD_DIR = $SRC_DIR + "/build"
-  $CLASSES_DIR = $BUILD_DIR + "/classes"
-  
-  mklib($PROJECT_DIR + "/" + name)
-  
+  class << self
+    attr_reader :project_dir
+    attr_reader :doc_dir
+    attr_reader :lib_dir
+    attr_reader :src_dir
+    attr_reader :target_dir
+    attr_reader :test_dir
+    attr_reader :vendor_dir
+  end
+
+  @build_dir = SciCom.src_dir + "/build"
+
+  class << self
+    attr_reader :build_dir
+  end
+
+  @classes_dir = SciCom.build_dir + "/classes"
+
+  class << self
+    attr_reader :classes_dir
+  end
+
 end
 
 #---------------------------------------------------------------------------------------
@@ -94,38 +125,39 @@ end
 
 def depend(name)
   
-  $VENDOR_DIR = $VENDOR_DIR + ";" + $PROJECT_DIR + "/" + name + "/vendor"
-  mklib($PROJECT_DIR + "/" + name)
+  dependency_dir = SciCom.project_dir + "/" + name
+  mklib(dependency_dir)
   
 end
 
 ##########################################################################################
-# If we need to test for coverage
+# If development
 ##########################################################################################
-
-if $COVERAGE == 'true'
-  
-  require 'simplecov'
-  
-  SimpleCov.start do
-    @filters = []
-    add_group "SciCom", "lib/scicom"
-  end
-  
-end
-
-##########################################################################################
-# Config gem
-##########################################################################################
-
-# first thing to do: define project directory: $PROJECT_DIR by calling project_dir
-project_dir("Desenv")
-# set directories for the project
-home_dirs("SciCom")
-
 
 if ($DVLP == true)
-  # SciCom dependencies
-  depend("MDArray")
+
+  mklib(SciCom.home_dir)
+  
+  # Add dependencies here
+  # depend(<other_gems>)
+  $DEPEND.each do |dep|
+    depend(dep)
+  end if $DEPEND
+
+  #----------------------------------------------------------------------------------------
+  # If we need to test for coverage
+  #----------------------------------------------------------------------------------------
+  
+  if $COVERAGE == 'true'
+  
+    require 'simplecov'
+    
+    SimpleCov.start do
+      @filters = []
+      add_group "SciCom", "lib/scicom"
+    end
+    
+  end
+
 end
 
