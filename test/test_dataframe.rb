@@ -42,7 +42,7 @@ class SciComTest < Test::Unit::TestCase
     #--------------------------------------------------------------------------------------
     # 
     #--------------------------------------------------------------------------------------
-=begin
+
     should "create data-frame from a single vector" do
 
       vec = R.seq(20)
@@ -142,7 +142,6 @@ class SciComTest < Test::Unit::TestCase
       mtcars[R.c("mpg", "hp")].pp
 
     end
-=end
 
     #--------------------------------------------------------------------------------------
     # 
@@ -195,7 +194,6 @@ class SciComTest < Test::Unit::TestCase
     #--------------------------------------------------------------------------------------
 
     should "create data-frame from multiple vectors" do
-=begin
 
       # name     age  hgt  wgt  race year   SAT 
       # Bob       21   70  180  Cauc   Jr  1080
@@ -229,7 +227,7 @@ class SciComTest < Test::Unit::TestCase
       # variable rbvec.
       rbvec.print
 
-
+=begin
       # R.colnames(df) = R.c("name", "age", "height", "weigth", "race", "SAT")
       df.print
       summ = R.summary(df.r)
@@ -240,7 +238,6 @@ class SciComTest < Test::Unit::TestCase
       col = R.colnames(:df)
       col.print
 =end
-
     end
 
   end

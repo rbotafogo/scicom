@@ -44,7 +44,6 @@ EOF
   gem.add_development_dependency('simplecov', [">= 0.7.1"])
   gem.add_development_dependency('yard', [">= 0.8.5.2"])
   gem.add_development_dependency('kramdown', [">= 1.0.1"])
-  gem.spec.required_ruby_version = '>= 1.9.3'
 
   # ensure the gem is built out of versioned files
   gem.files = Dir['Rakefile', 'version.rb', 'config.rb', '{lib,test}/**/*.rb', 'test/**/*.csv',

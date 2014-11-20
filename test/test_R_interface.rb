@@ -73,6 +73,7 @@ class SciComTest < Test::Unit::TestCase
       # Using method assign, to assign NULL to variable 'null' in R namespace.
       R.assign("null", nil)
       assert_equal(nil, R.null)
+      R.eval("print(null)")
 
       # Variable 'res' is available only in the Ruby namespace and not in the R namespace.
       # a NULL object in R is converted to nil in Ruby.
