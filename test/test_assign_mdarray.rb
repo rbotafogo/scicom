@@ -1,7 +1,5 @@
 # -*- coding: utf-8 -*-
 
-# -*- coding: utf-8 -*-
-
 ##########################################################################################
 # Copyright © 2013 Rodrigo Botafogo. All Rights Reserved. Permission to use, copy, modify, 
 # and distribute this software and its documentation, without fee and without a signed 
@@ -38,26 +36,164 @@ class SciComTest < Test::Unit::TestCase
 
     setup do 
 
-      # creating new instance of R interpreter
-      @r1 = Renjin.new
+    end
+
+    #--------------------------------------------------------------------------------------
+    #
+    #--------------------------------------------------------------------------------------
+
+    should "convert a 1D MDArray onto a R matrix" do
+
+      # create a 1D MDArray
+      arr1 = MDArray.typed_arange(:double, 12)
+      
+      # convert to a 1D R vector
+      vec = R.md(arr1)
+      vec.pp
+
+      # changing the dimension of vec should work fine
+      vec.attr.dim = R.c(3, 4)
+      vec.pp
+
+    end
+
+    #--------------------------------------------------------------------------------------
+    #
+    #--------------------------------------------------------------------------------------
+
+    should "convert a 2D MDArray onto a R matrix" do
+
+      # create an MDArray
+      arr1 = MDArray.typed_arange(:double, 12)
+      arr1.reshape!([4, 3])
+      arr1.print
+
+      # use method md to convert an MDArray onto an R vector
+      r_matrix = R.md(arr1)
+      r_matrix.pp
+
+      # both arr1 and r_matrix should have the same elements. Also, elements in both
+      # MDArray and R vector can be indexed in the same way (correcting for initial
+      # elements).
+      # First index in R is 1 and not 0. So we need to be careful when comparing
+      # MDArray and R vectors (arrays)
+      compare = MDArray.boolean([4,3])
+      (0..3).each do |row|
+        (0..2).each do |col|
+          compare[row, col] = 
+            (arr1[row, col] == (r_matrix[row + 1, col + 1].gz))? true : false
+        end
+      end
+      compare.print
+
+      # change an element of the MDArray
+      arr1[0, 0] = 10
+
+      # WITH GREAT POWER COMES GREAT RESPONSABILITIES!
+      # r_matrix also changes... arr1 and r_matrix have the same backing store. Changing
+      # the content of an MDArray that points to the same backing store as an R vector
+      # should be done with care.  Renjin assumes that the vector will never change and
+      # delays calculation of the vector to the latest possible time.  In this case, since
+      # the value of the vector is changing, one can get unexpected behaviour.  Use with
+      # care.  We could prevent MDArray from being editable, however, we believe that
+      # allowing access to the backing store will have important implications for 
+      # performance.  If we have indication that this is not a good thing, then we will
+      # remove MDArrays ability to change the backing store of a Vector.
+      compare = MDArray.boolean([4,3])
+      (0..3).each do |row|
+        (0..2).each do |col|
+          compare[row, col] = 
+            (arr1[row, col] == (r_matrix[row + 1, col + 1].gz))? true : false
+        end
+      end
+      compare.print
+
+    end
+
+    #--------------------------------------------------------------------------------------
+    #
+    #--------------------------------------------------------------------------------------
+
+    should "change backing store of R vector when changing the vector" do
+
+      # create an MDArray
+      arr1 = MDArray.typed_arange(:double, 12)
+      arr1.reshape!([4, 3])
+      arr1.print
+
+      r_matrix = R.md(arr1)
+
+      # change the r_matrix dimension.  Now r_matrix and arr1 point to different
+      # backstores, as any change in a Renjin object actually creates a new object.
+      r_matrix.attr.dim = R.c(3, 4)
+      arr1[1, 1] = 1000.34
+
+      # arrays are now different
+      r_matrix.pp
+      arr1.print
+
+    end
+
+    #--------------------------------------------------------------------------------------
+    #
+    #--------------------------------------------------------------------------------------
+
+    should "convert a 3D MDArray onto a R matrix" do
+
+      # create a 1D MDArray
+      arr1 = MDArray.typed_arange(:double, 12)
+      
+      # convert to a 1D R vector
+      vec = R.md(arr1)
+      vec.pp
+
+      # changing the dimension of vec should work fine
+      vec.attr.dim = R.c(3, 2, 2)
+      # Renjin does not yet print correctly 3D vectors
+      vec.pp
 
     end
 
 =begin
     #--------------------------------------------------------------------------------------
+    # Assign an MDArray to an R vector (array)
+    #--------------------------------------------------------------------------------------
+
+    should "accept 2D MDArray as data" do
+
+      # method R.ri converts an MDArray index to a R index (in string format) ready
+      # to evaluate
+      arr.each_with_counter do |val, ct|
+        assert_equal(val, R.eval("vec#{R.ri(ct)}").gz)
+        # assert_equal(val, vec[R.ri(ct)])
+      end
+
+      # Creating a vector in R and changing its shape will yield a different array as
+      # the one created from MDArray.
+      vec = R.seq(0, 11)
+      vec.attr.dim = R.c(4, 3)
+      vec.pp
+
+      compare = MDArray.boolean([4,3])
+      (0..3).each do |row|
+        (0..2).each do |col|
+          compare[row, col] = (arr[row, col] == (vec[row + 1, col + 1].gz))? true : false
+        end
+      end
+      compare.print
+      
+    end
+
+=end
+
+=begin
+
+    #--------------------------------------------------------------------------------------
     #
     #--------------------------------------------------------------------------------------
 
-    should "create Renjin vectors" do
+    should "send 3D arrays to Renjin" do
 
-      arr = MDArray.typed_arange(:double, 12)
-      arr.reshape!([4, 3])
-      # arr.print
-
-      vector = R.build_vector(arr)
-      (0...arr.size).each do |index|
-        vector.getElementAsDouble(index)
-      end
 
       # typed_arange does the same as arange but for arrays of other type
       arr = MDArray.typed_arange(:double, 60)
@@ -69,46 +205,6 @@ class SciComTest < Test::Unit::TestCase
       (0...arr.size).each do |index|
         vector.getElementAsDouble(index)
       end
-
-    end
-=end
-    #--------------------------------------------------------------------------------------
-    #
-    #--------------------------------------------------------------------------------------
-
-    should "send 2D arrays to Renjin" do
-
-      # typed_arange does the same as arange but for arrays of other type
-      arr = MDArray.typed_arange(:double, 12)
-      arr.reshape!([4, 3])
-      # arr.print
-
-      # assign MDArray to R vector.  MDArray shape is converted to R shape: two dimensions
-      # are identical in MDArray and R.
-      R.vec = arr
-
-      # When accessing a vector with the wrong indexes, return nil
-      res = R.eval("vec[0]")
-      assert_equal(nil, res)
-
-      # R.eval("print(vec[1, 1])")
-      # R.eval("print(vec[1, 2])")
-
-
-      # First index in R is 1 and not 0.
-      # method R.ri converts an MDArray index to a R index (in string format) ready
-      # to evaluate
-      arr.each_with_counter do |val, ct|
-         assert_equal(val, R.eval("vec#{R.ri(ct)}"))
-      end
-      
-    end
-#=begin
-    #--------------------------------------------------------------------------------------
-    #
-    #--------------------------------------------------------------------------------------
-
-    should "send 3D arrays to Renjin" do
 
       # typed_arange does the same as arange but for arrays of other type
       arr = MDArray.typed_arange(:double, 60)
@@ -137,8 +233,6 @@ class SciComTest < Test::Unit::TestCase
         assert_equal(arr.get(ct), R.eval("vec#{R.ri(ct)}"))
       end
     end
-
-#=begin
 
     #--------------------------------------------------------------------------------------
     #
@@ -219,8 +313,6 @@ class SciComTest < Test::Unit::TestCase
       end
 
     end
-#=end
-=begin
 
     #--------------------------------------------------------------------------------------
     #

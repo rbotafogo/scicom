@@ -21,88 +21,182 @@
 
 package rb.scicom;
 
+import java.lang.reflect.*;
 import java.util.*;
 import org.renjin.sexp.*;
 import org.renjin.primitives.*;
 import ucar.ma2.*;
 
-
 public class MDDoubleVector extends DoubleVector {
 
     // array is a NetCDF Array in row-major format
-    private ArrayDouble _array;
+    protected ArrayDouble _array;
     // index is a column-major index on top of the same backing store
-    private Index _index;
+    protected Index _index;
     // Stride in reverse order for column-major mode.  Necessary as stride is protected
     // in NetCDF Array.
-    private int[] _stride;
+    protected int[] _stride;
     
+    /*-------------------------------------------------------------------------------------
+     * 
+     *-----------------------------------------------------------------------------------*/
 
-    private MDDoubleVector(AttributeMap attributes) {
+    public static MDDoubleVector factory(ArrayDouble array, AttributeMap attributes) {
+
+	MDDoubleVector vec = null;
+
+	switch (array.getRank()) {
+	case 1:
+	    vec = new MDDoubleVectorD1(array, attributes);
+	    break;
+	case 2:
+	    vec = new MDDoubleVectorD2(array, attributes);
+	    break;
+	case 3:
+	    vec = new MDDoubleVectorD3(array, attributes);
+	    break;
+	case 4:
+
+	    break;
+	case 5:
+
+	    break;
+
+	case 6:
+	    break;
+
+	case 7:
+
+	    break;
+
+	default:
+	    break;
+	}
+
+	return vec;
+
+    }
+
+    /*-------------------------------------------------------------------------------------
+     *
+     *-----------------------------------------------------------------------------------*/
+
+    protected MDDoubleVector(AttributeMap attributes) {
 	super(attributes);
     }
+
+    /*-------------------------------------------------------------------------------------
+     *
+     *-----------------------------------------------------------------------------------*/
+
+    public MDDoubleVector(ArrayDouble array, AttributeMap attributes) {
+	super(attributes);
+	_array = array;
+	_index = _array.getIndex();
+
+	try {
+	    Field[] fields = _index.getClass().getDeclaredFields();
+	    for ( int i = 0; i < fields.length; i++ )  {  
+		java.lang.System.out.println(fields[i].getName());  
+	    }  
+	    Field f = _index.getClass().getDeclaredField("stride"); //NoSuchFieldException
+	    f.setAccessible(true);
+	    _stride = (int[]) f.get(_index); //IllegalAccessException
+	} catch (NoSuchFieldException e) {
+	    java.lang.System.out.println("Unknown field stride in MDDoubleVector");
+	} catch (IllegalAccessException e) {
+	    java.lang.System.out.println("Illegal access to stride in MDDoubleVector");
+	}
+
+	java.lang.System.out.println(_index.toString());
+	java.lang.System.out.println(_stride);
+	// _stride = _index.stride;
+    }
+
+    /*-------------------------------------------------------------------------------------
+     *
+     *-----------------------------------------------------------------------------------*/
 
     public ArrayDouble getArray() {
 	return _array;
     }
 
+    /*-------------------------------------------------------------------------------------
+     *
+     *-----------------------------------------------------------------------------------*/
+
     public Index getIndex() {
 	return _index;
     }
+
+    /*-------------------------------------------------------------------------------------
+     *
+     *-----------------------------------------------------------------------------------*/
 
     public int[] getRevStride() {
 	return _stride;
     }
 
-    public MDDoubleVector(ArrayDouble array, AttributeMap attributes, Index index, 
-			  int[] stride) {
-	super(attributes);
-	_array = array;
-	_index = index;
-	_stride = stride;
-    }
-    
-    @Override
-	public double getElementAsDouble(int val) {
-	setCurrentCounter(val);
-	return _index.currentElement();
-    }
+    /*-------------------------------------------------------------------------------------
+     *
+     *-----------------------------------------------------------------------------------*/
 
     @Override
-	public int length() {
+    public int length() {
 	return (int) _array.getSize();
     }
     
+    /*-------------------------------------------------------------------------------------
+     *
+     *-----------------------------------------------------------------------------------*/
+
     @Override
-	protected SEXP cloneWithNewAttributes(AttributeMap attributes) {
-	MDDoubleVector clone = new MDDoubleVector(attributes);
-	clone._array = _array;
-	return clone;
-    }
-    
-    @Override
-	public boolean isConstantAccessTime() {
+    public boolean isConstantAccessTime() {
 	return true;
     }
 
-    /*
-     * Given an element finds the coresponding counter in column-major order.  Assumes that
-     * currElement is a valid element of the Vector.
-     */
+    /*-------------------------------------------------------------------------------------
+     *
+     *-----------------------------------------------------------------------------------*/
+
+    @Override
+    public double getElementAsDouble(int val) {
+	setCurrentCounter(val);
+	// return _index.currentElement();
+	return _array.getDouble(_index);
+    }
+
+    /*-------------------------------------------------------------------------------------
+     *
+     *-----------------------------------------------------------------------------------*/
+
+    @Override
+    protected SEXP cloneWithNewAttributes(AttributeMap attributes) {
+	// MDDoubleVector clone = new MDDoubleVector(attributes);
+	// int[] dims = attributes.getDimArray();
+	// clone._array = ucar.ma2.ArrayDouble(dims, _array.);
+	MDDoubleVector clone = 
+	    MDDoubleVector.factory((ArrayDouble)_array.copy(), attributes);
+	return clone;
+    }
+    
+    /*-------------------------------------------------------------------------------------
+     * Given an element in the array in colum-major order finds the coresponding counter in 
+     * row-major order.  Assumes that currElement is a valid element of the Vector.
+     *-----------------------------------------------------------------------------------*/
 
     public void setCurrentCounter(int currElement) {
-
 	int length = _stride.length;
 	int[] shape = _array.getShape();
 	int [] current = new int[length];
 	int l2 = (length - 2) >= 0 ? (length - 2) : 1;
-
+	
 	if (length == 1) {
 	    current[0] = currElement * _stride[0];
 	    _index.set(current);
 	    return;
 	}
-
+	
 	if (length > 2) { 
 	    for (int i = 0; i < l2; i++) { 
 		current[i] = currElement / _stride[i];

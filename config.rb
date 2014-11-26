@@ -108,7 +108,7 @@ class SciCom
   @build_dir = SciCom.src_dir + "/build"
 
   class << self
-    attr_reader :build_dir
+    attr_accessor :build_dir
   end
 
   @classes_dir = SciCom.build_dir + "/classes"

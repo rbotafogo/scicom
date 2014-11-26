@@ -32,6 +32,15 @@ require_relative 'index'
 #
 #==========================================================================================
 
+class Java::RbScicom::MDDoubleVector
+  field_reader :_array
+end
+
+
+#==========================================================================================
+#
+#==========================================================================================
+
 class Renjin
   include_package "javax.script"
   include_package "org.renjin"
@@ -171,32 +180,37 @@ class Renjin
   #----------------------------------------------------------------------------------------
 
   def pi
-    R.eval("pi")
+    eval("pi")
   end
 
   def LETTERS
-    R.eval("LETTERS")
+    eval("LETTERS")
   end
 
   def letters
-    R.eval("letters")
+    eval("letters")
   end
 
   def month__abb
-    R.eval("month.abb")
+    eval("month.abb")
   end
 
   def month__name
-    R.eval("month.name")
+    eval("month.name")
   end
 
   def i(value)
-    R.eval("#{value}L")
+    eval("#{value}L")
   end
 
   def d(value)
-    R.eval("#{value}")
+    eval("#{value}")
   end
+
+  def md(value)
+    Renjin::Vector.new(build_vector(value))
+  end
+
 
   #----------------------------------------------------------------------------------------
   #
@@ -385,11 +399,11 @@ class Renjin
       params = function[:params]
       function = function[:f]
       if (index)
-        R.eval("#{function.to_s}(#{sexp.r})#{index} = #{value.r}")
+        eval("#{function.to_s}(#{sexp.r})#{index} = #{value.r}")
       else
       end
     else
-      R.eval("#{function.to_s}(#{sexp.r}) = #{value.r}")
+      eval("#{function.to_s}(#{sexp.r}) = #{value.r}")
     end
 
   end
@@ -397,11 +411,17 @@ class Renjin
   #----------------------------------------------------------------------------------------
   # Builds a Renjin vector from an MDArray. Should be private, but public for testing.
   #----------------------------------------------------------------------------------------
+
+  # private
+
+  #----------------------------------------------------------------------------------------
+  # Builds a Renjin vector from an MDArray. Should be private, but public for testing.
+  #----------------------------------------------------------------------------------------
   
-  def build_vector(array)
+  def build_vector(mdarray)
     
-    shape = array.shape
-    index = array.nc_array.getIndex()
+    shape = mdarray.shape
+    # index = mdarray.nc_array.getIndex()
     # index = MDArray.index_factory(shape)
     # representation of shape in R is different from shape in MDArray.  Convert MDArray
     # shape to R shape.
@@ -409,12 +429,15 @@ class Renjin
       shape.reverse!
       shape[0], shape[1] = shape[1], shape[0]
     end
+
     # AttributeMap attributes = AttributeMap.builder().setDim(new IntVector(dim)).build();
     attributes = Java::OrgRenjinSexp::AttributeMap.builder()
       .setDim(Java::OrgRenjinSexp::IntArrayVector.new(*(shape))).build()
-    vector = Java::RbScicom::MDDoubleVector.new(array.nc_array, attributes, index,
-                                                index.stride)
-    
+
+    # vector = Java::RbScicom::MDDoubleVector.new(mdarray.nc_array, attributes, index,
+    #   index.stride)
+    vector = Java::RbScicom::MDDoubleVector.factory(mdarray.nc_array, attributes)
+
   end
 
 

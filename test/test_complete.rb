@@ -40,9 +40,9 @@ require_relative 'test_dataframe'
 require_relative 'test_linear_model'
 
 =begin
+require_relative 'test_assign_mdarray'
 require_relative 'test_subsetting'
 require_relative 'test_double_receive'
-require_relative 'test_double_assign'
 require_relative 'test_functions'
 require_relative 'test_user_function'
 require_relative 'test_column-major'

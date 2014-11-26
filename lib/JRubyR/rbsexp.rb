@@ -222,8 +222,8 @@ class Renjin
     #----------------------------------------------------------------------------------------
     
     def print
-      Kernel.print(Java::OrgRenjinPrimitives::Print.doPrint(sexp))
-      # R.eval("print(#{r})")
+      # Kernel.print(Java::OrgRenjinPrimitives::Print.doPrint(sexp))
+      R.eval("print(#{r})")
     end
     
     #----------------------------------------------------------------------------------------
@@ -252,14 +252,6 @@ class Renjin
 
   end
   
-end
-
-#==========================================================================================
-# Make a Ruby Array into a RBSexp
-#==========================================================================================
-
-class Array
-  include Renjin::RBSexp
 end
 
 #==========================================================================================
@@ -344,44 +336,3 @@ require_relative 'list'
 require_relative 'function'
 require_relative 'logical_value'
 require_relative 'environment'
-
-
-=begin    
-    #----------------------------------------------------------------------------------------
-    #
-    #----------------------------------------------------------------------------------------
-    
-    def set_sexp(sexp)
-      @sexp = sexp
-    end
-
-    #----------------------------------------------------------------------------------------
-    #
-    #----------------------------------------------------------------------------------------
-
-    def method_missing(symbol, *args)
-      
-      name = symbol.id2name
-      name.gsub!(/__/,".")
-      
-      # super if args.length != 0
-      if name =~ /(.*)=$/
-        super if args.length != 1
-        args = R.parse(*args)
-        ret = R.eval("#{r}[[\"#{name}\"]] = #{args}")
-      elsif (args.length == 0)
-        # treat name as a named item of the list
-        ret = R.eval("#{r}[[\"#{name}\"]]")
-      elsif (name == "_")
-        method = "%#{args.shift.to_s}%"
-        arg2 = R.parse(*args)
-        ret = R.eval("#{r} #{method} #{arg2}")
-      else
-        raise "Illegal argument for named list item #{name}"
-      end
-      
-      ret
-      
-    end
-
-=end

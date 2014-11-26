@@ -36,10 +36,6 @@ class SciComTest < Test::Unit::TestCase
 
     setup do 
 
-      # creating two distinct instances of SciCom
-      @r1 = R.new
-      @r2 = R.new
-
     end
 
     #--------------------------------------------------------------------------------------

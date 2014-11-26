@@ -1,6 +1,8 @@
 require_relative '../config.rb'
 
-dirs = $VENDOR_DIR.split(";")
+dirs = SciCom.vendor_dir.split(";")
+dirs << SciCom.project_dir + "/" + "MDArray" + "/vendor"
+p dirs
 jars = Array.new 
 dirs.each do |dir|
   jars << Dir[dir + "/*.jar"]
@@ -14,7 +16,7 @@ end
 desc 'Compile java classes'
 task :compile do
   classes    = Dir['**/*.java']
-  sh "javac -classpath #{jars.join(';')} -d #{$CLASSES_DIR} #{classes.join(' ')}"
+  sh "javac -classpath #{jars.join(';')} -d #{SciCom.classes_dir} #{classes.join(' ')}"
 end
 
 #-----------------------------------------------------------------------------------------
@@ -23,7 +25,7 @@ task :jar do
 
   Dir.chdir("build/classes")
   classes = Dir['**/*.class']
-  sh "jar -cf #{$TARGET_DIR}/helper.jar #{classes.join(' ')}"
+  sh "jar -cf #{SciCom.target_dir}/helper.jar #{classes.join(' ')}"
 
 end
 
