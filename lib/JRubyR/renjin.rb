@@ -436,7 +436,21 @@ class Renjin
 
     # vector = Java::RbScicom::MDDoubleVector.new(mdarray.nc_array, attributes, index,
     #   index.stride)
-    vector = Java::RbScicom::MDDoubleVector.factory(mdarray.nc_array, attributes)
+    case mdarray.dtype
+    when "float", "double"
+      vector = Java::RbScicom::MDDoubleVector.factory(mdarray.nc_array, attributes)
+    when "short", "int", "long"
+      vector = Java::RbScicom::MDIntVector.factory(mdarray.nc_array, attributes)
+    when "byte"
+      vector = Java::RbScicom::MDLogicalVector.factory(mdarray.nc_array, attributes)
+    when "char", "string"
+      vector = Java::RbScicom::MDStringVector.factory(mdarray.nc_array, attributes)
+    when "boolean"
+      raise "Boolean vectors cannot be converted to R vectors.  If you are trying to \
+convert to an R Logical object, use a :byte MDArray"
+    else
+      raise "Unknown dtype #{mdarray.dtype}"
+    end
 
   end
 

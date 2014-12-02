@@ -41,7 +41,7 @@ class SciComTest < Test::Unit::TestCase
     #--------------------------------------------------------------------------------------
     #
     #--------------------------------------------------------------------------------------
-
+=begin
     should "convert a 1D MDArray onto a R matrix" do
 
       # create a 1D MDArray
@@ -56,60 +56,8 @@ class SciComTest < Test::Unit::TestCase
       vec.pp
 
     end
-
-    #--------------------------------------------------------------------------------------
-    #
-    #--------------------------------------------------------------------------------------
-
-    should "convert a 2D MDArray onto a R matrix" do
-
-      # create an MDArray
-      arr1 = MDArray.typed_arange(:double, 12)
-      arr1.reshape!([4, 3])
-      arr1.print
-
-      # use method md to convert an MDArray onto an R vector
-      r_matrix = R.md(arr1)
-      r_matrix.pp
-
-      # both arr1 and r_matrix should have the same elements. Also, elements in both
-      # MDArray and R vector can be indexed in the same way (correcting for initial
-      # elements).
-      # First index in R is 1 and not 0. So we need to be careful when comparing
-      # MDArray and R vectors (arrays)
-      compare = MDArray.boolean([4,3])
-      (0..3).each do |row|
-        (0..2).each do |col|
-          compare[row, col] = 
-            (arr1[row, col] == (r_matrix[row + 1, col + 1].gz))? true : false
-        end
-      end
-      compare.print
-
-      # change an element of the MDArray
-      arr1[0, 0] = 10
-
-      # WITH GREAT POWER COMES GREAT RESPONSABILITIES!
-      # r_matrix also changes... arr1 and r_matrix have the same backing store. Changing
-      # the content of an MDArray that points to the same backing store as an R vector
-      # should be done with care.  Renjin assumes that the vector will never change and
-      # delays calculation of the vector to the latest possible time.  In this case, since
-      # the value of the vector is changing, one can get unexpected behaviour.  Use with
-      # care.  We could prevent MDArray from being editable, however, we believe that
-      # allowing access to the backing store will have important implications for 
-      # performance.  If we have indication that this is not a good thing, then we will
-      # remove MDArrays ability to change the backing store of a Vector.
-      compare = MDArray.boolean([4,3])
-      (0..3).each do |row|
-        (0..2).each do |col|
-          compare[row, col] = 
-            (arr1[row, col] == (r_matrix[row + 1, col + 1].gz))? true : false
-        end
-      end
-      compare.print
-
-    end
-
+=end
+=begin
     #--------------------------------------------------------------------------------------
     #
     #--------------------------------------------------------------------------------------
@@ -134,6 +82,7 @@ class SciComTest < Test::Unit::TestCase
 
     end
 
+
     #--------------------------------------------------------------------------------------
     #
     #--------------------------------------------------------------------------------------
@@ -142,6 +91,7 @@ class SciComTest < Test::Unit::TestCase
 
       # create a 1D MDArray
       arr1 = MDArray.typed_arange(:double, 12)
+      arr1.reshape([3, 2, 2]).print
       
       # convert to a 1D R vector
       vec = R.md(arr1)
@@ -151,39 +101,16 @@ class SciComTest < Test::Unit::TestCase
       vec.attr.dim = R.c(3, 2, 2)
       # Renjin does not yet print correctly 3D vectors
       vec.pp
-
-    end
-
-=begin
-    #--------------------------------------------------------------------------------------
-    # Assign an MDArray to an R vector (array)
-    #--------------------------------------------------------------------------------------
-
-    should "accept 2D MDArray as data" do
-
-      # method R.ri converts an MDArray index to a R index (in string format) ready
-      # to evaluate
-      arr.each_with_counter do |val, ct|
-        assert_equal(val, R.eval("vec#{R.ri(ct)}").gz)
-        # assert_equal(val, vec[R.ri(ct)])
-      end
-
-      # Creating a vector in R and changing its shape will yield a different array as
-      # the one created from MDArray.
-      vec = R.seq(0, 11)
-      vec.attr.dim = R.c(4, 3)
-      vec.pp
-
-      compare = MDArray.boolean([4,3])
-      (0..3).each do |row|
-        (0..2).each do |col|
-          compare[row, col] = (arr[row, col] == (vec[row + 1, col + 1].gz))? true : false
+      (1..3).each do |dim1|
+        (1..2).each do |dim2|
+          (1..2).each do |dim3|
+            p "(#{dim1}, #{dim2}, #{dim3})"
+            vec[dim1, dim2, dim3].pp 
+          end
         end
       end
-      compare.print
-      
-    end
 
+    end
 =end
 
 =begin

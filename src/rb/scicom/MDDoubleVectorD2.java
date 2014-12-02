@@ -60,8 +60,10 @@ public class MDDoubleVectorD2 extends MDDoubleVector {
 
 	current0 = currElement % shape[0];
 	currElement = (currElement - current0) / shape[0];
+
 	current1 = currElement % shape[1];
 	currElement = (currElement - current1) / shape[1];
+
 	_index.set(current0, current1); // transfer to subclass fields
 
     }
