@@ -27,7 +27,7 @@ import org.renjin.sexp.*;
 import org.renjin.primitives.*;
 import ucar.ma2.*;
 
-public class MDLogicalVectorD3 extends MDLogicalVector {
+public class MDIntVectorD3 extends MDIntVector {
 
     private int _stride0;
     private int _shape1;
@@ -37,7 +37,7 @@ public class MDLogicalVectorD3 extends MDLogicalVector {
      *
      *-----------------------------------------------------------------------------------*/
 
-    private MDLogicalVectorD3(AttributeMap attributes) {
+    private MDIntVectorD3(AttributeMap attributes) {
 	super(attributes);
     }
 
@@ -45,7 +45,7 @@ public class MDLogicalVectorD3 extends MDLogicalVector {
      *
      *-----------------------------------------------------------------------------------*/
     
-    public MDLogicalVectorD3(ArrayByte array, AttributeMap attributes) {
+    public MDIntVectorD3(ArrayInt array, AttributeMap attributes) {
 
 	super(attributes);
 	_array = array;
@@ -63,9 +63,9 @@ public class MDLogicalVectorD3 extends MDLogicalVector {
 	    f.setAccessible(true);
 	    _shape2 = (int) f.get(_index);
 	} catch (NoSuchFieldException e) {
-	    java.lang.System.out.println("Unknown field stride in MDLogicalVector");
+	    java.lang.System.out.println("Unknown field stride in MDIntVector");
 	} catch (IllegalAccessException e) {
-	    java.lang.System.out.println("Illegal access to stride in MDLogicalVector");
+	    java.lang.System.out.println("Illegal access to stride in MDIntVector");
 	}
 
     }

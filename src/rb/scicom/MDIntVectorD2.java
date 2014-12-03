@@ -27,47 +27,24 @@ import org.renjin.sexp.*;
 import org.renjin.primitives.*;
 import ucar.ma2.*;
 
-public class MDLogicalVectorD3 extends MDLogicalVector {
-
-    private int _stride0;
-    private int _shape1;
-    private int _shape2;
+public class MDIntVectorD2 extends MDIntVector {
 
     /*-------------------------------------------------------------------------------------
      *
      *-----------------------------------------------------------------------------------*/
 
-    private MDLogicalVectorD3(AttributeMap attributes) {
+    private MDIntVectorD2(AttributeMap attributes) {
 	super(attributes);
     }
 
     /*-------------------------------------------------------------------------------------
      *
      *-----------------------------------------------------------------------------------*/
-    
-    public MDLogicalVectorD3(ArrayByte array, AttributeMap attributes) {
 
+    public MDIntVectorD2(ArrayInt array, AttributeMap attributes) {
 	super(attributes);
 	_array = array;
 	_index = _array.getIndex();
-
-	try {
-	    Field[] fields = _index.getClass().getDeclaredFields();
-	    Field f = _index.getClass().getDeclaredField("stride0"); //NoSuchFieldException
-	    f.setAccessible(true);
-	    _stride0 = (int) f.get(_index); //IllegalAccessException
-	    f = _index.getClass().getDeclaredField("shape1"); //NoSuchFieldException
-	    f.setAccessible(true);
-	    _shape1 = (int) f.get(_index);
-	    f = _index.getClass().getDeclaredField("shape2"); //NoSuchFieldException
-	    f.setAccessible(true);
-	    _shape2 = (int) f.get(_index);
-	} catch (NoSuchFieldException e) {
-	    java.lang.System.out.println("Unknown field stride in MDLogicalVector");
-	} catch (IllegalAccessException e) {
-	    java.lang.System.out.println("Illegal access to stride in MDLogicalVector");
-	}
-
     }
 
     /*-------------------------------------------------------------------------------------
@@ -80,18 +57,15 @@ public class MDLogicalVectorD3 extends MDLogicalVector {
 	int[] shape = _array.getShape();
 	int current0;
 	int current1;
-	int current2;
 
-	current0 = currElement / _stride0;
-	currElement -= current0 * _stride0;
+	current0 = currElement % shape[0];
+	currElement = (currElement - current0) / shape[0];
 
-	current1 = currElement % _shape1;
-	currElement = (currElement - current1) / _shape1;
+	current1 = currElement % shape[1];
+	currElement = (currElement - current1) / shape[1];
 
-	current2 = currElement % _shape2;
-	currElement = (currElement - current2) / _shape2;
+	_index.set(current0, current1); // transfer to subclass fields
 
-	_index.set(current0, current1, current2); // transfer to subclass fields
     }
     
 }

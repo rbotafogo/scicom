@@ -27,25 +27,23 @@ import org.renjin.sexp.*;
 import org.renjin.primitives.*;
 import ucar.ma2.*;
 
-public class MDLogicalVectorD3 extends MDLogicalVector {
-
+public class MDStringVectorD1 extends MDStringVector {
+    
     private int _stride0;
-    private int _shape1;
-    private int _shape2;
-
-    /*-------------------------------------------------------------------------------------
-     *
-     *-----------------------------------------------------------------------------------*/
-
-    private MDLogicalVectorD3(AttributeMap attributes) {
-	super(attributes);
-    }
 
     /*-------------------------------------------------------------------------------------
      *
      *-----------------------------------------------------------------------------------*/
     
-    public MDLogicalVectorD3(ArrayByte array, AttributeMap attributes) {
+    private MDStringVectorD1(AttributeMap attributes) {
+	super(attributes);
+    }
+    
+    /*-------------------------------------------------------------------------------------
+     *
+     *-----------------------------------------------------------------------------------*/
+
+    public MDStringVectorD1(ArrayString array, AttributeMap attributes) {
 
 	super(attributes);
 	_array = array;
@@ -56,16 +54,10 @@ public class MDLogicalVectorD3 extends MDLogicalVector {
 	    Field f = _index.getClass().getDeclaredField("stride0"); //NoSuchFieldException
 	    f.setAccessible(true);
 	    _stride0 = (int) f.get(_index); //IllegalAccessException
-	    f = _index.getClass().getDeclaredField("shape1"); //NoSuchFieldException
-	    f.setAccessible(true);
-	    _shape1 = (int) f.get(_index);
-	    f = _index.getClass().getDeclaredField("shape2"); //NoSuchFieldException
-	    f.setAccessible(true);
-	    _shape2 = (int) f.get(_index);
 	} catch (NoSuchFieldException e) {
-	    java.lang.System.out.println("Unknown field stride in MDLogicalVector");
+	    java.lang.System.out.println("Unknown field stride in MDStringVector");
 	} catch (IllegalAccessException e) {
-	    java.lang.System.out.println("Illegal access to stride in MDLogicalVector");
+	    java.lang.System.out.println("Illegal access to stride in MDStringVector");
 	}
 
     }
@@ -76,22 +68,7 @@ public class MDLogicalVectorD3 extends MDLogicalVector {
      *-----------------------------------------------------------------------------------*/
 
     public void setCurrentCounter(int currElement) {
-	
-	int[] shape = _array.getShape();
-	int current0;
-	int current1;
-	int current2;
-
-	current0 = currElement / _stride0;
-	currElement -= current0 * _stride0;
-
-	current1 = currElement % _shape1;
-	currElement = (currElement - current1) / _shape1;
-
-	current2 = currElement % _shape2;
-	currElement = (currElement - current2) / _shape2;
-
-	_index.set(current0, current1, current2); // transfer to subclass fields
+	_index.set(currElement * _stride0); // transfer to subclass fields
     }
     
 }

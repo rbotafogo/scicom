@@ -28,23 +28,38 @@ import org.renjin.primitives.*;
 import ucar.ma2.*;
 
 public class MDLogicalVectorD1 extends MDLogicalVector {
+    
+    private int _stride0;
 
     /*-------------------------------------------------------------------------------------
      *
      *-----------------------------------------------------------------------------------*/
-
+    
     private MDLogicalVectorD1(AttributeMap attributes) {
 	super(attributes);
     }
-
+    
     /*-------------------------------------------------------------------------------------
      *
      *-----------------------------------------------------------------------------------*/
 
     public MDLogicalVectorD1(ArrayByte array, AttributeMap attributes) {
+
 	super(attributes);
 	_array = array;
 	_index = _array.getIndex();
+
+	try {
+	    Field[] fields = _index.getClass().getDeclaredFields();
+	    Field f = _index.getClass().getDeclaredField("stride0"); //NoSuchFieldException
+	    f.setAccessible(true);
+	    _stride0 = (int) f.get(_index); //IllegalAccessException
+	} catch (NoSuchFieldException e) {
+	    java.lang.System.out.println("Unknown field stride in MDLogicalVector");
+	} catch (IllegalAccessException e) {
+	    java.lang.System.out.println("Illegal access to stride in MDLogicalVector");
+	}
+
     }
 
     /*-------------------------------------------------------------------------------------
@@ -53,19 +68,7 @@ public class MDLogicalVectorD1 extends MDLogicalVector {
      *-----------------------------------------------------------------------------------*/
 
     public void setCurrentCounter(int currElement) {
-	
-	int[] shape = _array.getShape();
-	int current0;
-	int current1;
-
-	current0 = currElement % shape[0];
-	currElement = (currElement - current0) / shape[0];
-
-	current1 = currElement % shape[1];
-	currElement = (currElement - current1) / shape[1];
-
-	_index.set(current0, current1); // transfer to subclass fields
-
+	_index.set(currElement * _stride0); // transfer to subclass fields
     }
     
 }
