@@ -58,29 +58,6 @@ class SciComTest < Test::Unit::TestCase
     end
 =end
 =begin
-    #--------------------------------------------------------------------------------------
-    #
-    #--------------------------------------------------------------------------------------
-
-    should "change backing store of R vector when changing the vector" do
-
-      # create an MDArray
-      arr1 = MDArray.typed_arange(:double, 12)
-      arr1.reshape!([4, 3])
-      arr1.print
-
-      r_matrix = R.md(arr1)
-
-      # change the r_matrix dimension.  Now r_matrix and arr1 point to different
-      # backstores, as any change in a Renjin object actually creates a new object.
-      r_matrix.attr.dim = R.c(3, 4)
-      arr1[1, 1] = 1000.34
-
-      # arrays are now different
-      r_matrix.pp
-      arr1.print
-
-    end
 
 
     #--------------------------------------------------------------------------------------

@@ -29,10 +29,6 @@ import org.renjin.sexp.*;
 public class MDDoubleVectorD3 extends MDDoubleVector {
 
     private int _stride0;
-    private int _stride1;
-    private int _stride2;
-
-    private int _shape0;
     private int _shape1;
     private int _shape2;
 
@@ -59,12 +55,6 @@ public class MDDoubleVectorD3 extends MDDoubleVector {
 	    Field f = _index.getClass().getDeclaredField("stride0"); //NoSuchFieldException
 	    f.setAccessible(true);
 	    _stride0 = (int) f.get(_index); //IllegalAccessException
-	    f = _index.getClass().getDeclaredField("stride1"); //NoSuchFieldException
-	    f.setAccessible(true);
-	    _stride1 = (int) f.get(_index);
-	    f = _index.getClass().getDeclaredField("stride2"); //NoSuchFieldException
-	    f.setAccessible(true);
-	    _stride2 = (int) f.get(_index);
 	    f = _index.getClass().getDeclaredField("shape1"); //NoSuchFieldException
 	    f.setAccessible(true);
 	    _shape1 = (int) f.get(_index);
