@@ -29,8 +29,7 @@ import org.renjin.sexp.*;
 public class MDDoubleVectorD3 extends MDDoubleVector {
 
     private int _stride0;
-    private int _shape1;
-    private int _shape2;
+    private int _shape1, _shape2;
 
     /*-------------------------------------------------------------------------------------
      *
@@ -75,14 +74,14 @@ public class MDDoubleVectorD3 extends MDDoubleVector {
      *-----------------------------------------------------------------------------------*/
 
     public void setCurrentCounter(int currElement) {
-	int[] shape = _array.getShape();
-	int current0;
-	int current1;
-	int current2;
 
+	int current0, current1, current2;
+
+	// Initial dimensions, i.e., all but the last two
 	current0 = currElement / _stride0;
 	currElement -= current0 * _stride0;
 
+	// Last two dimensions
 	current1 = currElement % _shape1;
 	currElement = (currElement - current1) / _shape1;
 

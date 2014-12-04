@@ -115,7 +115,6 @@ class SciComTest < Test::Unit::TestCase
     #
     #--------------------------------------------------------------------------------------
 
-
     should "work with MDArray slices" do
 
       # create a 3D MDArray
@@ -187,3 +186,4 @@ class SciComTest < Test::Unit::TestCase
   end
   
 end
+

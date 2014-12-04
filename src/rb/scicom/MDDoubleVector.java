@@ -186,23 +186,17 @@ public class MDDoubleVector extends DoubleVector {
      *-----------------------------------------------------------------------------------*/
 
     public void setCurrentCounter(int currElement) {
+
 	int length = _stride.length;
 	int[] shape = _array.getShape();
 	int [] current = new int[length];
-	int l2 = (length - 2) >= 0 ? (length - 2) : 1;
+	int l2 = length - 2;
 	
-	if (length == 1) {
-	    current[0] = currElement * _stride[0];
-	    _index.set(current);
-	    return;
+	for (int i = 0; i < l2; i++) { 
+	    current[i] = currElement / _stride[i];
+	    currElement -= current[i] * _stride[i];
 	}
-	
-	if (length > 2) { 
-	    for (int i = 0; i < l2; i++) { 
-		current[i] = currElement / _stride[i];
-		currElement -= current[i] * _stride[i];
-	    }
-	}
+
 	for(int i = l2; i < length; ++i) {
 	    current[i] = currElement % shape[i];
 	    currElement = (currElement - current[i]) / shape[i];

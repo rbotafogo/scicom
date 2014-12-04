@@ -22,20 +22,20 @@
 package rb.scicom;
 
 import java.lang.reflect.*;
-import java.util.*;
-import org.renjin.sexp.*;
-import org.renjin.primitives.*;
 import ucar.ma2.*;
+import org.renjin.sexp.*;
 
-public class MDDoubleVectorD2 extends MDDoubleVector {
 
-    private int _shape0, _shape1;
+public class MDDoubleVectorD4 extends MDDoubleVector {
+
+    private int _stride0, _stride1;
+    private int _shape1, _shape2, _shape3;
 
     /*-------------------------------------------------------------------------------------
      *
      *-----------------------------------------------------------------------------------*/
 
-    private MDDoubleVectorD2(AttributeMap attributes) {
+    private MDDoubleVectorD4(AttributeMap attributes) {
 	super(attributes);
     }
 
@@ -43,21 +43,30 @@ public class MDDoubleVectorD2 extends MDDoubleVector {
      *
      *-----------------------------------------------------------------------------------*/
 
-    public MDDoubleVectorD2(ArrayDouble array, AttributeMap attributes) {
+    public MDDoubleVectorD4(ArrayDouble array, AttributeMap attributes) {
+
 	super(attributes);
 	_array = array;
 	_index = _array.getIndex();
 
 	try {
 	    Field[] fields = _index.getClass().getDeclaredFields();
-	    // shape0
-	    Field f = _index.getClass().getDeclaredField("shape0"); //NoSuchFieldException
+	    // stride0
+	    Field f = _index.getClass().getDeclaredField("stride0"); //NoSuchFieldException
 	    f.setAccessible(true);
-	    _shape0 = (int) f.get(_index); //IllegalAccessException
-	    // shape1
-	    f = _index.getClass().getDeclaredField("shape1"); //NoSuchFieldException
+	    _stride0 = (int) f.get(_index); //IllegalAccessException
+	    // stride1
+	    f = _index.getClass().getDeclaredField("stride1"); //NoSuchFieldException
 	    f.setAccessible(true);
-	    _shape1 = (int) f.get(_index);
+	    _stride1 = (int) f.get(_index); //IllegalAccessException
+	    // shape3
+	    f = _index.getClass().getDeclaredField("shape3"); //NoSuchFieldException
+	    f.setAccessible(true);
+	    _shape3 = (int) f.get(_index);
+	    // shape2
+	    f = _index.getClass().getDeclaredField("shape2"); //NoSuchFieldException
+	    f.setAccessible(true);
+	    _shape2 = (int) f.get(_index);
 	} catch (NoSuchFieldException e) {
 	    java.lang.System.out.println("Unknown field stride in MDDoubleVector");
 	} catch (IllegalAccessException e) {
@@ -73,18 +82,23 @@ public class MDDoubleVectorD2 extends MDDoubleVector {
 
     public void setCurrentCounter(int currElement) {
 
-	int current0, current1;
+	int current0, current1, current2, current3;
+
+	// Initial dimensions, i.e., all but the last two
+	current0 = currElement / _stride0;
+	currElement -= current0 * _stride0;
+
+	current1 = currElement / _stride1;
+	currElement -= current1 * _stride1;
 
 	// Last two dimensions
-	current0 = currElement % _shape0;
-	currElement = (currElement - current0) / _shape0;
+	current2 = currElement % _shape2;
+	currElement = (currElement - current2) / _shape2;
 
-	current1 = currElement % _shape1;
-	currElement = (currElement - current1) / _shape1;
+	current3 = currElement % _shape3;
+	currElement = (currElement - current3) / _shape3;
 
-	_index.set(current0, current1); // transfer to subclass fields
-
+	_index.set(current0, current1, current2, current3); // transfer to subclass fields
     }
     
 }
-
