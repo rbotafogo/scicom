@@ -56,7 +56,7 @@ public class MDIntVector extends IntVector {
 	    vec = new MDIntVectorD3(array, attributes);
 	    break;
 	case 4:
-
+	    vec = new MDIntVectorD4(array, attributes);
 	    break;
 	case 5:
 

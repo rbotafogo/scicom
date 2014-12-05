@@ -56,7 +56,7 @@ public class MDDoubleVector extends DoubleVector {
 	    vec = new MDDoubleVectorD3(array, attributes);
 	    break;
 	case 4:
-
+	    vec = new MDDoubleVectorD4(array, attributes);
 	    break;
 	case 5:
 

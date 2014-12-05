@@ -56,7 +56,7 @@ public class MDStringVector extends StringVector {
 	    vec = new MDStringVectorD3(array, attributes);
 	    break;
 	case 4:
-
+	    vec = new MDStringVectorD4(array, attributes);
 	    break;
 	case 5:
 
