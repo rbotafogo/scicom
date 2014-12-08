@@ -28,7 +28,7 @@ import org.renjin.sexp.*;
 
 public class MDDoubleVectorD3 extends MDDoubleVector {
 
-    private int _stride0;
+    private int _jump0;
     private int _shape1, _shape2;
 
     /*-------------------------------------------------------------------------------------
@@ -51,10 +51,7 @@ public class MDDoubleVectorD3 extends MDDoubleVector {
 
 	try {
 	    Field[] fields = _index.getClass().getDeclaredFields();
-	    Field f = _index.getClass().getDeclaredField("stride0"); //NoSuchFieldException
-	    f.setAccessible(true);
-	    _stride0 = (int) f.get(_index); //IllegalAccessException
-	    f = _index.getClass().getDeclaredField("shape1"); //NoSuchFieldException
+	    Field f = _index.getClass().getDeclaredField("shape1"); //NoSuchFieldException
 	    f.setAccessible(true);
 	    _shape1 = (int) f.get(_index);
 	    f = _index.getClass().getDeclaredField("shape2"); //NoSuchFieldException
@@ -65,7 +62,7 @@ public class MDDoubleVectorD3 extends MDDoubleVector {
 	} catch (IllegalAccessException e) {
 	    java.lang.System.out.println("Illegal access to stride in MDDoubleVector");
 	}
-
+	_jump0 = _shape1 * _shape2;
     }
 
     /*-------------------------------------------------------------------------------------
@@ -78,8 +75,8 @@ public class MDDoubleVectorD3 extends MDDoubleVector {
 	int current0, current1, current2;
 
 	// Initial dimensions, i.e., all but the last two
-	current0 = currElement / _stride0;
-	currElement -= current0 * _stride0;
+	current0 = currElement / _jump0;
+	currElement -= current0 * _jump0;
 
 	// Last two dimensions
 	current1 = currElement % _shape1;
@@ -88,7 +85,7 @@ public class MDDoubleVectorD3 extends MDDoubleVector {
 	current2 = currElement % _shape2;
 	currElement = (currElement - current2) / _shape2;
 
-	_index.set(current0, current1, current2); // transfer to subclass fields
+	_index.set(current0, current1, current2);
     }
     
 }

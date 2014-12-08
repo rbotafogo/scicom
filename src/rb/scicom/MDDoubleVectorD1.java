@@ -28,8 +28,6 @@ import org.renjin.sexp.*;
 
 public class MDDoubleVectorD1 extends MDDoubleVector {
 
-    private int _stride0;
-
     /*-------------------------------------------------------------------------------------
      *
      *-----------------------------------------------------------------------------------*/
@@ -43,22 +41,9 @@ public class MDDoubleVectorD1 extends MDDoubleVector {
      *-----------------------------------------------------------------------------------*/
 
     public MDDoubleVectorD1(ArrayDouble array, AttributeMap attributes) {
-
 	super(attributes);
 	_array = array;
 	_index = _array.getIndex();
-
-	try {
-	    Field[] fields = _index.getClass().getDeclaredFields();
-	    Field f = _index.getClass().getDeclaredField("stride0"); //NoSuchFieldException
-	    f.setAccessible(true);
-	    _stride0 = (int) f.get(_index); //IllegalAccessException
-	} catch (NoSuchFieldException e) {
-	    java.lang.System.out.println("Unknown field stride in MDDoubleVector");
-	} catch (IllegalAccessException e) {
-	    java.lang.System.out.println("Illegal access to stride in MDDoubleVector");
-	}
-
     }
 
     /*-------------------------------------------------------------------------------------
@@ -67,7 +52,7 @@ public class MDDoubleVectorD1 extends MDDoubleVector {
      *-----------------------------------------------------------------------------------*/
 
     public void setCurrentCounter(int currElement) {
-	_index.set(currElement * _stride0); // transfer to subclass fields
+	_index.set(currElement); // transfer to subclass fields
     }
     
 }

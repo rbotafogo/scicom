@@ -40,6 +40,8 @@ require_relative 'test_dataframe'
 require_relative 'test_linear_model'
 
 require_relative 'test_assign_mdarray_2d'
+require_relative 'test_assign_mdarray_3d'
+
 
 
 =begin

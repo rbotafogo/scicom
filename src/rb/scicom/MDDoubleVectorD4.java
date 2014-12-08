@@ -28,7 +28,7 @@ import org.renjin.sexp.*;
 
 public class MDDoubleVectorD4 extends MDDoubleVector {
 
-    private int _stride0, _stride1;
+    private int _jump0, _jump1;
     private int _shape1, _shape2, _shape3;
 
     /*-------------------------------------------------------------------------------------
@@ -52,26 +52,26 @@ public class MDDoubleVectorD4 extends MDDoubleVector {
 	try {
 	    Field[] fields = _index.getClass().getDeclaredFields();
 	    // stride0
-	    Field f = _index.getClass().getDeclaredField("stride0"); //NoSuchFieldException
-	    f.setAccessible(true);
-	    _stride0 = (int) f.get(_index); //IllegalAccessException
 	    // stride1
-	    f = _index.getClass().getDeclaredField("stride1"); //NoSuchFieldException
+	    Field f = _index.getClass().getDeclaredField("shape1"); //NoSuchFieldException
 	    f.setAccessible(true);
-	    _stride1 = (int) f.get(_index); //IllegalAccessException
+	    _shape1 = (int) f.get(_index); //IllegalAccessException
 	    // shape3
-	    f = _index.getClass().getDeclaredField("shape3"); //NoSuchFieldException
-	    f.setAccessible(true);
-	    _shape3 = (int) f.get(_index);
-	    // shape2
 	    f = _index.getClass().getDeclaredField("shape2"); //NoSuchFieldException
 	    f.setAccessible(true);
 	    _shape2 = (int) f.get(_index);
+	    // shape2
+	    f = _index.getClass().getDeclaredField("shape3"); //NoSuchFieldException
+	    f.setAccessible(true);
+	    _shape3 = (int) f.get(_index);
 	} catch (NoSuchFieldException e) {
 	    java.lang.System.out.println("Unknown field stride in MDDoubleVector");
 	} catch (IllegalAccessException e) {
 	    java.lang.System.out.println("Illegal access to stride in MDDoubleVector");
 	}
+
+	_jump1 = _shape2 * _shape3;
+	_jump0 = _jump1 * _shape1;
 
     }
 
@@ -85,11 +85,11 @@ public class MDDoubleVectorD4 extends MDDoubleVector {
 	int current0, current1, current2, current3;
 
 	// Initial dimensions, i.e., all but the last two
-	current0 = currElement / _stride0;
-	currElement -= current0 * _stride0;
+	current0 = currElement / _jump0;
+	currElement -= current0 * _jump0;
 
-	current1 = currElement / _stride1;
-	currElement -= current1 * _stride1;
+	current1 = currElement / _jump1;
+	currElement -= current1 * _jump1;
 
 	// Last two dimensions
 	current2 = currElement % _shape2;
