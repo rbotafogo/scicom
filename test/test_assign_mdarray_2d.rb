@@ -42,43 +42,6 @@ class SciComTest < Test::Unit::TestCase
     #
     #--------------------------------------------------------------------------------------
 
-    should "convert a 2D MDArray onto a R matrix" do
-
-      # create an MDArray
-      p "arr1 is organized in row-major order"
-      arr1 = MDArray.typed_arange(:double, 12)
-      arr1.reshape!([4, 3])
-      arr1.print
-
-      # use method md to convert an MDArray onto an R vector
-      p "r_matrix is also in row-major order as it is converted from an MDArray"
-      r_matrix = R.md(arr1)
-      r_matrix.pp
-
-      # both arr1 and r_matrix should have the same elements. Also, elements in both
-      # MDArray and R vector can be indexed in the same way (correcting for initial
-      # elements).
-      # First index of R is 1 and not 0. So we need to be careful when comparing
-      # MDArray and R vectors (arrays).  
-      compare = MDArray.byte([4,3])
-      (0..3).each do |row|
-        (0..2).each do |col|
-          compare[row, col] = 
-            (arr1[row, col] == (r_matrix[row + 1, col + 1].gz))? 1 : 0
-        end
-      end
-      # A byte MDArray is converted to a Logical vector in R.  Boolean MDArrays cannot be 
-      # converted to logical vectors efficiently in Renjin.
-      # Convert the byte MDArray to an R vector.
-      comp = R.md(compare)
-      assert_equal(true, comp.all.gt)
-
-    end
-
-    #--------------------------------------------------------------------------------------
-    #
-    #--------------------------------------------------------------------------------------
-
     should "have the same backing store" do
 
       p "arr1 and r_matrix have both the same backing store when data is converted from \

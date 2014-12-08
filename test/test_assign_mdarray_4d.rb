@@ -38,49 +38,12 @@ class SciComTest < Test::Unit::TestCase
 
     end
 
-    
+
+=begin    
     #--------------------------------------------------------------------------------------
     #
     #--------------------------------------------------------------------------------------
 
-    should "convert 4D MDArrays to R arrays" do
-      
-      (0..5).each do 
-        dim = [1 + rand(8), 1 + rand(8), 1 + rand(8), 1 + rand(8)]
-        p "converting MDArray of shape #{dim} to R array"
-
-        arr1 = MDArray.typed_arange(:double, dim.inject(:*))
-        arr1.reshape!(dim)
-        
-        # arr1.print
-        
-        # convert to an R matrix
-        r_matrix = R.md(arr1)
-        
-        # In order to simplify access to the R vector with different dimension specification
-        # SciCom implements method 'ri' (r-indexing), so that arr1[dim1, dim2, dim3] is
-        # equal to r_matrix.ri(dim1, dim2, dim3)
-        compare = MDArray.byte(dim)
-        (0..dim[0] - 1).each do |dim1|
-          (0..dim[1] - 1).each do |dim2|
-            (0..dim[2] - 1).each do |dim3|
-              (0..dim[3] - 1).each do |dim4|
-                compare[dim1, dim2, dim3, dim4] = 
-                  (arr1[dim1, dim2, dim3, dim4] == (r_matrix.ri(dim1, dim2, dim3, dim4).gz))? 1 : 0
-              end
-            end
-          end
-        end
-        comp = R.md(compare)
-        assert_equal(true, comp.all.gt)
-      end
-      
-    end
-    
-    #--------------------------------------------------------------------------------------
-    #
-    #--------------------------------------------------------------------------------------
-=begin
     should "work with MDArray slices" do
 
       dim = [6, 4, 3, 2]

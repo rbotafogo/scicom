@@ -111,40 +111,6 @@ class SciComTest < Test::Unit::TestCase
 
     end
 
-
-    #--------------------------------------------------------------------------------------
-    #
-    #--------------------------------------------------------------------------------------
-
-    should "convert another 3D array" do
-
-      dim = [6, 4, 3]
-
-      # create a 1D MDArray
-      arr1 = MDArray.typed_arange(:double, 72)
-      arr1.reshape!(dim)
-
-      # convert to an R matrix
-      r_matrix = R.md(arr1)
-
-      # In order to simplify access to the R vector with different dimension specification
-      # SciCom implements method 'ri' (r-indexing), so that arr1[dim1, dim2, dim3] is
-      # equal to r_matrix.ri(dim1, dim2, dim3)
-      compare = MDArray.byte(dim)
-      (0..dim[0] - 1).each do |dim1|
-        (0..dim[1] - 1).each do |dim2|
-          (0..dim[2] - 1).each do |dim3|
-            # r_matrix.ri(dim1, dim2, dim3).pp
-            compare[dim1, dim2, dim3] = 
-              (arr1[dim1, dim2, dim3] == (r_matrix.ri(dim1, dim2, dim3).gz))? 1 : 0
-          end
-        end
-      end
-      comp = R.md(compare)
-      assert_equal(true, comp.all.gt)
-
-    end
-
     #--------------------------------------------------------------------------------------
     #
     #--------------------------------------------------------------------------------------
