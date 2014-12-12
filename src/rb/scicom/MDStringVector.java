@@ -22,9 +22,7 @@
 package rb.scicom;
 
 import java.lang.reflect.*;
-import java.util.*;
 import org.renjin.sexp.*;
-import org.renjin.primitives.*;
 import ucar.ma2.*;
 
 public class MDStringVector extends StringVector {
@@ -59,7 +57,7 @@ public class MDStringVector extends StringVector {
 	    vec = new MDStringVectorD4(array, attributes);
 	    break;
 	case 5:
-
+	    vec = new MDStringVectorD5(array, attributes);
 	    break;
 
 	case 6:

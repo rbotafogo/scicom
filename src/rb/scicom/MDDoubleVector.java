@@ -22,9 +22,7 @@
 package rb.scicom;
 
 import java.lang.reflect.*;
-import java.util.*;
 import org.renjin.sexp.*;
-import org.renjin.primitives.*;
 import ucar.ma2.*;
 
 public class MDDoubleVector extends DoubleVector {
@@ -59,7 +57,7 @@ public class MDDoubleVector extends DoubleVector {
 	    vec = new MDDoubleVectorD4(array, attributes);
 	    break;
 	case 5:
-
+	    vec = new MDDoubleVectorD5(array, attributes);
 	    break;
 
 	case 6:

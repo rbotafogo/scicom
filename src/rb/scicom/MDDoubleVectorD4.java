@@ -21,7 +21,6 @@
 
 package rb.scicom;
 
-import java.lang.reflect.*;
 import ucar.ma2.*;
 import org.renjin.sexp.*;
 
@@ -48,28 +47,9 @@ public class MDDoubleVectorD4 extends MDDoubleVector {
 	super(attributes);
 	_array = array;
 	_index = _array.getIndex();
-
-	try {
-	    Field[] fields = _index.getClass().getDeclaredFields();
-	    // stride0
-	    // stride1
-	    Field f = _index.getClass().getDeclaredField("shape1"); //NoSuchFieldException
-	    f.setAccessible(true);
-	    _shape1 = (int) f.get(_index); //IllegalAccessException
-	    // shape3
-	    f = _index.getClass().getDeclaredField("shape2"); //NoSuchFieldException
-	    f.setAccessible(true);
-	    _shape2 = (int) f.get(_index);
-	    // shape2
-	    f = _index.getClass().getDeclaredField("shape3"); //NoSuchFieldException
-	    f.setAccessible(true);
-	    _shape3 = (int) f.get(_index);
-	} catch (NoSuchFieldException e) {
-	    java.lang.System.out.println("Unknown field stride in MDDoubleVector");
-	} catch (IllegalAccessException e) {
-	    java.lang.System.out.println("Illegal access to stride in MDDoubleVector");
-	}
-
+	_shape1 = array.getShape()[1];
+	_shape2 = array.getShape()[2];
+	_shape3 = array.getShape()[3];
 	_jump1 = _shape2 * _shape3;
 	_jump0 = _jump1 * _shape1;
 
@@ -99,6 +79,7 @@ public class MDDoubleVectorD4 extends MDDoubleVector {
 	currElement = (currElement - current3) / _shape3;
 
 	_index.set(current0, current1, current2, current3); // transfer to subclass fields
+
     }
     
 }

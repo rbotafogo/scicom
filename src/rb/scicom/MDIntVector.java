@@ -22,9 +22,7 @@
 package rb.scicom;
 
 import java.lang.reflect.*;
-import java.util.*;
 import org.renjin.sexp.*;
-import org.renjin.primitives.*;
 import ucar.ma2.*;
 
 public class MDIntVector extends IntVector {
@@ -56,10 +54,10 @@ public class MDIntVector extends IntVector {
 	    vec = new MDIntVectorD3(array, attributes);
 	    break;
 	case 4:
-	    vec = new MDIntVectorD4(array, attributes);
+	    vec = new MDIntVectorD4(array, attributes);	
 	    break;
 	case 5:
-
+	    vec = new MDIntVectorD5(array, attributes);
 	    break;
 
 	case 6:

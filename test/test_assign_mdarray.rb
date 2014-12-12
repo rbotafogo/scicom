@@ -55,9 +55,17 @@ class SciComTest < Test::Unit::TestCase
           dims[s] = rand(1..8)
         end
 
-        p "converting MDArray of shape #{dims} to R array"
+        p "converting MDArray of shape #{dims} and type #{type} to R array"
+
+        case type
+        when :byte
+          arr1 = MDArray.byte(dims)
+        when :string
+          arr1 = MDArray.init_with("string", dims, "this is a string")
+        else
+          arr1 = MDArray.typed_arange(type.to_s, dims.inject(:*))
+        end
         
-        arr1 = MDArray.typed_arange(type, dims.inject(:*))
         arr1.reshape!(dims)
         
         # convert to an R matrix
@@ -86,12 +94,17 @@ class SciComTest < Test::Unit::TestCase
       # optimized) and also for 8 to 10 dimensions (that are not optimized)
       #--------------------------------------------------------------------------------------
 
-      (1..4).each do |dim|
-        (0..5).each do
-          to_r(dim, :double)
+      [:byte, :int, :double, :string].each do |type|
+        (1..5).each do |dim|
+          (0...2).each do
+            to_r(dim, type)
+          end
         end
       end
-      
+
+      # :char  # test convertion
+
+      # :boolean, :long, :float # raise exception
     end
 
   end

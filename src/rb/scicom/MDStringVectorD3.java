@@ -22,16 +22,14 @@
 package rb.scicom;
 
 import java.lang.reflect.*;
-import java.util.*;
-import org.renjin.sexp.*;
-import org.renjin.primitives.*;
 import ucar.ma2.*;
+import org.renjin.sexp.*;
+
 
 public class MDStringVectorD3 extends MDStringVector {
 
-    private int _stride0;
-    private int _shape1;
-    private int _shape2;
+    private int _jump0;
+    private int _shape1, _shape2;
 
     /*-------------------------------------------------------------------------------------
      *
@@ -44,30 +42,15 @@ public class MDStringVectorD3 extends MDStringVector {
     /*-------------------------------------------------------------------------------------
      *
      *-----------------------------------------------------------------------------------*/
-    
+
     public MDStringVectorD3(ArrayString array, AttributeMap attributes) {
 
 	super(attributes);
 	_array = array;
 	_index = _array.getIndex();
-
-	try {
-	    Field[] fields = _index.getClass().getDeclaredFields();
-	    Field f = _index.getClass().getDeclaredField("stride0"); //NoSuchFieldException
-	    f.setAccessible(true);
-	    _stride0 = (int) f.get(_index); //IllegalAccessException
-	    f = _index.getClass().getDeclaredField("shape1"); //NoSuchFieldException
-	    f.setAccessible(true);
-	    _shape1 = (int) f.get(_index);
-	    f = _index.getClass().getDeclaredField("shape2"); //NoSuchFieldException
-	    f.setAccessible(true);
-	    _shape2 = (int) f.get(_index);
-	} catch (NoSuchFieldException e) {
-	    java.lang.System.out.println("Unknown field stride in MDStringVector");
-	} catch (IllegalAccessException e) {
-	    java.lang.System.out.println("Illegal access to stride in MDStringVector");
-	}
-
+	_shape1 = array.getShape()[1];
+	_shape2 = array.getShape()[2];
+	_jump0 = _shape1 * _shape2;
     }
 
     /*-------------------------------------------------------------------------------------
@@ -76,23 +59,21 @@ public class MDStringVectorD3 extends MDStringVector {
      *-----------------------------------------------------------------------------------*/
 
     public void setCurrentCounter(int currElement) {
-	
-	int[] shape = _array.getShape();
-	int current0;
-	int current1;
-	int current2;
 
-	current0 = currElement / _stride0;
-	currElement -= current0 * _stride0;
+	int current0, current1, current2;
 
+	// Initial dimensions, i.e., all but the last two
+	current0 = currElement / _jump0;
+	currElement -= current0 * _jump0;
+
+	// Last two dimensions
 	current1 = currElement % _shape1;
 	currElement = (currElement - current1) / _shape1;
 
 	current2 = currElement % _shape2;
 	currElement = (currElement - current2) / _shape2;
 
-	_index.set(current0, current1, current2); // transfer to subclass fields
+	_index.set(current0, current1, current2);
     }
     
 }
-

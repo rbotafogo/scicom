@@ -21,14 +21,13 @@
 
 package rb.scicom;
 
-import java.lang.reflect.*;
 import ucar.ma2.*;
 import org.renjin.sexp.*;
 
 
 public class MDStringVectorD4 extends MDStringVector {
 
-    private int _stride0, _stride1;
+    private int _jump0, _jump1;
     private int _shape1, _shape2, _shape3;
 
     /*-------------------------------------------------------------------------------------
@@ -48,30 +47,11 @@ public class MDStringVectorD4 extends MDStringVector {
 	super(attributes);
 	_array = array;
 	_index = _array.getIndex();
-
-	try {
-	    Field[] fields = _index.getClass().getDeclaredFields();
-	    // stride0
-	    Field f = _index.getClass().getDeclaredField("stride0"); //NoSuchFieldException
-	    f.setAccessible(true);
-	    _stride0 = (int) f.get(_index); //IllegalAccessException
-	    // stride1
-	    f = _index.getClass().getDeclaredField("stride1"); //NoSuchFieldException
-	    f.setAccessible(true);
-	    _stride1 = (int) f.get(_index); //IllegalAccessException
-	    // shape3
-	    f = _index.getClass().getDeclaredField("shape3"); //NoSuchFieldException
-	    f.setAccessible(true);
-	    _shape3 = (int) f.get(_index);
-	    // shape2
-	    f = _index.getClass().getDeclaredField("shape2"); //NoSuchFieldException
-	    f.setAccessible(true);
-	    _shape2 = (int) f.get(_index);
-	} catch (NoSuchFieldException e) {
-	    java.lang.System.out.println("Unknown field stride in MDStringVector");
-	} catch (IllegalAccessException e) {
-	    java.lang.System.out.println("Illegal access to stride in MDStringVector");
-	}
+	_shape1 = array.getShape()[1];
+	_shape2 = array.getShape()[2];
+	_shape3 = array.getShape()[3];
+	_jump1 = _shape2 * _shape3;
+	_jump0 = _jump1 * _shape1;
 
     }
 
@@ -85,11 +65,11 @@ public class MDStringVectorD4 extends MDStringVector {
 	int current0, current1, current2, current3;
 
 	// Initial dimensions, i.e., all but the last two
-	current0 = currElement / _stride0;
-	currElement -= current0 * _stride0;
+	current0 = currElement / _jump0;
+	currElement -= current0 * _jump0;
 
-	current1 = currElement / _stride1;
-	currElement -= current1 * _stride1;
+	current1 = currElement / _jump1;
+	currElement -= current1 * _jump1;
 
 	// Last two dimensions
 	current2 = currElement % _shape2;
@@ -99,6 +79,7 @@ public class MDStringVectorD4 extends MDStringVector {
 	currElement = (currElement - current3) / _shape3;
 
 	_index.set(current0, current1, current2, current3); // transfer to subclass fields
+
     }
     
 }

@@ -29,6 +29,8 @@ import ucar.ma2.*;
 
 public class MDStringVectorD2 extends MDStringVector {
 
+    private int _shape0, _shape1;
+
     /*-------------------------------------------------------------------------------------
      *
      *-----------------------------------------------------------------------------------*/
@@ -45,6 +47,8 @@ public class MDStringVectorD2 extends MDStringVector {
 	super(attributes);
 	_array = array;
 	_index = _array.getIndex();
+	_shape0 = array.getShape()[0];
+	_shape1 = array.getShape()[1];
     }
 
     /*-------------------------------------------------------------------------------------
@@ -53,16 +57,15 @@ public class MDStringVectorD2 extends MDStringVector {
      *-----------------------------------------------------------------------------------*/
 
     public void setCurrentCounter(int currElement) {
-	
-	int[] shape = _array.getShape();
-	int current0;
-	int current1;
 
-	current0 = currElement % shape[0];
-	currElement = (currElement - current0) / shape[0];
+	int current0, current1;
 
-	current1 = currElement % shape[1];
-	currElement = (currElement - current1) / shape[1];
+	// Last two dimensions
+	current0 = currElement % _shape0;
+	currElement = (currElement - current0) / _shape0;
+
+	current1 = currElement % _shape1;
+	currElement = (currElement - current1) / _shape1;
 
 	_index.set(current0, current1); // transfer to subclass fields
 

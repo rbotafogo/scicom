@@ -48,20 +48,8 @@ public class MDDoubleVectorD3 extends MDDoubleVector {
 	super(attributes);
 	_array = array;
 	_index = _array.getIndex();
-
-	try {
-	    Field[] fields = _index.getClass().getDeclaredFields();
-	    Field f = _index.getClass().getDeclaredField("shape1"); //NoSuchFieldException
-	    f.setAccessible(true);
-	    _shape1 = (int) f.get(_index);
-	    f = _index.getClass().getDeclaredField("shape2"); //NoSuchFieldException
-	    f.setAccessible(true);
-	    _shape2 = (int) f.get(_index);
-	} catch (NoSuchFieldException e) {
-	    java.lang.System.out.println("Unknown field stride in MDDoubleVector");
-	} catch (IllegalAccessException e) {
-	    java.lang.System.out.println("Illegal access to stride in MDDoubleVector");
-	}
+	_shape1 = array.getShape()[1];
+	_shape2 = array.getShape()[2];
 	_jump0 = _shape1 * _shape2;
     }
 

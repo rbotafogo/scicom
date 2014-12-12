@@ -25,7 +25,7 @@ require 'java'
 require 'securerandom'
 
 require_relative 'rbsexp'
-require_relative 'index'
+# require_relative 'index'
 
 
 #==========================================================================================
@@ -420,11 +420,12 @@ class Renjin
 
     # vector = Java::RbScicom::MDDoubleVector.new(mdarray.nc_array, attributes, index,
     #   index.stride)
-    case mdarray.dtype
-    when "float", "double"
-      vector = Java::RbScicom::MDDoubleVector.factory(mdarray.nc_array, attributes)
-    when "short", "int", "long"
+    
+    case mdarray.type
+    when "int"
       vector = Java::RbScicom::MDIntVector.factory(mdarray.nc_array, attributes)
+    when "double"
+      vector = Java::RbScicom::MDDoubleVector.factory(mdarray.nc_array, attributes)
     when "byte"
       vector = Java::RbScicom::MDLogicalVector.factory(mdarray.nc_array, attributes)
     when "char", "string"
@@ -433,7 +434,8 @@ class Renjin
       raise "Boolean vectors cannot be converted to R vectors.  If you are trying to \
 convert to an R Logical object, use a :byte MDArray"
     else
-      raise "Unknown dtype #{mdarray.dtype}"
+      mdarray.print
+      raise "Cannot convert MDArray #{mdarray.type} to R vector"
     end
 
   end

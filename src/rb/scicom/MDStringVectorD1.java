@@ -21,24 +21,19 @@
 
 package rb.scicom;
 
-import java.lang.reflect.*;
-import java.util.*;
 import org.renjin.sexp.*;
-import org.renjin.primitives.*;
 import ucar.ma2.*;
 
 public class MDStringVectorD1 extends MDStringVector {
-    
-    private int _stride0;
 
     /*-------------------------------------------------------------------------------------
      *
      *-----------------------------------------------------------------------------------*/
-    
+
     private MDStringVectorD1(AttributeMap attributes) {
 	super(attributes);
     }
-    
+
     /*-------------------------------------------------------------------------------------
      *
      *-----------------------------------------------------------------------------------*/
@@ -49,17 +44,6 @@ public class MDStringVectorD1 extends MDStringVector {
 	_array = array;
 	_index = _array.getIndex();
 
-	try {
-	    Field[] fields = _index.getClass().getDeclaredFields();
-	    Field f = _index.getClass().getDeclaredField("stride0"); //NoSuchFieldException
-	    f.setAccessible(true);
-	    _stride0 = (int) f.get(_index); //IllegalAccessException
-	} catch (NoSuchFieldException e) {
-	    java.lang.System.out.println("Unknown field stride in MDStringVector");
-	} catch (IllegalAccessException e) {
-	    java.lang.System.out.println("Illegal access to stride in MDStringVector");
-	}
-
     }
 
     /*-------------------------------------------------------------------------------------
@@ -68,7 +52,7 @@ public class MDStringVectorD1 extends MDStringVector {
      *-----------------------------------------------------------------------------------*/
 
     public void setCurrentCounter(int currElement) {
-	_index.set(currElement * _stride0); // transfer to subclass fields
+	_index.set(currElement); // transfer to subclass fields
     }
     
 }

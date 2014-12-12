@@ -21,21 +21,20 @@
 
 package rb.scicom;
 
-import java.lang.reflect.*;
 import ucar.ma2.*;
 import org.renjin.sexp.*;
 
 
-public class MDIntVectorD3 extends MDIntVector {
+public class MDStringVectorD5 extends MDStringVector {
 
-    private int _jump0;
-    private int _shape1, _shape2;
+    private int _jump0, _jump1, _jump2;
+    private int _shape1, _shape2, _shape3, _shape4;
 
     /*-------------------------------------------------------------------------------------
      *
      *-----------------------------------------------------------------------------------*/
 
-    private MDIntVectorD3(AttributeMap attributes) {
+    private MDStringVectorD5(AttributeMap attributes) {
 	super(attributes);
     }
 
@@ -43,14 +42,19 @@ public class MDIntVectorD3 extends MDIntVector {
      *
      *-----------------------------------------------------------------------------------*/
 
-    public MDIntVectorD3(ArrayInt array, AttributeMap attributes) {
+    public MDStringVectorD5(ArrayString array, AttributeMap attributes) {
 
 	super(attributes);
 	_array = array;
 	_index = _array.getIndex();
 	_shape1 = array.getShape()[1];
 	_shape2 = array.getShape()[2];
-	_jump0 = _shape1 * _shape2;
+	_shape3 = array.getShape()[3];
+	_shape4 = array.getShape()[4];
+	_jump2 = _shape3 * _shape4;
+	_jump1 = _jump2 * _shape2;
+	_jump0 = _jump1 * _shape1;
+
     }
 
     /*-------------------------------------------------------------------------------------
@@ -60,20 +64,26 @@ public class MDIntVectorD3 extends MDIntVector {
 
     public void setCurrentCounter(int currElement) {
 
-	int current0, current1, current2;
+	int current0, current1, current2, current3, current4;
 
 	// Initial dimensions, i.e., all but the last two
 	current0 = currElement / _jump0;
 	currElement -= current0 * _jump0;
 
+	current1 = currElement / _jump1;
+	currElement -= current1 * _jump1;
+
+	current2 = currElement / _jump2;
+	currElement -= current2 * _jump2;
+
 	// Last two dimensions
-	current1 = currElement % _shape1;
-	currElement = (currElement - current1) / _shape1;
+	current3 = currElement % _shape3;
+	currElement = (currElement - current3) / _shape3;
 
-	current2 = currElement % _shape2;
-	currElement = (currElement - current2) / _shape2;
+	current4 = currElement % _shape4;
+	currElement = (currElement - current4) / _shape4;
 
-	_index.set(current0, current1, current2);
+	_index.set(current0, current1, current2, current3, current4);
     }
     
 }
