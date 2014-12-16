@@ -61,12 +61,11 @@ public class MDLogicalVector extends LogicalVector {
 	case 5:
 	    vec = new MDLogicalVectorD5(array, attributes);
 	    break;
-
 	case 6:
+	    vec = new MDLogicalVectorD6(array, attributes);
 	    break;
-
 	case 7:
-
+	    vec = new MDLogicalVectorD7(array, attributes);
 	    break;
 
 	default:

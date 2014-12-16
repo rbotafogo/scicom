@@ -94,6 +94,19 @@ class SciComTest < Test::Unit::TestCase
       # optimized) and also for 8 to 10 dimensions (that are not optimized)
       #--------------------------------------------------------------------------------------
 
+      
+      [:char, :long, :float].each do |type|
+        # convert to an R matrix
+        arr1 = MDArray.build(type, [2])
+        assert_raise ( RuntimeError ) { r_matrix = R.md(arr1) }
+      end
+      
+      #--------------------------------------------------------------------------------------
+      # Check conversion of 5 different arrays for dimensions from 1 to 7 (which are 
+      # optimized) and also for 8 to 10 dimensions (that are not optimized)
+      #--------------------------------------------------------------------------------------
+
+=begin
       [:byte, :int, :double, :string].each do |type|
         (1..5).each do |dim|
           (0...2).each do
@@ -101,10 +114,16 @@ class SciComTest < Test::Unit::TestCase
           end
         end
       end
+=end
 
-      # :char  # test convertion
+      [:double].each do |type|
+        (8..8).each do |dim|
+          (0...2).each do
+            to_r(dim, type)
+          end
+        end
+      end
 
-      # :boolean, :long, :float # raise exception
     end
 
   end

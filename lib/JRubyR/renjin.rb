@@ -428,13 +428,12 @@ class Renjin
       vector = Java::RbScicom::MDDoubleVector.factory(mdarray.nc_array, attributes)
     when "byte"
       vector = Java::RbScicom::MDLogicalVector.factory(mdarray.nc_array, attributes)
-    when "char", "string"
+    when "string"
       vector = Java::RbScicom::MDStringVector.factory(mdarray.nc_array, attributes)
     when "boolean"
       raise "Boolean vectors cannot be converted to R vectors.  If you are trying to \
 convert to an R Logical object, use a :byte MDArray"
     else
-      mdarray.print
       raise "Cannot convert MDArray #{mdarray.type} to R vector"
     end
 

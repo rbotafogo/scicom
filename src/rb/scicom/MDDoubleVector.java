@@ -25,15 +25,21 @@ import java.lang.reflect.*;
 import org.renjin.sexp.*;
 import ucar.ma2.*;
 
+// Needed only for testing
+import java.util.Arrays;
+
 public class MDDoubleVector extends DoubleVector {
 
     // array is a NetCDF Array in row-major format
     protected ArrayDouble _array;
     // index is a column-major index on top of the same backing store
     protected Index _index;
+    protected int[] _shape;
+    protected int[] _jump;
+    protected int _length;
     // Stride in reverse order for column-major mode.  Necessary as stride is protected
     // in NetCDF Array.
-    protected int[] _stride;
+    // protected int[] _stride;
     
     /*-------------------------------------------------------------------------------------
      * 
@@ -59,15 +65,14 @@ public class MDDoubleVector extends DoubleVector {
 	case 5:
 	    vec = new MDDoubleVectorD5(array, attributes);
 	    break;
-
 	case 6:
+	    vec = new MDDoubleVectorD6(array, attributes);
 	    break;
-
 	case 7:
-
+	    vec = new MDDoubleVectorD7(array, attributes);
 	    break;
-
 	default:
+	    vec = new MDDoubleVector(array, attributes);
 	    break;
 	}
 
@@ -91,24 +96,17 @@ public class MDDoubleVector extends DoubleVector {
 	super(attributes);
 	_array = array;
 	_index = _array.getIndex();
+	_shape = _array.getShape();
+	_length = _shape.length;
+	_jump = new int[_length - 2];
 
-	try {
-	    Field[] fields = _index.getClass().getDeclaredFields();
-	    for ( int i = 0; i < fields.length; i++ )  {  
-		java.lang.System.out.println(fields[i].getName());  
-	    }  
-	    Field f = _index.getClass().getDeclaredField("stride"); //NoSuchFieldException
-	    f.setAccessible(true);
-	    _stride = (int[]) f.get(_index); //IllegalAccessException
-	} catch (NoSuchFieldException e) {
-	    java.lang.System.out.println("Unknown field stride in MDDoubleVector");
-	} catch (IllegalAccessException e) {
-	    java.lang.System.out.println("Illegal access to stride in MDDoubleVector");
+	_jump[_length - 3] = _shape[_length - 2] * _shape[_length - 1];
+	
+	for (int i = _length - 4; i >= 0; i--) {
+	    int j = i + 1;
+	    _jump[i] = _jump[j] * _shape[j];
 	}
 
-	java.lang.System.out.println(_index.toString());
-	java.lang.System.out.println(_stride);
-	// _stride = _index.stride;
     }
 
     /*-------------------------------------------------------------------------------------
@@ -125,14 +123,6 @@ public class MDDoubleVector extends DoubleVector {
 
     public Index getIndex() {
 	return _index;
-    }
-
-    /*-------------------------------------------------------------------------------------
-     *
-     *-----------------------------------------------------------------------------------*/
-
-    public int[] getRevStride() {
-	return _stride;
     }
 
     /*-------------------------------------------------------------------------------------
@@ -185,19 +175,17 @@ public class MDDoubleVector extends DoubleVector {
 
     public void setCurrentCounter(int currElement) {
 
-	int length = _stride.length;
-	int[] shape = _array.getShape();
-	int [] current = new int[length];
-	int l2 = length - 2;
+	int [] current = new int[_length];
+	int l2 = _length - 2;
 	
 	for (int i = 0; i < l2; i++) { 
-	    current[i] = currElement / _stride[i];
-	    currElement -= current[i] * _stride[i];
+	    current[i] = currElement / _jump[i];
+	    currElement -= current[i] * _jump[i];
 	}
 
-	for(int i = l2; i < length; ++i) {
-	    current[i] = currElement % shape[i];
-	    currElement = (currElement - current[i]) / shape[i];
+	for(int i = l2; i < _length; ++i) {
+	    current[i] = currElement % _shape[i];
+	    currElement = (currElement - current[i]) / _shape[i];
 	}
 	
 	// java.lang.System.out.println("current: " + Arrays.toString(current));
