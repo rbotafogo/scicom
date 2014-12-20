@@ -25,15 +25,22 @@ import java.lang.reflect.*;
 import org.renjin.sexp.*;
 import ucar.ma2.*;
 
+// Needed only for testing
+import java.util.Arrays;
+
 public class MDStringVector extends StringVector {
 
-    // array is a NetCDF Array in row-major format
+    // _array is a NetCDF Array in row-major format
     protected ArrayString _array;
-    // index is a column-major index on top of the same backing store
+    // index for the array
     protected Index _index;
-    // Stride in reverse order for column-major mode.  Necessary as stride is protected
-    // in NetCDF Array.
-    protected int[] _stride;
+    // shape of the array
+    protected int[] _shape;
+    // Used to convert a row-major index onto a colum-major index which is the standard
+    // for R and Renjin
+    protected int[] _jump;
+    // number of dimensions for this vector
+    protected int _length;
     
     /*-------------------------------------------------------------------------------------
      * 
@@ -59,15 +66,14 @@ public class MDStringVector extends StringVector {
 	case 5:
 	    vec = new MDStringVectorD5(array, attributes);
 	    break;
-
 	case 6:
+	    vec = new MDStringVectorD6(array, attributes);
 	    break;
-
 	case 7:
-
+	    vec = new MDStringVectorD7(array, attributes);
 	    break;
-
 	default:
+	    vec = new MDStringVector(array, attributes);
 	    break;
 	}
 
@@ -91,24 +97,17 @@ public class MDStringVector extends StringVector {
 	super(attributes);
 	_array = array;
 	_index = _array.getIndex();
+	_shape = _array.getShape();
+	_length = _shape.length;
+	_jump = new int[_length - 2];
 
-	try {
-	    Field[] fields = _index.getClass().getDeclaredFields();
-	    for ( int i = 0; i < fields.length; i++ )  {  
-		java.lang.System.out.println(fields[i].getName());  
-	    }  
-	    Field f = _index.getClass().getDeclaredField("stride"); //NoSuchFieldException
-	    f.setAccessible(true);
-	    _stride = (int[]) f.get(_index); //IllegalAccessException
-	} catch (NoSuchFieldException e) {
-	    java.lang.System.out.println("Unknown field stride in MDStringVector");
-	} catch (IllegalAccessException e) {
-	    java.lang.System.out.println("Illegal access to stride in MDStringVector");
+	_jump[_length - 3] = _shape[_length - 2] * _shape[_length - 1];
+	
+	for (int i = _length - 4; i >= 0; i--) {
+	    int j = i + 1;
+	    _jump[i] = _jump[j] * _shape[j];
 	}
 
-	java.lang.System.out.println(_index.toString());
-	java.lang.System.out.println(_stride);
-	// _stride = _index.stride;
     }
 
     /*-------------------------------------------------------------------------------------
@@ -125,14 +124,6 @@ public class MDStringVector extends StringVector {
 
     public Index getIndex() {
 	return _index;
-    }
-
-    /*-------------------------------------------------------------------------------------
-     *
-     *-----------------------------------------------------------------------------------*/
-
-    public int[] getRevStride() {
-	return _stride;
     }
 
     /*-------------------------------------------------------------------------------------
@@ -172,9 +163,9 @@ public class MDStringVector extends StringVector {
     protected StringVector cloneWithNewAttributes(AttributeMap attributes) {
 	// MDStringVector clone = new MDStringVector(attributes);
 	// int[] dims = attributes.getDimArray();
-	// clone._array = ucar.ma2.ArrayDouble(dims, _array.);
+	// clone._array = ucar.ma2.ArrayString(dims, _array.);
 	MDStringVector clone = 
-	    MDStringVector.factory((ArrayString)_array.copy(), attributes);
+	    MDStringVector.factory((ArrayString) _array.copy(), attributes);
 	return clone;
     }
     
@@ -184,26 +175,18 @@ public class MDStringVector extends StringVector {
      *-----------------------------------------------------------------------------------*/
 
     public void setCurrentCounter(int currElement) {
-	int length = _stride.length;
-	int[] shape = _array.getShape();
-	int [] current = new int[length];
-	int l2 = (length - 2) >= 0 ? (length - 2) : 1;
+
+	int [] current = new int[_length];
+	int l2 = _length - 2;
 	
-	if (length == 1) {
-	    current[0] = currElement * _stride[0];
-	    _index.set(current);
-	    return;
+	for (int i = 0; i < l2; i++) { 
+	    current[i] = currElement / _jump[i];
+	    currElement -= current[i] * _jump[i];
 	}
-	
-	if (length > 2) { 
-	    for (int i = 0; i < l2; i++) { 
-		current[i] = currElement / _stride[i];
-		currElement -= current[i] * _stride[i];
-	    }
-	}
-	for(int i = l2; i < length; ++i) {
-	    current[i] = currElement % shape[i];
-	    currElement = (currElement - current[i]) / shape[i];
+
+	for(int i = l2; i < _length; ++i) {
+	    current[i] = currElement % _shape[i];
+	    currElement = (currElement - current[i]) / _shape[i];
 	}
 	
 	// java.lang.System.out.println("current: " + Arrays.toString(current));

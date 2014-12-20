@@ -30,16 +30,17 @@ import java.util.Arrays;
 
 public class MDDoubleVector extends DoubleVector {
 
-    // array is a NetCDF Array in row-major format
+    // _array is a NetCDF Array in row-major format
     protected ArrayDouble _array;
-    // index is a column-major index on top of the same backing store
+    // index for the array
     protected Index _index;
+    // shape of the array
     protected int[] _shape;
+    // Used to convert a row-major index onto a colum-major index which is the standard
+    // for R and Renjin
     protected int[] _jump;
+    // number of dimensions for this vector
     protected int _length;
-    // Stride in reverse order for column-major mode.  Necessary as stride is protected
-    // in NetCDF Array.
-    // protected int[] _stride;
     
     /*-------------------------------------------------------------------------------------
      * 
@@ -164,7 +165,7 @@ public class MDDoubleVector extends DoubleVector {
 	// int[] dims = attributes.getDimArray();
 	// clone._array = ucar.ma2.ArrayDouble(dims, _array.);
 	MDDoubleVector clone = 
-	    MDDoubleVector.factory((ArrayDouble)_array.copy(), attributes);
+	    MDDoubleVector.factory((ArrayDouble) _array.copy(), attributes);
 	return clone;
     }
     

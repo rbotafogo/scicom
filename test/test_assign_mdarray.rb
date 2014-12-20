@@ -20,8 +20,9 @@
 ##########################################################################################
 
 require 'rubygems'
-require "test/unit"
+require 'test/unit'
 require 'shoulda'
+require 'benchmark'
 
 require 'env'
 require 'scicom'
@@ -67,25 +68,29 @@ class SciComTest < Test::Unit::TestCase
         end
         
         arr1.reshape!(dims)
-        
+
         # convert to an R matrix
         r_matrix = R.md(arr1)
-        
-        # A byte MDArray is converted to a Logical vector in R.  Boolean MDArrays cannot be 
-        # converted to logical vectors efficiently in Renjin.
-        compare = MDArray.byte(dims)
 
-        # In order to simplify access to the R vector with different dimension specification
-        # SciCom implements method 'ri' (r-indexing), so that arr1[dim1, dim2, dim3] is
-        # equal to r_matrix.ri(dim1, dim2, dim3)
-        arr1.get_index.each do |ct|
-          compare[*ct] = (arr1[*ct] == (r_matrix.ri(*ct).gz))? 1 : 0
+        # only compare all elements if array size is less than 5.  For larger arrays this will take 
+        # too much time.
+        if (dims.size < 6)
+          # A byte MDArray is converted to a Logical vector in R.  Boolean MDArrays cannot be 
+          # converted to logical vectors efficiently in Renjin.
+          compare = MDArray.byte(dims)
+          
+          # In order to simplify access to the R vector with different dimension specification
+          # SciCom implements method 'ri' (r-indexing), so that arr1[dim1, dim2, dim3] is
+          # equal to r_matrix.ri(dim1, dim2, dim3)
+          arr1.get_index.each do |ct|
+            compare[*ct] = (arr1[*ct] == (r_matrix.ri(*ct).gz))? 1 : 0
+          end
+          
+          # Convert the byte MDArray to an R vector.
+          comp = R.md(compare)
+          # use the .all method from R to verify that all elements in the vector all TRUE
+          assert_equal(true, comp.all.gt)
         end
-
-        # Convert the byte MDArray to an R vector.
-        comp = R.md(compare)
-        # use the .all method from R to verify that all elements in the vector all TRUE
-        assert_equal(true, comp.all.gt)
         
       end
 
@@ -106,16 +111,16 @@ class SciComTest < Test::Unit::TestCase
       # optimized) and also for 8 to 10 dimensions (that are not optimized)
       #--------------------------------------------------------------------------------------
 
-=begin
       [:byte, :int, :double, :string].each do |type|
-        (1..5).each do |dim|
+        (1..9).each do |dim|
           (0...2).each do
             to_r(dim, type)
           end
         end
       end
-=end
 
+
+=begin
       [:double].each do |type|
         (8..8).each do |dim|
           (0...2).each do
@@ -123,6 +128,7 @@ class SciComTest < Test::Unit::TestCase
           end
         end
       end
+=end
 
     end
 
