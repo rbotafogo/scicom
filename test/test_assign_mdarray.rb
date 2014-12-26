@@ -61,8 +61,8 @@ class SciComTest < Test::Unit::TestCase
         case type
         when :byte
           arr1 = MDArray.byte(dims)
-        when :string
-          arr1 = MDArray.init_with("string", dims, "this is a string")
+        when :rstring
+          arr1 = MDArray.init_with("rstring", dims, "this is a string")
         else
           arr1 = MDArray.typed_arange(type.to_s, dims.inject(:*))
         end
@@ -111,24 +111,15 @@ class SciComTest < Test::Unit::TestCase
       # optimized) and also for 8 to 10 dimensions (that are not optimized)
       #--------------------------------------------------------------------------------------
 
-      [:byte, :int, :double, :string].each do |type|
+#  
+
+      [:byte, :int, :double, :rstring].each do |type|
         (1..9).each do |dim|
           (0...2).each do
             to_r(dim, type)
           end
         end
       end
-
-
-=begin
-      [:double].each do |type|
-        (8..8).each do |dim|
-          (0...2).each do
-            to_r(dim, type)
-          end
-        end
-      end
-=end
 
     end
 

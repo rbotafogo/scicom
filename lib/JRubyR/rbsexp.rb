@@ -297,9 +297,7 @@ class Renjin
     
     def self.build(sexp)
       
-      if (sexp.instance_of? Java::OrgRenjinPrimitivesSequence::IntSequence)
-        res = Renjin::Sequence.new(sexp)
-      elsif (sexp.instance_of? Java::OrgRenjinSexp::Null)
+      if (sexp.instance_of? Java::OrgRenjinSexp::Null)
         res = nil
       elsif (sexp.instance_of? Java::OrgRenjinSexp::ListVector)
         res = Renjin::List.new(sexp)
@@ -331,7 +329,6 @@ end
 
 require_relative 'ruby_classes'
 require_relative 'vector'
-require_relative 'sequence'
 require_relative 'list'
 require_relative 'function'
 require_relative 'logical_value'

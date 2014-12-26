@@ -43,10 +43,7 @@ require_relative 'test_assign_mdarray'
 require_relative 'test_assign_mdarray_2d'
 require_relative 'test_assign_mdarray_3d'
 
-
-
 =begin
-require_relative 'test_assign_mdarray'
 require_relative 'test_subsetting'
 require_relative 'test_double_receive'
 require_relative 'test_functions'

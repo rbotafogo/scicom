@@ -45,9 +45,8 @@ class SciComTest < Test::Unit::TestCase
     should "convert a 3D MDArray onto a R matrix" do
 
       # create a 1D MDArray
-      arr1 = MDArray.typed_arange(:double, 12)
+      arr1 = MDArray.typed_arange("double", 12)
       arr1.reshape!([3, 2, 2])
-      arr1.print
       
       # Dimensions definitions are treated differently between MDArray and R. In MDArray
       # a [3, 2, 2] specification indicates that there are 3 vector of 2 x 2 dimensions.
@@ -92,15 +91,10 @@ class SciComTest < Test::Unit::TestCase
       # In order to simplify access to the R vector with different dimension specification
       # SciCom implements method 'ri' (r-indexing), so that arr1[dim1, dim2, dim3] is
       # equal to r_matrix.ri(dim1, dim2, dim3)
-      compare = MDArray.byte([3, 2, 2])
-      (0..2).each do |dim1|
-        (0..1).each do |dim2|
-          (0..1).each do |dim3|
-            # r_matrix.ri(dim1, dim2, dim3).pp
-            compare[dim1, dim2, dim3] = 
-              (arr1[dim1, dim2, dim3] == (r_matrix.ri(dim1, dim2, dim3).gz))? 1 : 0
-          end
-        end
+
+      compare = MDArray.byte(arr1.shape)
+      arr1.get_index.each do |ct|
+        compare[*ct] = (arr1[*ct] == (r_matrix.ri(*ct).gz))? 1 : 0
       end
       comp = R.md(compare)
       assert_equal(true, comp.all.gt)
@@ -126,7 +120,7 @@ class SciComTest < Test::Unit::TestCase
       #
       #  [[8.0 9.0]
       #   [10.0 11.0]]]
-      arr1 = MDArray.typed_arange(:double, 12)
+      arr1 = MDArray.typed_arange("double", 12)
       arr1.reshape!([3, 2, 2])
       arr1.print
 
@@ -136,7 +130,6 @@ class SciComTest < Test::Unit::TestCase
       #  [2.0 3.0]]
       p "slice(0, 0): this is a 2D slice of the original array"
       mat = arr1.slice(0, 0)
-      mat.print
 
       # MDArray will be converted to the following R matrix
       #      [,1] [,2]
@@ -144,21 +137,35 @@ class SciComTest < Test::Unit::TestCase
       # [2,]    2    3
       p "now converting the slice into an R matrix"
       r_mat = R.md(mat)
-      r_mat.pp
+
+      # Compare mat and r_mat
+      compare = MDArray.byte(mat.shape)
+      mat.get_index.each do |ct|
+        compare[*ct] = (mat[*ct] == (r_mat.ri(*ct).gz))? 1 : 0
+      end
+      comp = R.md(compare)
+      assert_equal(true, comp.all.gt)
+
 
       # Getting slice(0, 2) returns the third 2 x 2 vector.
       # [[8.0 9.0]
       #  [10.0 11.0]]
       p "slice(0, 2): this is a 2D slice of the original array"
       mat = arr1.slice(0, 2)
-      mat.print
 
       #      [,1] [,2]
       # [1,]    8    9
       # [2,]   10   11
       p "now converting the slice into an R matrix"
       r_mat = R.md(mat)
-      r_mat.pp
+
+      # Compare mat and r_mat
+      compare = MDArray.byte(mat.shape)
+      mat.get_index.each do |ct|
+        compare[*ct] = (mat[*ct] == (r_mat.ri(*ct).gz))? 1 : 0
+      end
+      comp = R.md(compare)
+      assert_equal(true, comp.all.gt)
 
       # slice(1, 0) gets the first row of all three vectors and thus returns a 3 x 2
       # vector:
@@ -167,7 +174,6 @@ class SciComTest < Test::Unit::TestCase
       #  [8.0 9.0]]
       p "slice(1, 0): this is a 2D slice of the original array"
       mat = arr1.slice(1, 0)
-      mat.print
 
       # The above will become the following R matrix
       #      [,1] [,2]
@@ -176,7 +182,13 @@ class SciComTest < Test::Unit::TestCase
       # [3,]    8    9
       p "now converting the slice into an R matrix"
       r_mat = R.md(mat)
-      r_mat.pp
+
+      compare = MDArray.byte(mat.shape)
+      mat.get_index.each do |ct|
+        compare[*ct] = (mat[*ct] == (r_mat.ri(*ct).gz))? 1 : 0
+      end
+      comp = R.md(compare)
+      assert_equal(true, comp.all.gt)
 
       # Note that there is no data copying when an MDArray is sliced and this is an 
       # efficient operation.

@@ -46,7 +46,7 @@ class SciComTest < Test::Unit::TestCase
 
       p "arr1 and r_matrix have both the same backing store when data is converted from \
 MDArray to R"
-      arr1 = MDArray.typed_arange(:double, 12)
+      arr1 = MDArray.typed_arange("double", 12)
       arr1.reshape!([4, 3])
       arr1.print
 
@@ -72,12 +72,9 @@ MDArray to R"
       # allowing access to the backing store will have important implications for 
       # performance.  If we have indication that this is not a good thing, then we will
       # remove MDArrays ability to change the backing store of a Vector.
-      compare = MDArray.byte([4,3])
-      (0..3).each do |row|
-        (0..2).each do |col|
-          compare[row, col] = 
-            (arr1[row, col] == (r_matrix[row + 1, col + 1].gz))? 1 : 0
-        end
+      compare = MDArray.byte(arr1.shape)
+      arr1.get_index.each do |ct|
+        compare[*ct] = (arr1[*ct] == (r_matrix.ri(*ct).gz))? 1 : 0
       end
       comp = R.md(compare)
       assert_equal(true, comp.all.gt)
@@ -104,11 +101,9 @@ MDArray to R"
 
       # arr1 and vec are not identical, since one is organized in row-major order while
       # the other is organized in column-major order
-      compare = MDArray.byte([4,3])
-      (0..3).each do |row|
-        (0..2).each do |col|
-          compare[row, col] = (arr1[row, col] == (vec[row + 1, col + 1].gz))? 1 : 0
-        end
+      compare = MDArray.byte(arr1.shape)
+      arr1.get_index.each do |ct|
+        compare[*ct] = (arr1[*ct] == (vec.ri(*ct).gz))? 1 : 0
       end
       comp = R.md(compare)
       assert_equal(false, comp.all.gt)
@@ -128,7 +123,7 @@ MDArray to R"
     should "change backing store of R vector when changing the vector" do
 
       # create an MDArray
-      arr1 = MDArray.typed_arange(:double, 12)
+      arr1 = MDArray.typed_arange("double", 12)
       arr1.reshape!([4, 3])
       p "Making any changes in an Renjin object changes the object itself"
       arr1.print
