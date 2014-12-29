@@ -579,7 +579,9 @@ class Analyse
     # Each section is selecting a given stock for the whole period of 22 days.  We then call 
     # R.summary on the given section to get the basic statistics for each stock.
     sec = @data.section([0,  stock, criterion], [22, 1, 1], true)
-    R.summary(R.md(sec)).pp
+    sec.print
+    # R.summary(R.md(sec)).pp
+    R.md(sec).summary.pp
 
   end
 

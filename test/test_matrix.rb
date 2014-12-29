@@ -96,11 +96,11 @@ class SciComTest < Test::Unit::TestCase
       # from the digits 0-9. For the purpose of this demonstration, we will set the random 
       # number seed to a memorable number so that it will yield the same answer each time.
       R.set__seed(42)
-      xij = R.matrix(R.sample(R.seq(0, 9), 40, replace: TRUE), ncol: 4)
-
-      xij.fassign(:rownames, R.paste("S", R.seq(1, xij.attr.dim[1]), sep: ""))
-      xij.fassign(:colnames, R.paste("V", R.seq(1, xij.attr.dim[2]), sep: ""))
-      xij.pp
+      xij = R.seq(0,9).sample(40, replace: TRUE).matrix(ncol: 4)
+      xij
+        .fassign(:rownames, R.paste("S", R.seq(1, xij.attr.dim[1]), sep: ""))
+        .fassign(:colnames, R.paste("V", R.seq(1, xij.attr.dim[2]), sep: ""))
+        .pp
 
       # Just as we could with vectors, we can add, subtract, muliply or divide the matrix 
       # by a scaler (a number with out a dimension)
@@ -183,17 +183,13 @@ class SciComTest < Test::Unit::TestCase
       x_cov.diag.round(2).pp
 
       sdi = (1 / x_cov.diag.sqrt).diag
-      sdi.fassign(:rownames, x_cov.rownames)
-      sdi.fassign(:colnames, x_cov.colnames)
-      sdi.round(2).pp
+        .fassign(:rownames, x_cov.rownames)
+        .fassign(:colnames, x_cov.colnames)
+        .pp
 
       x_cor = (sdi._ :*, x_cov)._ :*, sdi
-      x_cor.fassign(:rownames, x_cov.rownames)
-      x_cor.fassign(:colnames, x_cov.colnames)
-      x_cor.round(2).pp
-
-      # use the cor function to find the correlation
-      xij.cor.round(2).pp
+        .fassign(:rownames, x_cov.rownames)
+        .fassign(:colnames, x_cov.colnames)
 
       assert_equal(true, (x_cor.round(2) == xij.cor.round(2)).all.gt)
 
