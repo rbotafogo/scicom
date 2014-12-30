@@ -41,7 +41,12 @@ Renjin is in development and still has some limitations
   hope that this limitation will be solved not by implementing those libraries but by the
   use of Ruby libraries from SciRuby such as NyaPlot (https://github.com/domitry/nyaplot) 
   or daru (https://github.com/v0dro/daru).
-  
+
+What´s new:
+===========
+
+This version includes integration of MDArray and SciCom. 
+
 
 SciCom installation and download:
 ==================================
@@ -62,7 +67,8 @@ Contributors are welcome.
 SciCom History:
 ================
 
-  + 19/11/2014: Version 0.2.2 - Printing in Jirb
-  + 17/11/2014: Version 0.2.1 - Added MDArray dependency
-  + 17/11/2014: Version 0.2.0 - Most R functionality available to SciCom	
-  + 21/06/2014: Version 0.0.1 - Initial release
+  + 30/Dec/2014: Version 0.2.3 - Integration with MDArray
+  + 19/Nov/2014: Version 0.2.2 - Printing in Jirb
+  + 17/Nov/2014: Version 0.2.1 - Added MDArray dependency
+  + 17/Nov/2014: Version 0.2.0 - Most R functionality available to SciCom	
+  + 21/Jul/2014: Version 0.0.1 - Initial release
