@@ -40,7 +40,7 @@ EOF
   gem.license = 'GPL'
 
   gem.add_dependency('shoulda')
-  gem.add_dependency('mdarray', [">= 0.5.5.1"])
+  gem.add_dependency('mdarray', [">= 0.5.5.2"])
   gem.add_development_dependency('simplecov', [">= 0.7.1"])
   gem.add_development_dependency('yard', [">= 0.8.5.2"])
   gem.add_development_dependency('kramdown', [">= 1.0.1"])
