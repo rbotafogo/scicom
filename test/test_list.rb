@@ -54,7 +54,7 @@ class SciComTest < Test::Unit::TestCase
     #
     #--------------------------------------------------------------------------------------
 
-    should "access lists elements with indexing [] and [[]]" do
+    should "access list elements with indexing [] and [[]]" do
       
       # get the first element of the list, usign indexing.  
       # Both [] and [[]] indexing can be used with the same R rules. 

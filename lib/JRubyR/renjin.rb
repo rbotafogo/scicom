@@ -25,6 +25,7 @@ require 'java'
 require 'securerandom'
 
 require_relative 'rbsexp'
+require_relative 'package'
 # require_relative 'index'
 
 
@@ -97,7 +98,8 @@ class Renjin
 
     factory = Java::JavaxScript.ScriptEngineManager.new()
     @engine = factory.getEngineByName("Renjin")
-    
+    super
+
   end
 
   #----------------------------------------------------------------------------------------
@@ -391,6 +393,17 @@ class Renjin
     end
 
     sexp
+
+  end
+
+  #----------------------------------------------------------------------------------------
+  #
+  #----------------------------------------------------------------------------------------
+
+  def install__package(name)
+
+    pm = PackageManager.new
+    pm.load_package(name)
 
   end
 

@@ -65,6 +65,9 @@ class SciComTest < Test::Unit::TestCase
       assert_equal(4, log_var.length)
       assert_equal(true, log_var.logical?)
 
+      str_var = R.c("hello there")
+      str_var.pp
+
       # string vector: create string (character) vectors
       chr_var = R.c("these are", "some strings")
       assert_equal("character", chr_var.typeof.gz)

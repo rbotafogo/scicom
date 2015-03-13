@@ -399,3 +399,16 @@ The result is:
 
     Min.    1st Qu. Median  Mean    3rd Qu. Max.   
     565,9   579,8   584,8   584,1     590   596,5  
+
+## Home Pages
+
+* SciCom can be downloaded from <http://rubygems.org/gems/scicom>
+* GitHub page: <https://github.com/rbotafogo/scicom>
+* Wiki: <https://github.com/rbotafogo/scicom/wiki>
+* Issues: <https://github.com/rbotafogo/scicom/issues>
+
+## Contributors
+
+Contributors are wellcome!
+
+

@@ -163,7 +163,7 @@ class SciComTest < Test::Unit::TestCase
       # engine, ..., etc.
       mtcars[24, nil].pp
 
-      # To retrieve more than one rows, we use a numeric index vector.
+      # To retrieve more than one row, we use a numeric index vector.
       mtcars[R.c(3, 24), nil].pp 
 
       # Name Indexing
@@ -212,7 +212,6 @@ class SciComTest < Test::Unit::TestCase
       df = R.data__frame(name, age, hgt, wgt, race, sat)
       df.colnames.pp
       df.colnames(prefix: "sc").pp
-
 
       # Renjin allows changes to variable properties
       R.eval("colnames(#{df.r}) = c('name', 'age', 'height', 'weigth', 'race', 'SAT')")
