@@ -45,6 +45,19 @@ class SciComTest < Test::Unit::TestCase
     should "download the proper package" do
 
       R.install__package("AssetPricing")
+      R.library("AssetPricing")
+
+      R.install__package("AppliedPredictiveModeling")
+      R.library("AppliedPredictiveModeling")
+      
+      ### Section 3.1 Case Study: Cell Segmentation in High-Content Screening
+      
+      R.data('segmentationOriginal')
+      seg = R.segmentationOriginal
+      segTrain = seg.subset(Case: "Train")
+      segTrainX = segTrain[true, -(1..3)]
+      segTrainClass = segTrain.Class
+      segTrainClass.pp
 
     end
 

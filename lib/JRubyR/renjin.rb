@@ -408,6 +408,21 @@ class Renjin
   end
 
   #----------------------------------------------------------------------------------------
+  #
+  #----------------------------------------------------------------------------------------
+
+  def library(package)
+
+    Dir.chdir(SciCom.cran_dir)
+    filename = Dir.glob(package + '*')[0]
+    path = SciCom.cran_dir + '/' + filename
+
+    require filename
+    eval("library(#{package})")
+
+  end
+
+  #----------------------------------------------------------------------------------------
   # Builds a Renjin vector from an MDArray. Should be private, but public for testing.
   #----------------------------------------------------------------------------------------
 

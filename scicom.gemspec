@@ -48,7 +48,7 @@ EOF
   # ensure the gem is built out of versioned files
   gem.files = Dir['Rakefile', 'version.rb', 'config.rb', '{lib,test}/**/*.rb', 'test/**/*.csv',
                   'test/**/*.xlsx',
-                  '{bin,doc,spec,vendor,target}/**/*', 
+                  '{bin,doc,spec,vendor,target,cran}/**/*', 
                   'README*', 'LICENSE*'] # & `git ls-files -z`.split("\0")
 
   gem.test_files = Dir['test/*.rb']

@@ -133,6 +133,7 @@ class PackageManager
   #----------------------------------------------------------------------------------------
 
   def initialize
+    @properties = Hash.new
     super
   end
   
@@ -142,48 +143,24 @@ class PackageManager
 
   state_machine :state, initial: :metadata do
 
-    event :latest do
-      transition :metadata => :latest
+    event :read_value do
+      transition :metadata => :reading
     end
 
-    event :end_latest do
-      transition :latest => :metadata
+    event :value_read do
+      transition :reading => :metadata
     end
 
-    before_transition :on => :end_latest,  :do => :get_latest
-
-    event :version do
-      transition :metadata => :version
-    end
-
-    event :end_version do
-      transition :version => :metadata
-    end
-
-    before_transition :on => :end_version,  :do => :get_version
-
-    event :lastUpdated do
-      transition :metadata => :lastUpdated
-    end
-
-    event :end_lastUpdated do
-      transition :lastUpdated => :metadata
-    end
-
-    before_transition :on => :end_lastUpdated,  :do => :get_lastUpdated
+    before_transition :on => :value_read, :do => :set_value
 
   end
 
-  def get_latest
-    @latest = @text
-  end
-
-  def get_version
-    @version = @text
-  end
-
-  def get_lastUpdated
-    @lastUpdated = @text
+  #----------------------------------------------------------------------------------------
+  #
+  #----------------------------------------------------------------------------------------
+  
+  def set_value
+    @properties[@name] = @text
   end
 
   #----------------------------------------------------------------------------------------
@@ -191,15 +168,8 @@ class PackageManager
   #----------------------------------------------------------------------------------------
   
   def tag_start(name, value)
-    
-    case name
-    when "latest"
-      latest
-    when "version"
-      version
-    when "lastUpdated"
-      lastUpdated
-    end
+    @name = name
+    read_value
   end
 
   #----------------------------------------------------------------------------------------
@@ -207,16 +177,7 @@ class PackageManager
   #----------------------------------------------------------------------------------------
 
   def tag_end(name)
-
-    case name
-    when "latest"
-      end_latest
-    when "version"
-      end_version
-    when "lastUpdated"
-      end_lastUpdated
-    end
-
+    value_read
   end
 
   #----------------------------------------------------------------------------------------
@@ -241,11 +202,38 @@ class PackageManager
     when :new_text
       new_text(name)
     else
-      p "ooops error"
+      raise "Unknown type #{type}"
     end
 
   end
 
+  #----------------------------------------------------------------------------------------
+  #
+  #----------------------------------------------------------------------------------------
+
+  def http_download_uri(uri, filename)
+    puts "Starting HTTP download for: " + uri.to_s
+    http_object = Net::HTTP.new(uri.host, uri.port)
+    http_object.use_ssl = true if uri.scheme == 'https'
+    begin
+      http_object.start do |http|
+        request = Net::HTTP::Get.new uri.request_uri
+        http.read_timeout = 500
+        http.request request do |response|
+          open filename, 'wb' do |io|
+            response.read_body do |chunk|
+              io.write chunk
+            end
+          end
+        end
+      end
+    rescue Exception => e
+      puts "=> Exception: '#{e}'. Skipping download."
+      return
+    end
+    puts "Stored download as " + filename + "."
+  end
+  
   #----------------------------------------------------------------------------------------
   # Installs a new package
   #----------------------------------------------------------------------------------------
@@ -253,29 +241,36 @@ class PackageManager
   def load_package(name)
 
     renjin_cran = 'http://nexus.bedatadriven.com/content/groups/public/org/renjin/cran/'
-    spec = "maven-metadata.xml"
-    uri = URI(renjin_cran + name + "/" + spec)
+    package = renjin_cran + name
+    spec = package + "/" + "maven-metadata.xml"
+    # read the maven-metadata specification
+    uri = URI(spec)
 
     # parse the maven-metadata file
     parse = ParseXML.new(Net::HTTP.get(uri))
     parse.add_observer(self)
     parse.start
 
-    p "latest version is #{@latest}"
-    p "version is #{@version}"
-    p "last updated is #{@lastUpdated}"
+    download_dir = package + '/' + @properties['latest']
+    spec2 = download_dir + '/' + "maven-metadata.xml"
 
-=begin
-require 'net/http'
-# Must be somedomain.net instead of somedomain.net/, otherwise, it will throw exception.
-Net::HTTP.start("somedomain.net") do |http|
-    resp = http.get("/flv/sample/sample.flv")
-    open("sample.flv", "wb") do |file|
-        file.write(resp.body)
-    end
-end
-puts "Done."
-=end
+    # parse the second maven-metadata file
+    uri = URI(spec2)
+    # need to clear the properties.  If the file has multiple properties with the same
+    # name, then only the last one will be kept.  This might be a problem, but for 
+    # now this does not seem to matter... We are only interested in the 'value'
+    # property that seems to always be the same for the 'pom' and 'jar' files.
+    @properties.clear
+    parse = ParseXML.new(Net::HTTP.get(uri))
+    parse.add_observer(self)
+    parse.start
+    
+    filename = '/' + name + '-' + @properties['value'] + ".jar"
+    download_file = download_dir + filename
+    target_file = SciCom.cran_dir + '/' + name + ".jar"
+
+    uri = URI.parse(download_file)
+    http_download_uri(uri, target_file)
 
   end
 

@@ -94,6 +94,7 @@ class SciCom
   @target_dir = SciCom.home_dir + "/target"
   @test_dir = SciCom.home_dir + "/test"
   @vendor_dir = SciCom.home_dir + "/vendor"
+  @cran_dir = SciCom.home_dir + "/cran"
   
   class << self
     attr_reader :project_dir
@@ -103,6 +104,7 @@ class SciCom
     attr_reader :target_dir
     attr_reader :test_dir
     attr_reader :vendor_dir
+    attr_reader :cran_dir
   end
 
   @build_dir = SciCom.src_dir + "/build"
@@ -161,3 +163,5 @@ if ($DVLP == true)
 
 end
 
+# Add cran directory to the search path
+mklib(SciCom.cran_dir, false)
