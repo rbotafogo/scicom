@@ -5,4 +5,5 @@ test/coverage/
 doc
 .yardoc
 src/build/
+cran/*
 *.nc
