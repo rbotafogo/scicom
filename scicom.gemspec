@@ -39,7 +39,7 @@ EOF
   gem.homepage = 'http://github.com/rbotafogo/scicom/wiki'
   gem.license = 'GPL'
 
-  gem.add_dependency('shoulda', '~> 0')
+  gem.add_dependency('shoulda', '~> 3.5')
   gem.add_dependency('mdarray', '~> 0.5', [">= 0.5.5.2"])
   gem.add_dependency('state_machine', '~> 1.2', [">= 1.2.0"])
   gem.add_development_dependency('simplecov', '~> 0.7', [">= 0.7.1"])
