@@ -240,7 +240,12 @@ class PackageManager
 
   def load_package(name)
 
+    # create the cran_dir if it does not already exists
+    Dir.mkdir(SciCom.cran_dir) if !Dir.exists?(SciCom.cran_dir)
+
+    # download address for Renjin packages
     renjin_cran = 'http://nexus.bedatadriven.com/content/groups/public/org/renjin/cran/'
+
     package = renjin_cran + name
     spec = package + "/" + "maven-metadata.xml"
     # read the maven-metadata specification
@@ -269,9 +274,6 @@ class PackageManager
     parse.start
     
     filename = '/' + name + '-' + @properties['value'] + ".jar"
-
-    # create the cran_dir if it does not already exists
-    Dir.mkdir(SciCom.cran_dir) if !Dir.exists?(SciCom.cran_dir)
 
     download_file = download_dir + filename
     target_file = SciCom.cran_dir + '/' + name + ".jar"

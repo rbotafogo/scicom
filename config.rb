@@ -5,10 +5,10 @@ require 'rbconfig'
 ##########################################################################################
 
 # set to true if development environment
-$DVLP = true
+# $DVLP = true
 
 # Set to 'cygwin' when in cygwin
-$ENV = 'cygwin'
+# $ENV = 'cygwin'
 
 # Set development dependency: those are gems that are also in development and thus not
 # installed in the gem directory.  Need a way of accessing them if we are in development
