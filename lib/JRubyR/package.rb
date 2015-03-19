@@ -256,6 +256,9 @@ class PackageManager
 
     # parse the second maven-metadata file
     uri = URI(spec2)
+    # download the spec file, so we know what version is actually installed
+    http_download_uri(uri, SciCom.cran_dir + "/#{name}.xml")
+
     # need to clear the properties.  If the file has multiple properties with the same
     # name, then only the last one will be kept.  This might be a problem, but for 
     # now this does not seem to matter... We are only interested in the 'value'
@@ -266,6 +269,10 @@ class PackageManager
     parse.start
     
     filename = '/' + name + '-' + @properties['value'] + ".jar"
+
+    # create the cran_dir if it does not already exists
+    Dir.mkdir(SciCom.cran_dir) if !Dir.exists?(SciCom.cran_dir)
+
     download_file = download_dir + filename
     target_file = SciCom.cran_dir + '/' + name + ".jar"
 

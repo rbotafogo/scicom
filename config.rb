@@ -11,8 +11,11 @@ $DVLP = true
 $ENV = 'cygwin'
 
 # Set development dependency: those are gems that are also in development and thus not
-# installed in the gem directory.  Need a way of accessing them
-$DEPEND=["MDArray"]
+# installed in the gem directory.  Need a way of accessing them if we are in development
+# otherwise gem install will install the dependency
+if $DVLP
+  $DEPEND=["MDArray"]
+end
 
 ##########################################################################################
 
@@ -56,7 +59,7 @@ end
 if $ENV == 'cygwin'
   
   #---------------------------------------------------------------------------------------
-  # Return the cygpath of a path
+  # Return the cygpath (windows format) of a path in POSIX format, i.e., /home/...
   #---------------------------------------------------------------------------------------
   
   def set_path(path)
@@ -66,7 +69,7 @@ if $ENV == 'cygwin'
 else
   
   #---------------------------------------------------------------------------------------
-  # Return  the path
+  # Return the given path.  When not in cygwin then just use the given path
   #---------------------------------------------------------------------------------------
   
   def set_path(path)
@@ -163,5 +166,5 @@ if ($DVLP == true)
 
 end
 
-# Add cran directory to the search path
+# Add cran directory to the $LOAD_PATH search path
 mklib(SciCom.cran_dir, false)
