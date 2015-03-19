@@ -39,12 +39,12 @@ EOF
   gem.homepage = 'http://github.com/rbotafogo/scicom/wiki'
   gem.license = 'GPL'
 
-  gem.add_dependency('shoulda')
-  gem.add_dependency('mdarray', [">= 0.5.5.2"])
-  gem.add_dependency('state_machine', [">= 1.2.0"])
-  gem.add_development_dependency('simplecov', [">= 0.7.1"])
-  gem.add_development_dependency('yard', [">= 0.8.5.2"])
-  gem.add_development_dependency('kramdown', [">= 1.0.1"])
+  gem.add_dependency('shoulda', '~> 0')
+  gem.add_dependency('mdarray', '~> 0.5', [">= 0.5.5.2"])
+  gem.add_dependency('state_machine', '~> 1.2', [">= 1.2.0"])
+  gem.add_development_dependency('simplecov', '~> 0.7', [">= 0.7.1"])
+  gem.add_development_dependency('yard', '~> 0.8', [">= 0.8.5.2"])
+  gem.add_development_dependency('kramdown', '~> 1.0', [">= 1.0.1"])
 
   # ensure the gem is built out of versioned files
   gem.files = Dir['Rakefile', 'version.rb', 'config.rb', '{lib,test}/**/*.rb', 'test/**/*.csv',

@@ -414,8 +414,7 @@ class Renjin
   def library(package)
 
     Dir.chdir(SciCom.cran_dir)
-    filename = Dir.glob(package + '*')[0]
-    path = SciCom.cran_dir + '/' + filename
+    filename = SciCom.cran_dir + "/#{package}.jar"
 
     require filename
     eval("library(#{package})")

@@ -5,7 +5,7 @@ require 'rbconfig'
 ##########################################################################################
 
 # set to true if development environment
-# $DVLP = true
+$DVLP = true
 
 # Set to 'cygwin' when in cygwin
 # $ENV = 'cygwin'
