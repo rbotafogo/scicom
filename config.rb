@@ -8,13 +8,13 @@ require 'rbconfig'
 $DVLP = true
 
 # Set to 'cygwin' when in cygwin
-# $ENV = 'cygwin'
+$ENV = 'cygwin'
 
 # Set development dependency: those are gems that are also in development and thus not
 # installed in the gem directory.  Need a way of accessing them if we are in development
 # otherwise gem install will install the dependency
 if $DVLP
-  $DEPEND=["MDArray"]
+  $DEPEND=["SciCom", "MDArray"]
 end
 
 ##########################################################################################
@@ -168,3 +168,16 @@ end
 
 # Add cran directory to the $LOAD_PATH search path
 mklib(SciCom.cran_dir, false)
+
+##########################################################################################
+# Load necessary jar files
+##########################################################################################
+
+#Dir["#{File.dirname(__FILE__)}/vendor/*.jar"].each do |jar|
+Dir["#{SciCom.vendor_dir}/*.jar"].each do |jar|
+  require jar
+end
+
+Dir["#{SciCom.target_dir}/*.jar"].each do |jar|
+  require jar
+end

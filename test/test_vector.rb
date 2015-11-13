@@ -23,7 +23,7 @@ require 'rubygems'
 require "test/unit"
 require 'shoulda'
 
-require 'env'
+require '../config' if @platform == nil
 require 'scicom'
 
 class SciComTest < Test::Unit::TestCase
@@ -140,7 +140,7 @@ class SciComTest < Test::Unit::TestCase
       assert_equal(4.5, dbl_var[3].gz)
 
       # indexing a vector outside of bound returns NA
-      assert_equal(NA, dbl_var[4].gz)
+      assert_equal(true, R.is__na(dbl_var[4]).gt)
 
     end
 

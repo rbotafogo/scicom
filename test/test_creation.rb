@@ -23,7 +23,7 @@ require 'rubygems'
 require "test/unit"
 require 'shoulda'
 
-require 'env'
+require '../config' if @platform == nil
 require 'scicom'
 
 class SciComTest < Test::Unit::TestCase
@@ -215,10 +215,10 @@ class SciComTest < Test::Unit::TestCase
       # Accessing a value outside of the defined vector bound returns a vector with 
       # one element, the NA (Not Available)
       na = vec[10]
-      assert_equal(NA, na)
+      assert_equal(true, R.is__na(na).gt)
 
       # Converting to Ruby will return NaN (Not a Number)
-      assert_equal(NaN, na.gz)
+      assert_equal(true, (na.gz).nan?)
 
       # Method get can be used with an index, to get a given element of a vector
       assert_equal(1, vec.get(0))

@@ -23,7 +23,7 @@ require 'rubygems'
 require "test/unit"
 require 'shoulda'
 
-require 'env'
+require '../config' if @platform == nil
 require 'scicom'
 
 require_relative 'test_R_interface'

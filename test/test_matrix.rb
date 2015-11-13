@@ -23,7 +23,7 @@ require 'rubygems'
 require "test/unit"
 require 'shoulda'
 
-require 'env'
+require '../config' if @platform == nil
 require 'scicom'
 
 class SciComTest < Test::Unit::TestCase
@@ -149,6 +149,10 @@ class SciComTest < Test::Unit::TestCase
       xij.colMeans.pp
 
       # x_means and xij.colMeans have the same results
+      p "Testing"
+      p x_means.gz
+      p xij.colMeans.gz
+      (x_means == xij.colMeans).pp
       assert_equal(true, (x_means == xij.colMeans).all.gt)
 
       # Variances and covariances are measures of dispersion around the mean. We find 

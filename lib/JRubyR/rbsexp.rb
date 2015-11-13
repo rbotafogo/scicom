@@ -297,13 +297,13 @@ class Renjin
     
     def self.build(sexp)
       
-      if (sexp.instance_of? Java::OrgRenjinSexp::Null)
+      if (sexp.java_kind_of? Java::OrgRenjinSexp::Null)
         res = nil
-      elsif (sexp.instance_of? Java::OrgRenjinSexp::ListVector)
+      elsif (sexp.java_kind_of? Java::OrgRenjinSexp::ListVector)
         res = Renjin::List.new(sexp)
-      elsif (sexp.instance_of? Java::OrgRenjinSexp::LogicalArrayVector)
+      elsif (sexp.java_kind_of? Java::OrgRenjinSexp::LogicalArrayVector)
         res = Renjin::Logical.new(sexp)
-      elsif (sexp.instance_of? Java::OrgRenjinSexp::Environment)
+      elsif (sexp.java_kind_of? Java::OrgRenjinSexp::Environment)
         res = Renjin::Environment.new(sexp)
       elsif (sexp.is_a? Java::OrgRenjinSexp::ComplexVector)
         res = Renjin::ComplexVector.new(sexp)

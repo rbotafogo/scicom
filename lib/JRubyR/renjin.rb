@@ -26,8 +26,6 @@ require 'securerandom'
 
 require_relative 'rbsexp'
 require_relative 'package'
-# require_relative 'index'
-
 
 #==========================================================================================
 #
@@ -36,7 +34,6 @@ require_relative 'package'
 class Java::RbScicom::MDDoubleVector
   field_reader :_array
 end
-
 
 #==========================================================================================
 #
@@ -80,24 +77,9 @@ class Renjin
 
   def initialize
 
-    @platform = 
-      case RUBY_PLATFORM
-      when /mswin/ then 'windows'
-      when /mingw/ then 'windows'
-      when /bccwin/ then 'windows'
-      when /cygwin/ then 'windows-cygwin'
-      when /java/
-        require 'java' #:nodoc:
-        if java.lang.System.getProperty("os.name") =~ /[Ww]indows/
-          'windows-java'
-        else
-          'default-java'
-        end
-      else 'default'
-      end
-
     factory = Java::JavaxScript.ScriptEngineManager.new()
     @engine = factory.getEngineByName("Renjin")
+    raise "Renjin not found. Please check your CLASSPATH: #{$CLASSPATH}" if @engine == nil
     super
 
   end
