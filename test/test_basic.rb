@@ -23,7 +23,7 @@ require 'rubygems'
 require "test/unit"
 require 'shoulda'
 
-require 'env'
+require '../config' if @platform == nil
 require 'scicom'
 
 
@@ -82,9 +82,10 @@ class SciComTest < Test::Unit::TestCase
       assert_equal(false, R.na?(R.eval("10.456")).gt)
 
       # Use nil in Ruby when needing a NULL in R
-      p "R prints Warning message when is.na is applied to a value and not a vector: "
-      #assert_equal(0, R.length(R.na?(nil).gt))
-      
+      # Cheching if nil is na returns an empty vector, size 0
+      assert_equal(0, R.na?(nil).length)
+
+      # Does the same thing as above inside an R script
       p "checking if NULL is na"
       R.eval("is.na(NULL)").pp
 
@@ -127,7 +128,8 @@ class SciComTest < Test::Unit::TestCase
       # Negative infinite number, equivalent to "-Inf" in R
       p MInf.gz
 
-      assert_equal(Inf, Inf)
+      assert_equal(true, R.is__infinite(Inf).gt)
+      assert_equal(true, R.is__infinite(MInf).gt)
       assert_equal(false, R.finite?(Inf).gt)
       assert_equal(false, R.finite?(MInf).gt)
 

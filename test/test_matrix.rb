@@ -149,11 +149,8 @@ class SciComTest < Test::Unit::TestCase
       xij.colMeans.pp
 
       # x_means and xij.colMeans have the same results
-      p "Testing"
-      p x_means.gz
-      p xij.colMeans.gz
-      (x_means == xij.colMeans).pp
-      assert_equal(true, (x_means == xij.colMeans).all.gt)
+      # set the maximum error to 0.001 for comparing
+      assert_equal(true, ((x_means - xij.colMeans) < 0.001).all.gt)
 
       # Variances and covariances are measures of dispersion around the mean. We find 
       # these by first subtracting the means from all the observations. This means centered 

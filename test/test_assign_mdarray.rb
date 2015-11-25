@@ -24,7 +24,7 @@ require 'test/unit'
 require 'shoulda'
 require 'benchmark'
 
-require 'env'
+require '../config' if @platform == nil
 require 'scicom'
 
 class SciComTest < Test::Unit::TestCase
