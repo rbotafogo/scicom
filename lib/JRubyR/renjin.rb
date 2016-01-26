@@ -25,7 +25,7 @@ require 'java'
 require 'securerandom'
 
 require_relative 'rbsexp'
-require_relative 'package'
+# require_relative 'package'
 
 #==========================================================================================
 #
@@ -40,9 +40,15 @@ end
 #==========================================================================================
 
 class Renjin
-  include_package "javax.script"
-  include_package "org.renjin"
-
+  # include_package "javax.script"
+  # include_package "org.renjin"
+  # include_package "org.renjin.aether"
+  include_package "org.renjin.script"
+  
+  java_import "org.renjin.eval.SessionBuilder"
+  java_import "org.renjin.primitives.packaging.PackageLoader"
+  java_import "org.renjin.aether.AetherPackageLoader"
+  
   @stack = Array.new
 
   class << self
@@ -77,8 +83,14 @@ class Renjin
 
   def initialize
 
-    factory = Java::JavaxScript.ScriptEngineManager.new()
-    @engine = factory.getEngineByName("Renjin")
+    session = SessionBuilder.new
+              .bind(PackageLoader.java_class, AetherPackageLoader.new)
+              .withDefaultPackages
+              .build
+    @engine = RenjinScriptEngineFactory.new.getScriptEngine(session);
+    
+    # factory = Java::JavaxScript.ScriptEngineManager.new()
+    # @engine = factory.getEngineByName("Renjin")
     raise "Renjin not found. Please check your CLASSPATH: #{$CLASSPATH}" if @engine == nil
     super
 
@@ -388,7 +400,7 @@ class Renjin
     pm.load_package(name)
 
   end
-
+=begin
   #----------------------------------------------------------------------------------------
   #
   #----------------------------------------------------------------------------------------
@@ -402,7 +414,7 @@ class Renjin
     eval("library(#{package})")
 
   end
-
+=end
   #----------------------------------------------------------------------------------------
   # Builds a Renjin vector from an MDArray. Should be private, but public for testing.
   #----------------------------------------------------------------------------------------

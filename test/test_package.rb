@@ -23,7 +23,7 @@ require 'rubygems'
 require "test/unit"
 require 'shoulda'
 
-require 'env'
+require '../config' if @platform == nil
 require 'scicom'
 
 class SciComTest < Test::Unit::TestCase
@@ -44,10 +44,10 @@ class SciComTest < Test::Unit::TestCase
 
     should "download the proper package" do
 
-      R.install__package("AssetPricing")
-      R.library("AssetPricing")
-
-      R.install__package("AppliedPredictiveModeling")
+      # R.eval("library('AssetPricing')")
+      # R.eval("library('AppliedPredictiveModeling')")
+      
+      # R.library("AssetPricing")
       R.library("AppliedPredictiveModeling")
       
       ### Section 3.1 Case Study: Cell Segmentation in High-Content Screening
@@ -59,6 +59,7 @@ class SciComTest < Test::Unit::TestCase
       segTrainClass = segTrain.Class
       segTrainClass.pp
 
+      p "done"
     end
 
   end

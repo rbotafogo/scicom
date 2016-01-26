@@ -1,5 +1,19 @@
 require 'rbconfig'
+require 'java'
 
+#
+# In principle should not be in this file.  The right way of doing this is by executing
+# bundler exec, but I don't know how to do this from inside emacs.  So, should comment
+# the next line before publishing the GEM.  If not commented, this should be harmless
+# anyway.
+#
+
+begin
+  require 'bundler/setup'
+rescue LoadError
+end
+
+=begin
 ##########################################################################################
 # Configuration. Remove setting before publishing Gem.
 ##########################################################################################
@@ -16,6 +30,7 @@ $ENV = 'cygwin'
 if $DVLP
   $DEPEND=["SciCom", "MDArray"]
 end
+=end
 
 ##########################################################################################
 
@@ -36,6 +51,7 @@ end
   else 'default'
   end
 
+=begin
 #---------------------------------------------------------------------------------------
 # Add path to load path
 #---------------------------------------------------------------------------------------
@@ -77,6 +93,7 @@ else
   end
   
 end
+=end
 
 #---------------------------------------------------------------------------------------
 # Set the project directories
@@ -124,6 +141,7 @@ class SciCom
 
 end
 
+=begin
 #---------------------------------------------------------------------------------------
 # Set dependencies
 #---------------------------------------------------------------------------------------
@@ -166,14 +184,15 @@ if ($DVLP == true)
 
 end
 
+
 # Add cran directory to the $LOAD_PATH search path
 mklib(SciCom.cran_dir, false)
+=end
 
 ##########################################################################################
 # Load necessary jar files
 ##########################################################################################
 
-#Dir["#{File.dirname(__FILE__)}/vendor/*.jar"].each do |jar|
 Dir["#{SciCom.vendor_dir}/*.jar"].each do |jar|
   require jar
 end

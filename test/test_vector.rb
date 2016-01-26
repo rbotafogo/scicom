@@ -206,12 +206,18 @@ class SciComTest < Test::Unit::TestCase
 
       x = R.list(a: (1..10), beta: R.exp(-3..3), logic: R.c(TRUE,FALSE,FALSE,TRUE))
       x.pp
+
       # compute the list mean for each list element
       mean = R.lapply(x, "mean")
       mean.pp
 
       # median and quartiles for each list element
+      # This is not working in Renjin version 0.8, complaining about invalide argument
+      # p "lapply quantile"
       # quant = R.lapply(x, "quantile")
+      # p quant
+
+      # p "sapply quantile"
       # quant = R.sapply(x, "quantile")
       # quant.pp
       # R.eval("x <- lapply(#{x.r}, quantile, c(0.25, 0.50, 0.75))")
