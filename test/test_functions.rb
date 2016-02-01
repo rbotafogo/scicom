@@ -23,7 +23,7 @@ require 'rubygems'
 require "test/unit"
 require 'shoulda'
 
-require 'env'
+require '../config' if @platform == nil
 require 'scicom'
 
 
@@ -45,21 +45,24 @@ class SciComTest < Test::Unit::TestCase
 
     should "keep reference and call R functions" do
 
-      var = R.c((0..10), 50)
-      R.mean(var).pp
-      R.mean(var, trim: 0.10).pp
-
+      # f contais a reference to the R 'mean' function in the Ruby namespace, not in Renjin
+      # namespace.  This is actually of type Renjin::Closure
       f = R.eval("mean")
-      f.call(R.c(2, 3)).pp
-      f.call(var, trim: 0.10).pp
+      assert_equal(2.5, f.call(R.c(2, 3)).gz)
 
-      ff = R.d("mean")
-      ff.call(var, trim: 0.10).pp
+      # using function 'mean' as parameter
+      mean = R.lapply(R.c(2, 3), "mean")
+      mean.pp
 
+      # we can also use function 'f' which was assigned to 'mean'
+      mean = R.lapply(R.c(2, 3), f)
+      mean.pp
+      
+=begin      
       sum = R.eval("sum")
       dgamma = R.eval("dgamma")
       p dgamma
-
+=end
     end
 
   end

@@ -59,7 +59,6 @@ class SciComTest < Test::Unit::TestCase
       segTrainClass = segTrain.Class
       segTrainClass.pp
 
-      p "done"
     end
 
   end
