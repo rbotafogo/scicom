@@ -57,7 +57,13 @@ section("Instance Variables")
 
 body(<<-EOT)
 In Ruby a class is defined by the keyword 'class'.  Every class should start with a capital 
-letter.  S4 'slots' are called 'instance variables' in Ruby.  In the example bellow, we create 
+letter.  S4 'slots' are called 'instance variables' in Ruby.  Differently from R's S4, 
+instance variables in Ruby do not have type information.  It should be clear though, that S4
+type information is also not a "compile" time type, since R is not compiled.  The type is 
+checked at runtime.  The same checking can be done in Ruby and we will do it later in this 
+document.
+
+In the example bellow, we create 
 class Trajectories with two instance variables, 'times' and 'matrix'.  We will not go over 
 the details of instance variables in Ruby, but here we created those variables with the 
 keyword 'attr_reader' and a colomn before the variables name:
@@ -148,7 +154,13 @@ traj = Trajectories.new(times: R.c(1, 2, 3, 4))
 traj2 = Trajectories.new(times: R.c(1, 3), matrix: R.matrix((1..4), ncol: 2))
 EOT
 
+section("Access to Instance Variables (to reach a slot)")
+
 body(<<-EOT)
+In order to access data in an instace variable the operator '.' is used.  In R, a similar
+result is obtained by use of the '@' operator, but SS4 does not recomend its use.  In SciCom,
+the '.' operator is the recomended way of accessing an instance variable.
+ 
 Now that we have created two trajectories, let's try to print its instance variables to see 
 that everything is fine:
 EOT
@@ -208,6 +220,10 @@ comment_code(<<-EOT)
 + )
 EOT
 
+body(<<-EOT)
+This same code in SciCom becomes:
+EOT
+
 code(<<-EOT)
 trajPitie = Trajectories.new
 EOT
@@ -232,4 +248,121 @@ trajStAnne =
 
 EOT
 
+body(<<-EOT)
+Let's check that the 'times' and 'matrix' instace variables were correctly set:
+EOT
+
+console(<<-EOT)
+trajCochin.times.pp
+EOT
+
+console(<<-EOT)
+trajCochin.matrix.pp
+EOT
+
+console(<<-EOT)
+trajStAnne.times.pp
+EOT
+
+body(<<-EOT)
+We will not at this time print trajStAnne.matrix, since this is a huge matrix and the result
+would just take too much space.  Later we will print just a partial view of the matrix.
+EOT
+
+section("Default Values")
+
+body(<<-EOT)
+Default values are very useful and quite often used in Ruby programs.  Although SS4 does not
+recommend its use, there are many cases in which default values are useful and make code simpler.
+We have already seen default values in this document, with the default being 'nil'.  This was
+necessary in order to be able to create our constructor and passing it the propoper values.
+
+In the example bellow, a class TrajectoriesBis is created with default value 1 for times and a 
+matrix with no elements in matrix.
+EOT
+
+code(<<-EOT)
+class TrajectoriesBis
+
+  attr_reader :times
+  attr_reader :matrix
+
+  def initialize(times: 1, matrix: R.matrix(0))
+    @times = times
+    @matrix = matrix
+  end
+  
+end
+
+traj_bis = TrajectoriesBis.new
+EOT
+
+body(<<-EOT)
+Let's take a look at our new class:
+EOT
+
+console_error(<<-EOT)
+traj_bis.times.pp
+EOT
+
+body(<<-EOT)
+Well, not exactly what we had in mind.  We got an error saying that .pp is undefined for 
+Fixnum.  In R, numbers are automatically converted to vectors, but this is not the case
+in Ruby and SciCom.  In Ruby, numbers are numbers and vectors are vectors.  In the 
+initialize method above, we stored 1 in variable @times and 1 is a number.  Method .pp is
+only available for R objects.  
+
+In order to fix this, we need to fix our initializer to convert number 1 to a vector with
+one element of value 1.  SciCom provides the method R.i to do this conversion.  
+
+When calling an R function that expects a number as argument, this conversion is
+automatically done by SciCom; however, in the initialize method, there is no indication 
+to SciCom that variable @times is actually a SciCom variable, since there is no type 
+information.  In this case, we need to be explicit and use R.i:
+EOT
+
+code(<<-EOT)
+class TrajectoriesBis
+
+  attr_reader :times
+  attr_reader :matrix
+
+  # Use R.i to convert number 1 to a vector
+  def initialize(times: R.i(1), matrix: R.matrix(0))
+    @times = times
+    @matrix = matrix
+  end
+  
+end
+
+traj_bis = TrajectoriesBis.new
+EOT
+
+console(<<-EOT)
+traj_bis.times.pp
+EOT
+
+console(<<-EOT)
+traj_bis.matrix.pp
+EOT
+
+section("To Remove an Object")
+
+body(<<-EOT)
+As far as I know, there isn't a good way of removing a defined class, but there might be
+one and the interested user is directed to google it!  In principle, there should not be
+any real need to remove a defined class.  Both in R and SciCom, large programs are usually
+written in a file and the file loaded.  If one writes a wrong class, the better solution is
+to correct it on and then load it again.  If the class is written directly on the console,
+then leaving it there will not have any serious impact.
+EOT
+
+section ("The Empty Object")
+
+body(<<-EOT)
+When a Trajectories is created with new, and no argument is given, all its instance variables
+will have the default nil value.  Since Ruby has no type information, then there is only one
+type (or actually no type) of nil.  To check if a variable is empty, we check it agains the nil
+value.
+EOT
 

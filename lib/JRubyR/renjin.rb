@@ -48,6 +48,42 @@ class Renjin
   java_import "org.renjin.eval.SessionBuilder"
   java_import "org.renjin.primitives.packaging.PackageLoader"
   java_import "org.renjin.aether.AetherPackageLoader"
+
+  #========================================================================================
+  # Class Writer is necessary if we want to redirect the standard output or standar err
+  # to a Ruby String for futher processing after a Renjin script evaluation.  As can be
+  # seen this class requires improvements, but it is functional
+  #========================================================================================
+  
+  class Writer < Java::JavaIo.Writer
+
+    attr_reader :string
+    
+    def initialize
+      @string = String.new
+    end
+    
+    def write(string, offset, len)
+      @string << string
+    end
+    
+    def flush
+      
+    end
+    
+    def close
+      
+    end
+    
+    def output
+      puts @string
+    end
+    
+  end
+  
+  #========================================================================================
+  #
+  #========================================================================================
   
   @stack = Array.new
 
@@ -83,11 +119,14 @@ class Renjin
 
   def initialize
 
-    session = SessionBuilder.new
-              .bind(PackageLoader.java_class, AetherPackageLoader.new)
-              .withDefaultPackages
-              .build
-    @engine = RenjinScriptEngineFactory.new.getScriptEngine(session);
+    @session = SessionBuilder.new
+               .bind(PackageLoader.java_class, AetherPackageLoader.new)
+               .withDefaultPackages
+               .build
+    @engine = RenjinScriptEngineFactory.new.getScriptEngine(@session);
+
+    @default_std_out = @session.getStdOut()
+    @default_std_err = @session.connectionTable.getStderr()
     
     # factory = Java::JavaxScript.ScriptEngineManager.new()
     # @engine = factory.getEngineByName("Renjin")
@@ -96,6 +135,40 @@ class Renjin
 
   end
 
+  #----------------------------------------------------------------------------------------
+  #
+  #----------------------------------------------------------------------------------------
+
+  def set_std_out(writer)
+    print_writer = Java::JavaIo::PrintWriter.new(writer)
+    @session.setStdOut(print_writer)
+  end
+  
+  #----------------------------------------------------------------------------------------
+  #
+  #----------------------------------------------------------------------------------------
+
+  def set_std_err(writer)
+    print_writer = Java::JavaIo::PrintWriter.new(writer)
+    @session.setStdErr(print_writer)
+  end
+
+  #----------------------------------------------------------------------------------------
+  #
+  #----------------------------------------------------------------------------------------
+
+  def set_default_std_out
+    @session.setStdOut(@default_std_out)
+  end
+
+  #----------------------------------------------------------------------------------------
+  #
+  #----------------------------------------------------------------------------------------
+
+  def set_default_std_err
+    @session.setStdErr(@default_std_err)
+  end
+  
   #----------------------------------------------------------------------------------------
   #
   #----------------------------------------------------------------------------------------

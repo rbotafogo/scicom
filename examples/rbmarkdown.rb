@@ -43,19 +43,40 @@ def subparagraph(text)
 end
 
 def body(text)
-  puts "#{text}"
+  print "#{text}\n\n"
 end
 
 def code(text)
   puts text.indent(4)
-  # eval(text, $mk.get_binding)
   eval(text, TOPLEVEL_BINDING)
 end
 
 def console(script)
+
+  # Let's capture the output of Renjin script in our own string.  We need to do that
+  # using Renjin::Writer
+  writer = Renjin::Writer.new
+  R.set_std_out(writer)
+  
   puts("    > #{script}\n")
   print("    ")
   eval(script, TOPLEVEL_BINDING)
+
+  puts writer.string.indent(4)
+  puts
+  
+  R.set_default_std_out
+  
+end
+
+def console_error(script)
+  puts("    > #{script}\n")
+  print("    ")
+  begin
+    eval(script, TOPLEVEL_BINDING)
+  rescue Exception => e
+    puts e.message
+  end
   puts 
 end
 
