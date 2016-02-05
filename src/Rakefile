@@ -1,12 +1,17 @@
-require_relative '../config.rb'
+require 'rbconfig'
+require_relative '../dvlp.rb'
 
-dirs = SciCom.vendor_dir.split(";")
-dirs << SciCom.project_dir + "/" + "MDArray" + "/vendor"
-p dirs
-jars = Array.new 
-dirs.each do |dir|
-  jars << Dir[dir + "/*.jar"]
-end
+PROJECT_DIR = File.expand_path("..",Dir.pwd)
+VENDOR_DIR = "#{PROJECT_DIR}/vendor"
+
+BUILD_DIR = "build"
+CLASSES_DIR = "#{BUILD_DIR}/classes"
+
+DEPENDENCIES_DIR = ""
+
+TARGET_DIR = "#{PROJECT_DIR}/target"
+
+jars = Dir["#{VENDOR_DIR}/*.jar"]
 
 unless RUBY_PLATFORM == 'java'
   abort 'Please run with JRuby'
@@ -15,8 +20,10 @@ end
 #-----------------------------------------------------------------------------------------
 desc 'Compile java classes'
 task :compile do
+
   classes    = Dir['**/*.java']
-  sh "javac -classpath #{jars.join(';')} -d #{SciCom.classes_dir} #{classes.join(' ')}"
+  sh "javac -classpath #{jars.join(';')} -d #{CLASSES_DIR} #{classes.join(' ')}"
+
 end
 
 #-----------------------------------------------------------------------------------------
@@ -25,7 +32,8 @@ task :jar do
 
   Dir.chdir("build/classes")
   classes = Dir['**/*.class']
-  sh "jar -cf #{SciCom.target_dir}/helper.jar #{classes.join(' ')}"
+  p classes
+  sh "jar -cf #{TARGET_DIR}/helper.jar #{classes.join(' ')}"
 
 end
 

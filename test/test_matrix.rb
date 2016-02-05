@@ -196,7 +196,6 @@ class SciComTest < Test::Unit::TestCase
 
     end
 
-
   end
 
 end

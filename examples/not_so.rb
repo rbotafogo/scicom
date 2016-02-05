@@ -366,3 +366,137 @@ type (or actually no type) of nil.  To check if a variable is empty, we check it
 value.
 EOT
 
+section ("To See an Object")
+
+body(<<-EOT)
+Ruby has very strong meta-programming features, in particular, one can use instrospection to 
+see methods and instance variables from a given class.  Method 'instance_variables' shows all
+the instace variables of an object:
+EOT
+
+console(<<-EOT)
+puts traj.instance_variables
+EOT
+
+body(<<-EOT)
+The description of all meta-programming features of Ruby is well beyond the scope of this 
+document, but it is a very frequent a powerful feature of Ruby, that makes programming in
+Ruby a different experience than programming in other languages.
+EOT
+
+section ("Methods")
+
+body(<<-EOT)
+Methods are a fundamental feature of object oriented programming. We will now extend our class
+Trajectories to add methods to it.  In SS4, a method 'plot' is added to Trajectories.  At this
+point, Renjin and SciCom do not yet have ploting capabilities, so we will have to skip this 
+method and go directly to the implementation of the 'print' method.
+
+Bellow is the R code for method print:
+EOT
+
+comment_code(<<-EOT)
+> setMethod ("print","Trajectories",
++ function(x,...){
++ cat("*** Class Trajectories, method Print *** \n")
++ cat("* Times ="); print (x@times)
++ cat("* Traj = \n"); print (x@traj)
++ cat("******* End Print (trajectories) ******* \n")
++ }
++ )
+EOT
+
+body(<<-EOT)
+Now the same code for class Trajectories in Scicom.  In general methods are defined in a class
+together with all the class definition.  We will first use this approach. Later, we will show
+how to 'reopen' a class to add new methods to it.
+
+In this example, we are defining a method named 'print'.  We have being using method 'puts' to
+output data.  There is a Ruby method that is more flexible than puts and that we need to use to
+implement our function: 'print'. However, trying to use Ruby print inside the definition of 
+Trajectories's print will not work, as Ruby will understand that as a recursive call to print. 
+Ruby's print is defined inside the Kernel class, so, in order to call Ruby's print inside the
+definition of Trajectories's print we need to write 'Kernel.print'.
+EOT
+
+code(<<-EOT)
+class Trajectories
+  
+  attr_reader :times
+  attr_reader :matrix
+
+  #
+  # 
+  #
+  def initialize(times: nil, matrix: nil)
+    @times = times
+    @matrix = matrix
+  end
+
+  def print
+    puts("*** Class Trajectories, method Print *** ")
+    Kernel.print("times = ")
+    @times.pp
+    puts("traj =")
+    @matrix.pp
+    puts("******* End Print (trajectories) ******* ")
+  end
+  
+end
+EOT
+
+console(<<-EOT)
+trajCochin.print
+EOT
+
+body(<<-EOT)
+For Cochin, the result is correct. For Saint-Anne, print will display too much
+information. So we need a second method.
+
+Show is the default R method used to show an object when its name is written in the
+console. We thus define 'show' by taking into account the size of the object: if there are too
+many trajectories, 'show' posts only part of them.
+
+Here is the R code for method 'show':
+EOT
+
+comment_code(<<-EOT)
+> setMethod("show","Trajectories",
++ function(object){
++ cat("*** Class Trajectories, method Show *** \n")
++ cat("* Times ="); print(object@times)
++ nrowShow <- min(10,nrow(object@traj))
++ ncolShow <- min(10,ncol(object@traj))
++ cat("* Traj (limited to a matrix 10x10) = \n")
++ print(formatC(object@traj[1:nrowShow,1:ncolShow]),quote=FALSE)
++ cat("******* End Show (trajectories) ******* \n")
++ }
++ )
+EOT
+
+body(<<-EOT)
+Now, let's write it with SciCom.  This time though, we will not rewrite the whole Trajectories
+class, but just reopen it to add this specific method:
+EOT
+
+code(<<-EOT)
+class Trajectories
+
+  def show
+    puts("*** Class Trajectories, method Show *** ")
+    Kernel.print("times = ")
+    @times.pp
+    nrow_show = R.min(10, @matrix.nrow).gz
+    ncol_show = R.min(10, @matrix.ncol).gz
+    puts("* Traj (limited to a matrix 10x10) = ")
+    @matrix[(1..nrow_show), (1..ncol_show)].format(digits: 2, nsmall: 2).pp
+    puts("******* End Show (trajectories) ******* ")
+  end
+  
+end
+EOT
+
+console(<<-EOT)
+trajStAnne.show
+EOT
+

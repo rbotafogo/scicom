@@ -1,14 +1,35 @@
 require 'rake/testtask'
-require_relative 'version'
+require 'jars/installer'
+require 'jars/classpath'
+require 'rake/javaextensiontask'
+
+require './version'
 
 name = "#{$gem_name}-#{$version}.gem"
+
+task :install_jars do
+  Jars::JarInstaller.new.vendor_jars
+end
+
+desc 'Compiles extension and run specs'
+task :default => [ :compile, :spec ]
+
+spec = eval File.read( 'scicom.gemspec' )
+
+desc 'compile src/main/java/** into target/scicom_support.jar'
+Rake::JavaExtensionTask.new("scicom_support", spec) do |ext|
+  ext.ext_dir = 'src/main/java'
+end
+
+require 'rubygems/package_task'
+Gem::PackageTask.new( spec ) do
+  desc 'Pack gem'
+  task :package => [:install_jars, :compile]
+end
 
 rule '.class' => '.java' do |t|
   sh "javac #{t.source}"
 end
-
-desc 'default task'
-task :default => [:install_gem]
 
 desc 'Makes a Gem'
 task :make_gem do

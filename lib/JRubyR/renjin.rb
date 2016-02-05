@@ -59,12 +59,13 @@ class Renjin
 
     attr_reader :string
     
-    def initialize
-      @string = String.new
+    def initialize(buffer)
+      @string = buffer
     end
     
     def write(string, offset, len)
       @string << string
+      $stdout.pos = @string.length
     end
     
     def flush
@@ -139,18 +140,26 @@ class Renjin
   #
   #----------------------------------------------------------------------------------------
 
-  def set_std_out(writer)
+  def set_std_out(buffer)
+
+    $stdout = StringIO.new(buffer)
+    writer = Writer.new(buffer)
     print_writer = Java::JavaIo::PrintWriter.new(writer)
     @session.setStdOut(print_writer)
+    writer
+    
   end
   
   #----------------------------------------------------------------------------------------
   #
   #----------------------------------------------------------------------------------------
 
-  def set_std_err(writer)
+  def set_std_err(buffer)
+
+    writer = Writer.new(buffer)
     print_writer = Java::JavaIo::PrintWriter.new(writer)
     @session.setStdErr(print_writer)
+    
   end
 
   #----------------------------------------------------------------------------------------
@@ -158,7 +167,10 @@ class Renjin
   #----------------------------------------------------------------------------------------
 
   def set_default_std_out
+    
+    $stdout = STDOUT
     @session.setStdOut(@default_std_out)
+    
   end
 
   #----------------------------------------------------------------------------------------

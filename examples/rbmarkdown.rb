@@ -55,17 +55,15 @@ def console(script)
 
   # Let's capture the output of Renjin script in our own string.  We need to do that
   # using Renjin::Writer
-  writer = Renjin::Writer.new
-  R.set_std_out(writer)
+  writer = R.set_std_out(String.new)
   
-  puts("    > #{script}\n")
-  print("    ")
+  puts("> #{script}\n")
   eval(script, TOPLEVEL_BINDING)
+  
+  R.set_default_std_out
 
   puts writer.string.indent(4)
   puts
-  
-  R.set_default_std_out
   
 end
 

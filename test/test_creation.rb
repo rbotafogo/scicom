@@ -44,10 +44,6 @@ class SciComTest < Test::Unit::TestCase
 
     should "create integer variable" do
 
-      # We can redirect Std_err and Std_out to our own Ruby string if needed
-      writer = Renjin::Writer.new
-      R.set_std_out(writer)
-      
       # In R, every number is a vector.  R Vector's are converted to Ruby Renjin::Vector  
       # (a new class defined by SciCom).  
       # An int can be created by calling 'eval'...
@@ -70,9 +66,6 @@ class SciComTest < Test::Unit::TestCase
       # method typeof returns the type of this vector
       assert_equal("integer", my_int.typeof.gz)
 
-      writer.output
-      R.set_default_std_out
-      
     end
 
     #--------------------------------------------------------------------------------------
