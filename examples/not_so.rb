@@ -1433,6 +1433,8 @@ class Test
   
 end
 
+t = Test.new
+
 comment_code(<<-EOT)
 class Test
 
@@ -1469,6 +1471,40 @@ Ruby has ways of dealing with multiple arguments, missing arguments, undefined n
 named arguments, unnamed arguments, etc.  This is beyond the scope of this document and we 
 suggest the interested reader to go to the many resources about Ruby that can easily be found 
 on the web.
+
+We will now create a new class 'Partition' that we will use later in this document.  This class will
+have only the basic methods needed for the examples to work.
+EOT
+
+code(<<-EOT)
+class Partition
+
+  attr_reader :nb_groups
+  attr_reader :part
+
+  def initialize(nb_groups, part)
+    @nb_groups = nb_groups
+    @part = part
+  end
+  
+end
+
+partCochin = Partition.new(2, R.c("A","B","A","B").factor)
+partStAnne = Partition.new(2, R.c("A","B").rep(R.c(50,30)).factor)
+
+EOT
+
+console(<<-EOT)
+partCochin.part.pp
+EOT
+
+console(<<-EOT)
+partStAnne.part.pp
+EOT
+
+body(<<-EOT)
+We will suppose that part is always composed of capital letters going from A to
+LETTERS[nb_groups].
 EOT
 
 subsection("Inheritance")
@@ -1493,11 +1529,200 @@ end
 EOT
 
 body(<<-EOT)
-Thats all there is to it!  We've just created a class: TrajPartitioned that inherits all methods
+Thats all there is to it!  We've just created a class TrajPartitioned that inherits all methods
 from class Trajectories and at this point does nothing different from Trajectories, but adds a 
 new instance variable: list_partitions.
+
+Creating TrajPartitioned without arguments will generate an error, since a Trajectories requires 
+both times and matrix to be non null.
+EOT
+
+console_error(<<-EOT)
+tdPitie = TrajPartitioned.new
+EOT
+
+body(<<-EOT)
+Let's try to create a TrajPartitioned, but passing to it two partitions.  For that, let's first
+create a new Partition:
+EOT
+
+code(<<-EOT)
+partCochin2 = Partition.new(3, R.c("A", "C", "C", "B").factor)
+EOT
+
+body(<<-EOT)
+And now let's create the TrajPartitioned:
+EOT
+
+console_error(<<-EOT)
+tdCochin = TrajPartitioned.new(times: R.c(1,3,4,5), matrix: trajCochin.matrix, 
+                               list_partitions: R.list(partCochin,partCochin2))
+EOT
+
+body(<<-EOT)
+This didn't work giving us an error saying that <Partition...> is an unknown parameter for R. Hummm??
+R function 'list' expects R objects, and in this case, partCochin and partCochin2 are Ruby classes,
+so trying to apply function list to then does not work.  Clearly, we will have to work in the realm
+of Ruby to keep the list of partitions.  This is not a problem as Ruby has data strucutres to 
+maintain a list of objects, the Array.  Let's then try another solution:
+EOT
+
+console_error(<<-EOT)
+tdCochin = TrajPartitioned.new(times: R.c(1,3,4,5), matrix: trajCochin.matrix, 
+                               list_partitions: [partCochin, partCochin2])
+EOT
+
+body(<<-EOT)
+We now get a second error: 'unknown keyword: list_partitions'.  Class TrajPartitioned inherits
+from class Trajectories and class Trajectories has an initialize function that requires two 
+parameters, times and matrix; list_partitions is not a parameter for initialize and is thus 
+unknown.  In order to fix this problem we need to create an initialize method for class 
+TrajPartitioned.
+EOT
+
+subsection("The 'super' Keyword")
+
+body(<<-EOT)
+R has a method called 'callNextMethod' for control flow between inherited classes.  In Ruby, we 
+have a model that is a bit different.  When a method is called on a subclass, if this method is
+not found it will be searched in the parent class and it will go up the hierarchy of classes until
+it is found or an error is issued.  If we want the parent method to be called we can call 'super':
+EOT
+
+code(<<-EOT)
+class TrajPartitioned
+  
+  def initialize(times: times, matrix: matrix, list_partitions: list_partitions)
+    super(times: times, matrix: matrix)
+    @list_partitions = list_partitions
+  end
+  
+end
+EOT
+
+body(<<-EOT)
+Let's try our example again:
 EOT
 
 console(<<-EOT)
-tdPitie = TrajPartitioned.new
+tdCochin = TrajPartitioned.new(times: R.c(1,3,4,5), matrix: trajCochin.matrix, 
+                               list_partitions: [partCochin, partCochin2])
 EOT
+
+body(<<-EOT)
+Now tdCochin is created correctly; however, the 'show' method only shows information about 
+times and matrix, there is nothing about our new list_partitions variable.  This is so, since
+there is no method 'show' in TrajPartitioned, so method 'show' from Trajectories is executed.
+
+So, let's start by writing a 'print' method, that will print all the information we have in 
+TrajPartitioned.  The flow of control for this method is: Ruby see a call to 'print', so it checks
+to see if 'print' is a method for TrajPartitioned.  Since we have just defined this method, Ruby
+finds it and executes it.  The first command in print is a call to 'super', which will call the 
+parent 'print' method, that print information for 'times' and 'matrix'.  When the parent 'print' 
+finishes control continues after the 'super' call, printing the number of available partitions. 
+EOT
+
+class TrajPartitioned
+
+  def print
+    super
+    puts ("the object also contains #{@list_partitions.length} partition")
+    puts ("***** Fine of print (TrajPartitioned) *****")
+  end
+  
+end
+
+comment_code(<<-EOT)
+class TrajPartitioned
+
+  def print
+    super
+    puts ("the object also contains \#{@list_partitions.length} partition")
+    puts ("***** Fine of print (TrajPartitioned) *****")
+  end
+  
+end
+EOT
+
+console(<<-EOT)
+tdCochin.print
+EOT
+
+body(<<-EOT)
+Notice that this model is much cleaner than 'callNextMethod' and is not subject to any of the 
+difficulties presented in SS4 and there is no need for the keywords “is”, “as” and “as<-”, although
+Ruby provides methods to check the class of an object its hierarchy, etc. when needed.
+
+In Ruby there is no similar method as "setIs" and it is not possible to convert one class into 
+another, but there are other ways of getting the necessary results.  Let's then implement a 
+method that returns the partition with the least number of groups.  First, as usual, the R code
+with 'setIs':
+EOT
+
+comment_code(<<-EOT)
+> setIs(
++ class1="TrajPartitioned",
++ class2="Partition",
++ coerce=function(from,to){
++ numberGroups <- sapply(tdCochin@listPartitions,getNbGroups)
++ Smallest <- which.min(-numberGroups)
++ to<-new("Partition")
++ to@nbGroups <- getNbGroups(from@listPartitions[[Smallest]])
++ to@part <- getPart(from@listPartitions[[Smallest]])
++ return(to)
++ }
++ )
+EOT
+
+
+body(<<-EOT)
+And now the Ruby code.  Here we are getting deeper into Ruby and it is becoming harder for a
+pure R developer to understand the code.  We will describe it in more detail:
+
+* We define a method called 'to_part' that has one argument 'which'.  By default 'which' is 
+':min', the name of the minimum method.  This means that if no argument is given to to_part it
+will assume the which = :min;
+* @list_partition is a Ruby array.  Method map is similar to method sapply in R, it applies a
+'block' to every element of the array, returning an array.  Describing blocks is beyond the 
+scope of this document, but we can think of it as if it were a function.  
+The block is in '{}' and has one argument named 'part'.  Thus, map goes through all elements 
+of the array, and gets the nb_groups of the element and returns them into the number_groups array.
+* number_groups is and array and doing number_groups.min returns
+the minimum value in number_groups and number_groups.max the maximum.  We can call a method on an
+object by 'sending' the method name to the object, so, number_groups.send(:min) is equivalent to
+number_groups.min;
+* Method 'index' for array, returns the index of a given element. So, number_groups(3) would return
+the index of the element '3'.  Then number_groups.index(number_groups.min) returns the index of
+the minimum element in the array.  This is the equivalent of R which.min(number_groups);
+* Finally, number_groups.index(number_groups.send(which)), will return the index of the element we
+ask for, be it :min or :max.  Note that if we pass another value, this would be an error.
+EOT
+
+code(<<-EOT)
+class TrajPartitioned
+
+  def to_part(which = :min)
+    number_groups = @list_partitions.map { |part| part.nb_groups }
+    selected = number_groups.index(number_groups.send(which))
+    return @list_partitions[selected]
+  end
+  
+end
+EOT
+
+body(<<-EOT)
+To get the partition whith the minimum number of elements:
+EOT
+
+console(<<-EOT)
+tdCochin.to_part.part.pp
+EOT
+
+body(<<-EOT)
+To get the partition whith the maximum number of elements:
+EOT
+
+console(<<-EOT)
+tdCochin.to_part(:max).part.pp
+EOT
+
