@@ -68,14 +68,22 @@ def console(script)
 end
 
 def console_error(script)
-  puts("    > #{script}\n")
-  print("    ")
+
+  # Let's capture the output of Renjin script in our own string.  We need to do that
+  # using Renjin::Writer
+  writer = R.set_std_out(String.new)
+  
+  puts("> #{script}\n")
   begin
     eval(script, TOPLEVEL_BINDING)
   rescue Exception => e
     puts e.message
   end
-  puts 
+
+  R.set_default_std_out
+  puts writer.string.indent(4)
+  puts
+  
 end
 
 def comment_code(text)
@@ -84,4 +92,8 @@ end
 
 def ref(title, publication)
   "*#{title}*, #{publication}"
+end
+
+def list(text)
+  puts text.indent(2)
 end

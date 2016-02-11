@@ -368,6 +368,15 @@ class Renjin
   end
 
   #----------------------------------------------------------------------------------------
+  # Converts the given parameter into an R object.  If the parameter is already an R
+  # object, then leave it unchanged.
+  #----------------------------------------------------------------------------------------
+
+  def convert(param)
+    R.eval(parse(param))
+  end
+  
+  #----------------------------------------------------------------------------------------
   # Data is copied from Ruby to R using the assign method or a short-hand equivalent. For 
   # example:
   #

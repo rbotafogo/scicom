@@ -83,7 +83,7 @@ class SciComTest < Test::Unit::TestCase
 
       # Use nil in Ruby when needing a NULL in R
       # Cheching if nil is na returns an empty vector, size 0
-      assert_equal(0, R.na?(nil).length)
+      assert_equal(0, R.na?(nil).length.gz)
 
       # Does the same thing as above inside an R script
       p "checking if NULL is na"

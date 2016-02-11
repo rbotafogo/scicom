@@ -8,16 +8,16 @@ require_relative 'rbmarkdown'
 author("Rodrigo Botafogo")
 
 body(<<-EOT)
-Caveat: This article's name is actually a misnomer. This is not really a small introduction to
-SciCom, it is actually a comparison between SciCom's object oriented 
-features and R's S4 object oriented model.  This paper is a shameless rip off of 
+This paper introduces and compares SciCom with R's S4.  It is a shameless rip off of 
 #{ref("A '(not so)' Short Introduction to S4", 
 "https://cran.r-project.org/doc/contrib/Genolini-S4tutorialV0-5en.pdf")} by Christophe Genolini
 and follows the same structure and examples presented there.
 
-SciCom is a Ruby Gem that allows very tight integration between Ruby and R.  It's integration is
-much tigher and transparent from what one can see beetween RinRuby or similar solutions in Python
-such as PyPer (??), RPython and other solutions.  SciCom targets the Java Virtual Machine and it
+SciCom is a Ruby Gem (library) that allows very tight integration between Ruby and R.  
+It's integration is
+much tigher and transparent from what one can get beetween RinRuby or similar solutions in Python
+such as PypeR (https://pypi.python.org/pypi/PypeR/1.1.0), rpy2 (http://rpy2.bitbucket.org/) and 
+other similar solutions.  SciCom targets the Java Virtual Machine and it
 integrates with Renjin (http://www.renjin.org/), an R interpreter for Java.  
 
 From the Renjin page we can get the following description of Renjin and its objectives:
@@ -33,6 +33,33 @@ libraries or to provide some form of communication between separate processes. T
 interfaces are often the source of much agony because they place very specific demands on the 
 environment in which they run.
 
+We frenquently see on the web people asking: "which is better for data analysis: R or Python?" In
+This article we also have the objetive to try to answer this question.  As you will see, our 
+point is: "when in doubt about R or Python, use SciCom!"
+
+EOT
+
+subsubsection("Limitations")
+
+body(<<-EOT)
+Unfortunately, SciCom has three main limitations, and although we think that "use Scicom!" is a 
+good catch phrase, at this point we don't see SciCom as being able to substitute R.  The three
+limitations are:
+
+* Renjin has implemented all of base R (maybe still some bugs, I don't know!), but there are still
+many packages that do not yet work with it.  Renjin is making huge steps forward, but for the
+standard R user, chances are that her preferred package does not yet run in Renjin;
+* Renjin does not implement any of the graph functionality such as plot or ggplot and has intention
+to do so.  Ruby has some graphing libraries, but they are still not "au par" with ggplot nor 
+matplotlib;
+* SciCom does not have a large user community.  Actually it does not even have a small user 
+community.  Without a user community, no free software can survive.  I hope this paper will help
+attract some people to this new community.
+EOT
+
+chapter("Bases of Object Programming")
+
+body(<<-EOT)
 In this paper, we will start our discussion from Part II of "The (not so) Short Introduction 
 to S4", which from now on we will reference as SS4 for "short S4". Interested readers are directed 
 to this paper to understand the motivation and examples in that paper.  In this paper we will
@@ -42,6 +69,8 @@ description.
 
 S4 defines classes by using the setClass function:
 EOT
+
+section("Classes Declaration")
 
 comment_code(<<-EOT)
 # > setClass(
@@ -53,7 +82,7 @@ comment_code(<<-EOT)
 # + )
 EOT
 
-section("Instance Variables")
+subsection("Instance Variables")
 
 body(<<-EOT)
 In Ruby a class is defined by the keyword 'class'.  Every class should start with a capital 
@@ -105,7 +134,7 @@ console(<<-EOT)
 puts traj.times
 EOT
 
-section("Constructor")
+subsection("Constructor")
 
 body(<<-EOT)
 Since there is no content stored in 'times' nor 'matrix', nil is returned.  In order to add
@@ -154,7 +183,7 @@ traj = Trajectories.new(times: R.c(1, 2, 3, 4))
 traj2 = Trajectories.new(times: R.c(1, 3), matrix: R.matrix((1..4), ncol: 2))
 EOT
 
-section("Access to Instance Variables (to reach a slot)")
+subsection("Access to Instance Variables (to reach a slot)")
 
 body(<<-EOT)
 In order to access data in an instace variable the operator '.' is used.  In R, a similar
@@ -269,7 +298,7 @@ We will not at this time print trajStAnne.matrix, since this is a huge matrix an
 would just take too much space.  Later we will print just a partial view of the matrix.
 EOT
 
-section("Default Values")
+subsection("Default Values")
 
 body(<<-EOT)
 Default values are very useful and quite often used in Ruby programs.  Although SS4 does not
@@ -346,7 +375,7 @@ console(<<-EOT)
 traj_bis.matrix.pp
 EOT
 
-section("To Remove an Object")
+subsection("To Remove an Object")
 
 body(<<-EOT)
 As far as I know, there isn't a good way of removing a defined class, but there might be
@@ -357,7 +386,7 @@ to correct it on and then load it again.  If the class is written directly on th
 then leaving it there will not have any serious impact.
 EOT
 
-section ("The Empty Object")
+subsection ("The Empty Object")
 
 body(<<-EOT)
 When a Trajectories is created with new, and no argument is given, all its instance variables
@@ -366,7 +395,7 @@ type (or actually no type) of nil.  To check if a variable is empty, we check it
 value.
 EOT
 
-section ("To See an Object")
+subsection ("To See an Object")
 
 body(<<-EOT)
 Ruby has very strong meta-programming features, in particular, one can use instrospection to 
@@ -476,7 +505,32 @@ EOT
 
 body(<<-EOT)
 Now, let's write it with SciCom.  This time though, we will not rewrite the whole Trajectories
-class, but just reopen it to add this specific method:
+class, but just reopen it to add this specific method.  The next example has many interesting
+features of SciCom, some we have already seen, others will be described now:
+EOT
+
+list(<<-EOT)
+* As we have already seen, to call an R function one uses the R.<function> notation.  There
+is however another way: when the first argument to the R function is an R object such as a
+matrix, a list, a vector, etc. we can use '.' notation to call the function.  This makes the 
+function look like a method of the object.  For instance, R.nrow(@matrix), can be called by
+doing @matrix.nrow;
+* In R, every number is converted to a vector and this can be done with method R.i.  Converting
+a vector with only one number back to a number can be done with method '.gz'.  So if @num is
+an R vector that holds a number, then @num.gz is a number that can be used normally with Ruby
+methods;
+* R functions and Ruby methods can be used freely in SciCom.  We show bellow two different ways
+of getting the minimum of a number, either by calling R.min or by getting the minimum of an 
+array, with the min method;
+* SciCom allows for method 'chaining'. Method chaining, also known as named parameter idiom, is 
+a common syntax for invoking multiple method calls in object-oriented programming languages. 
+Each method returns an object, allowing the calls to be chained together in a single statement 
+without requiring variables to store the intermediate results.  For instance @matrix.nrow.gz, 
+which returns the number of rows of the matrix as a number;
+* Ranges in Ruby are represented by (x..y), where x is the beginning of the range and y its end.
+An R matrix can be indexed by range, object@traj[1:nrowShow,1:ncolShow], the same result is 
+obtained in SciCom by indexing @matrix[(1..nrow_show), (1..ncol_show)].  Observe that this
+statement is then chained with the format function and with the pp method to print the matrix.
 EOT
 
 code(<<-EOT)
@@ -486,7 +540,7 @@ class Trajectories
     puts("*** Class Trajectories, method Show *** ")
     Kernel.print("times = ")
     @times.pp
-    nrow_show = R.min(10, @matrix.nrow).gz
+    nrow_show = [10, @matrix.nrow.gz].min
     ncol_show = R.min(10, @matrix.ncol).gz
     puts("* Traj (limited to a matrix 10x10) = ")
     @matrix[(1..nrow_show), (1..ncol_show)].format(digits: 2, nsmall: 2).pp
@@ -500,3 +554,950 @@ console(<<-EOT)
 trajStAnne.show
 EOT
 
+body(<<-EOT)
+Our show method has the same problem as SS4, i.e., if an empty trajectories object is created and
+we try to 'show' it, it will generate an error.  Let's see it:
+EOT
+
+code(<<-EOT)
+empty_traj = Trajectories.new
+EOT
+
+console_error(<<-EOT)
+empty_traj.show
+EOT
+
+comment_code(<<-EOT)
+NoMethodError: undefined method `pp' for nil:NilClass
+     show at :6
+   <eval> at :1
+     eval at org/jruby/RubyKernel.java:976
+  console at T:/Rodrigo/Desenv/SciCom/examples/rbmarkdown.rb:61
+    <top> at T:\Rodrigo\Desenv\SciCom\examples\not_so.rb:533
+EOT
+
+body(<<-EOT)
+In this example, we try to call method .pp on a nil (empty) object and this method is not
+defined.  In order to fix this, we can either prevent an empty trajectories class to be created,
+or make sure that method show will not choke on the empty object.  We will take the second 
+alternative, to follow SS4 and will check if either @times or @matrix are empty.  If either one
+of them is nil, then we will print a message saying so. 
+
+Although the first alternative, i.e., not allow for empty objects is a possibility in Ruby, 
+it seems that this is not the case for S4.
+EOT
+
+code(<<-EOT)
+class Trajectories
+
+  def show
+    if (@times.nil? || @matrix.nil?) 
+      puts("*** Class Trajectories is empty!! *** ")
+      return
+    end
+    puts("*** Class Trajectories, method Show *** ")
+    Kernel.print("times = ")
+    @times.pp
+    nrow_show = [10, @matrix.nrow.gz].min
+    ncol_show = R.min(10, @matrix.ncol).gz
+    puts("* Traj (limited to a matrix 10x10) = ")
+    @matrix[(1..nrow_show), (1..ncol_show)].format(digits: 2, nsmall: 2).pp
+    puts("******* End Show (trajectories) ******* ")
+  end
+  
+end
+EOT
+
+console(<<-EOT)
+empty_traj.show
+EOT
+
+subsection("Method count_missing")
+
+body(<<-EOT)
+In R, methods 'print' and 'show' are methods that already exist.  SS4 wants to add a method 
+called 'countMissing' which does not exist in R, and thus requires some special preparation. In
+Ruby, every method we've created is a new method that exists inside the class.  The fact that
+'print' happens to be also a method for class Kernel and 'show' is not, is not of special interest.
+Actually we've seen that in order to call method print from the Kernel class we had to call 
+Kernel.print.
+
+To create method 'count_missing' we just need to reopen the Trajectories class and add the 
+method the same way we've done with method 'show'. Again, let's first look at R's 'countMissing'
+and then at Ruby's:
+EOT
+
+comment_code(<<-EOT)
+> setMethod(
++ f= "countMissing",
++ signature= "Trajectories",
++ definition=function(object){
++ return(sum(is.na(object@traj)))
++ }
++ )
+EOT
+
+body(<<-EOT)
+Here we introduce another particular case of SciCom.  R has many methods that have a '.' in 
+there names, such as 'is.na'.  In Ruby, the dot '.' is has a special meaning as it is the way
+we call a method on an object.  Doing 'R.is.na' will not work.  So, in SciCom, R functions that
+have a dot in then will have the dot substituted by '__'.  So, method is.na in SciCom, becomes 
+R.is__na.  In method count_missing we use method chaining and convert the final count to a number.
+EOT
+
+code(<<-EOT)
+class Trajectories
+
+  def count_missing
+    return @matrix.is__na.sum.gz
+  end
+
+end
+EOT
+
+console(<<-EOT)
+puts trajCochin.count_missing
+EOT
+
+subsection("To See the Methods")
+
+body(<<-EOT)
+In order to see the methods we have defined so far, we call call on class Trajectories the method
+'instace_method' passing it one argument, 'false', as follows:
+EOT
+
+console(<<-EOT)
+puts Trajectories.instance_methods(false)
+EOT
+
+body(<<-EOT)
+It is interesting to observe that we see our three methods 'count_missing', 'print' and 'show', but
+we also see two other methods 'times' and 'matrix', but those last two as far as we know are 
+just instance variables and not methods, right? More on that when we talk about Accessors.
+
+SciCom and Ruby, do not by default provide a way to see a method's code.  However, if the user uses
+a Ruby console such as Pry, then seeing methods and debugging is possible.  Pry, is beyond the
+scope of this document.
+EOT
+
+section("Construction")
+
+body(<<-EOT)
+Every class in Ruby has a constructor, if not explicitly defined, at least implicitly.  Method
+initialize is the constructor method and the one that coordinates the whole construction process.
+EOT
+
+subsection("Inspector")
+
+body(<<-EOT)
+There is no default 'inspector' in Ruby as is R, although there is nothing that prevents the 
+developer to inspect and validate the imput. For example, in the object Trajectories, one may 
+want to check that the number of elements in 'times' is equal to the number of columns in 'matrix'
+and if they are not, issue an error.  In order to understand why this is restriction, the user is
+again directed to SS4.
+
+Here we show the R code for this validation:
+EOT
+
+comment_code(<<-EOT)
+> setClass(
++ Class="Trajectories",
++ representation(times="numeric",traj="matrix"),
++ validity=function(object){
++ cat("~~~ Trajectories: inspector ~~~ \n")
++ if(length(object@times)!=ncol(object@traj)){
++ stop ("[Trajectories: validation] the number of temporal measurements does not correspond
++ }else{}
++ return(TRUE)
++ }
++ )
+EOT
+
+body(<<-EOT)
+In order to implement this validation we will coordinate it in the initialize method.
+EOT
+
+code(<<-EOT)
+class Trajectories
+
+  def initialize(times: nil, matrix: nil)
+    @times = times
+    @matrix = matrix
+
+    # validate the input, to make sure that size of @times and the number of columns in
+    # @matrix are the same
+    puts ("~~~ Trajectories: inspector ~~~ ")
+    raise "[Trajectories: validation] the number of temporal measurements does not correspond with the number of columns in the matrix" if (@times.length.gz != @matrix.ncol.gz)
+
+    # show the object just created
+    show
+    
+  end
+
+end
+
+EOT
+
+body(<<-EOT)
+Let's first create a Trajectories that validades fine, i.e., the number of elements in @times is
+equal to the number of columns of the matrix.  In this case, we will show a message saying that
+validation was done and then print the object.
+EOT
+
+console(<<-EOT)
+ok = Trajectories.new(times: R.c(1..2), matrix: R.matrix((1..2), ncol: 2))
+EOT
+
+body(<<-EOT)
+Now, if we try to create a Trajectories that does not pass the validation criteria, our code 
+will raise an exception.  Exceptions are a standard way to deal with errors in Ruby code and 
+many other object oriented languages.  The interested reader should look for further documentation
+on exception in the web.
+EOT
+
+console_error(<<-EOT)
+error = Trajectories.new(times: R.c(1..3), matrix: R.matrix((1..2), ncol: 2))
+EOT
+
+body(<<-EOT)
+The validation above does not consider the case when an empty object is created.  Here we will
+check to see if either times or matrix are nil, if either one of them is nil, then we will raise
+an exception and interrupt the creation of the object.  We also create a method validate that is
+called from our initialize method.
+
+Method validate has some interesting features about the integration of SciCom and R.  First, 
+observe that instead of using @times.length.gz and @matrix.ncol.gz to get the length and number of
+columns of variables 'times' and 'matrix' we actually compared (@times.length != @matrix.ncol). 
+In this case, the actual R operator '!=' is being used.  This operator works on vectors and 
+matrices and returns a logical vector with TRUE or FALSE.  In order to convert the logical vector,
+with one element, to a logical value in Ruby we use method 'gt' (get truth).
+
+EOT
+
+code(<<-EOT)
+class Trajectories
+
+  def initialize(times: nil, matrix: nil)
+    @times = times
+    @matrix = matrix
+
+    # call method validate to validate our imput
+    validate
+
+    # show the object just created
+    show
+    
+  end
+
+  def validate
+
+    # Let's first check that we do not have an empty object
+    raise "Neither times nor matrix can be an empty object" if (@times.nil? || @matrix.nil?)
+    
+    # validate the input, to make sure that size of @times and the number of columns in
+    # @matrix are the same
+    puts ("~~~ Trajectories: inspector ~~~ ")
+    raise "[Trajectories: validation] the number of temporal measurements does not correspond with the number of columns in the matrix" if (@times.length != @matrix.ncol).gt
+    
+  end
+
+end
+EOT
+
+body(<<-EOT)
+Let's try then creating an empty object:
+EOT
+
+console_error(<<-EOT)
+error = Trajectories.new
+EOT
+
+body(<<-EOT)
+Another example:
+EOT
+
+console_error(<<-EOT)
+error = Trajectories.new(times: 1)
+EOT
+
+body(<<-EOT)
+Let's see now that the implementation is correct and that it does not raise an error on valid 
+input:
+EOT
+
+console(<<-EOT)
+ok = Trajectories.new(times: R.c(1, 2), matrix: R.matrix((1..2), ncol: 2))
+EOT
+
+body(<<-EOT)
+The 'initialize' method is called ONLY during the initial creation of the object. If any instance
+variable is later modified, no control is done. At this moment though, there is no way to change
+the value of any of our instance variables.
+EOT
+
+console_error(<<-EOT)
+error.times = R.c(1, 2, 3)
+EOT
+
+body(<<-EOT)
+The Trajectories class works for R objects and not for Ruby objects and thus expects as input R
+objects.  Passing R objects in all examples has being the oblication of the programmer.  SciCom,
+however, can translate Ruby objects to R objects and does so for parameter passing.  Here we do
+an explicit convertion of Ruby object to R in class Trajectories by calling R.convert for our
+input parameters
+EOT
+
+comment_code(<<-EOT)
+class Trajectories
+
+  def initialize(times: nil, matrix: nil)
+    @times = R.convert(times)
+    @matrix = R.convert(matrix)
+
+    # call method validate to validate our imput
+    validate
+
+    # show the object just created
+    show
+    
+  end
+
+  def validate
+
+    # Let's first check that we do not have an empty object
+    raise "Neither times nor matrix can be an empty object" if (@times.nil? || @matrix.nil?)
+    
+    # validate the input, to make sure that size of @times and the number of columns in
+    # @matrix are the same
+    puts ("~~~ Trajectories: inspector ~~~ ")
+    raise "[Trajectories: validation] the number of temporal measurements \#{@times.length.gz} \
+does not correspond with the number of columns in the matrix \#{@matrix.ncol.gz}" if (@times.length.gz != @matrix.ncol.gz)
+    
+  end
+
+end
+EOT
+
+class Trajectories
+
+  def initialize(times: nil, matrix: nil)
+    @times = R.convert(times)
+    @matrix = R.convert(matrix)
+
+    # call method validate to validate our imput
+    validate
+
+    # show the object just created
+    show
+    
+  end
+
+  def validate
+
+    # Let's first check that we do not have an empty object
+    raise "Neither times nor matrix can be an empty object" if (@times.nil? || @matrix.nil?)
+    
+    # validate the input, to make sure that size of @times and the number of columns in
+    # @matrix are the same
+    puts ("~~~ Trajectories: inspector ~~~ ")
+    raise "[Trajectories: validation] the number of temporal measurements #{@times.length.gz} \
+does not correspond with the number of columns in the matrix #{@matrix.ncol.gz}" if (@times.length.gz != @matrix.ncol.gz)
+    
+  end
+
+end
+
+body(<<-EOT)
+And now let's create a new Trajectories, but we will now pass a Ruby range for times:
+EOT
+
+console(<<-EOT)
+ok = Trajectories.new(times: (1..2), matrix: R.matrix((1..2), ncol: 2))
+EOT
+
+body(<<-EOT)
+Perfect! This works fine.  Let's do another example... SciCom integrates with another Ruby
+Gem called MDArray.  MDArray provides multi-dimensional arrays for Ruby similar to what is
+find in NumPy.  It is beyond the scope of this paper to explain MDArray and the interested
+reader is directed to MDArray wiki pages: https://github.com/rbotafogo/mdarray/wiki.
+EOT
+
+console(<<-EOT)
+ok = Trajectories.new(times: (1..2), matrix: MDArray.double([2, 2], [1, 2, 3, 4]))
+EOT
+
+body(<<-EOT)
+We will now create a multi-dimensional array with the help of MDArray. We could think of this
+multi-dimensional array as having BMI data for multiple patients.  In this example, we have then
+data for two patients:
+EOT
+
+code(<<-EOT)
+multi_array = MDArray.fromfunction("double", [2, 3, 4]) { |x, y, z| x + y + z }
+EOT
+
+console(<<-EOT)
+multi_array.print
+EOT
+
+body(<<-EOT)
+But for our Trajectories class, we need data for only one patient at the time, so we cannot 
+give this MDArray to Trajectories.  MDArray allow us to get data slices efficiently, that is,
+it will not do a data copy, just manipulate indexes so that only a 'view' of the data is made
+available.  So, let's make a Trajectories with data from our first patient:
+EOT
+
+console(<<-EOT)
+ok1 = Trajectories.new(times: (1..4), matrix: multi_array.slice(0, 0))
+EOT
+
+body(<<-EOT)
+And now let's create a Trajectories for our second patient: 
+EOT
+
+console(<<-EOT)
+ok2 = Trajectories.new(times: (1..4), matrix: multi_array.slice(0, 1))
+EOT
+
+subsection("The Initializator")
+
+body(<<-EOT)
+As we have seen, method 'initialize' is the main object creator orchestrator.  This method can be
+as complex as needed.  So, let's get on with some improvements to our Trajectories class.
+
+It would be rather pleasant that the columns of the matrix of the trajectories have names, the 
+names of measurements times. In the same way, the lines could be subscripted by a number of 
+individual.
+
+To do this in R, one also uses method initialize:
+EOT
+
+comment_code(<<-EOT)
+> setMethod(
++ f="initialize",
++ signature="Trajectories",
++ definition=function(.Object,times,traj){
++ cat("~~~ Trajectories: initializator ~~~ \n")
++ colnames(traj) <- paste("T",times,sep="")
++ rownames(traj) <- paste("I",1:nrow(traj),sep= "")
++ .Object@traj <- traj # Assignment of the slots
++ .Object@times <- times
++ return(.Object) # return of the object
++ }
++ )
+EOT
+
+body(<<-EOT)
+Let's do this change to our 'initialize' method; however, before that, we need to introduce
+a new characteristic of SciCom.  In R, it is possible to assign a value to the result of a 
+function.  For example, 'rownames(x) <- c("v1", "v2", "v3")'.  Assigning to functions that way
+is not possible in Ruby.  In order to do this assignment we need to introduce method 'fassign'.
+The above assignment is then writen in SciCom as 'x.fassign(:rownames, R.c("v1", "v2", "v3")),
+where the first argument to function fassign is the function name preceded by ':'.
+EOT
+
+code(<<-EOT)
+class Trajectories
+
+  def initialize(times: nil, matrix: nil)
+    @times = times
+    @matrix = matrix
+
+    # call method validate to validate our imput
+    validate
+
+    # Add row  names
+    puts ("~~~ Trajectories: initializator ~~~ ")
+    @matrix.fassign(:colnames, R.paste("T", @times, sep: ""))
+    @matrix.fassign(:rownames, R.paste("I", (1..@matrix.nrow.gz), sep: ""))
+
+    # show the object just created
+    show
+    
+  end
+
+end
+EOT
+
+console(<<-EOT)
+traj = Trajectories.new(times: R.c(1,2,4,8), matrix: R.matrix((1..8),nrow: 2))
+EOT
+
+body(<<-EOT)
+Another example:
+EOT
+
+console_error(<<-EOT)
+error = Trajectories.new(times: R.c(1,2,4,8), matrix: R.matrix((1..8), nrow: 2))
+EOT
+
+body(<<-EOT)
+Note that we still call our 'validate' method and it is still an error to create an empty 
+Trajectories or one in which the sizes are wrong:
+EOT
+
+console_error(<<-EOT)
+error = Trajectories.new(times: R.c(1, 2, 48), matrix: R.matrix((1..8), nrow: 2))
+EOT
+
+body(<<-EOT)
+A constructor does not necessarily take the instance variable of the object as argument. For
+example, if we know (that is not the case in reality, but let us imagine so) that the
+BMI increases by 0.1 every week, we could build trajectories by providing the number
+of weeks and the initial weights.  
+
+First the code in R, we skip the definition of class TrajectoriesBis:
+EOT
+
+comment_code(<<-EOT)
+> setMethod ("initialize",
++ "TrajectoriesBis",
++ function(.Object,nbWeek,BMIinit){
++ traj <- outer(BMIinit,1:nbWeek,function(init,week){return(init+0.1*week)})
++ colnames(traj) <- paste("T",1:nbWeek,sep="")
++ rownames(traj) <- paste("I",1:nrow(traj),sep="")
++ .Object@times <- 1:nbWeek
++ .Object@traj <- traj
++ return(.Object)
++ }
++ )
+EOT
+
+body(<<-EOT)
+Now, let's make a TrajectoriesBis in SciCom.  Here again, we should point out some characteristics
+of our code:
+
+* We made initialize with two positional arguments, instead of named arguments, i.e., the first
+argument is the number of weeks and the second bmi_init.  Is this case, when making a new object the
+position of the arguments is important and there is no way to pass the argument by name;
+* R function outer was called as if a method from bmi_init using dot notation, although one could
+use R.outer without problem;
+* Function 'outer' expects an R function as its 3rd argument.  In order to build an R function from
+SciCom, we need to pass the function definition as a string to R.eval.
+EOT
+
+code(<<-EOT)
+class TrajectoriesBis
+
+  attr_reader :times
+  attr_reader :matrix
+
+  def initialize(number_weeks, bmi_init)
+    @matrix = bmi_init.outer((1..number_weeks), 
+                             R.eval("function(init, week) {return(init + 0.1 * week)}"))
+    @times = number_weeks
+  end
+  
+end
+
+traj_bis = TrajectoriesBis.new(4, R.c(16,17,15.6))
+EOT
+
+console(<<-EOT)
+traj_bis.matrix.pp
+EOT
+
+body(<<-EOT)
+Is is always possible to pass a Ruby variable to any string, by interpolating it into the string.
+To interpolate a variable into a string we put the variable inside #{}.  As an example, let's 
+assume that we will also require the BMI increase as a parameter for the constructor:
+EOT
+
+comment_code(<<-EOT)
+class TrajectoriesBis
+
+  def initialize(number_weeks, bmi_init, increment)
+    @matrix = bmi_init.outer((1..number_weeks), 
+                             R.eval("function(init, week) {return(init + \#{increment} * week)}"))
+    @times = number_weeks
+  end
+  
+end
+
+traj_bis = TrajectoriesBis.new(4, R.c(16,17,15.6), 0.3)
+EOT
+
+#code(<<-EOT)
+class TrajectoriesBis
+
+  def initialize(number_weeks, bmi_init, increment)
+    @matrix = bmi_init.outer((1..number_weeks), 
+                             R.eval("function(init, week) {return(init + #{increment} * week)}"))
+    @times = number_weeks
+  end
+  
+end
+
+traj_bis = TrajectoriesBis.new(4, R.c(16,17,15.6), 0.3)
+#EOT
+
+console(<<-EOT)
+traj_bis.matrix.pp
+EOT
+
+subsection("Constructors for Users")
+
+body(<<-EOT)
+Many times, it is interesting to have different ways of constructing an object depending on 
+what information our users have or want to provide to the constructor.  Although we have only one 
+initialize method, we can create multiple methods, that do some preprocessing and then call the 
+initialize method to carry out the object building.
+
+In order to do that, we use what are called class methods, instead of instance methods.  all the
+methods we've created so far are instance methods, class methods are defined by prepending the 
+self keyword to the methods name.  Still using the assumption that the BMI will grow by 0.1 per
+week, let's define a regular trajectory without having to define a TrajectoriesBis as above:
+EOT
+
+comment_code(<<-EOT)
+> regularTrajectories <- function(nbWeek,BMIinit) {
++ traj <- outer(BMIinit,1:nbWeek,function(init,week){return(init+0.1*week)})
++ times <- 1: nbWeek
++ return(new(Class="Trajectories",times=times,traj=traj))
++ }
+> regularTrajectories(nbWeek=3,BMIinit=c(14,15,16))
+EOT
+
+body(<<-EOT)
+Notice how method 'regular' is defined as 'self.regular', making it a class method.  The last
+statement of the method definition is actually a call to the Trajectories contructor 'new' passing
+the calculated values for times and matrix.
+
+Notice also how method regular is called, similar to the way new is called by adding it after class
+Trajectories name: 'Trajectories.regular'. 
+EOT
+
+code(<<-EOT)
+
+class Trajectories
+
+  def self.regular(number_weeks: nil, bmi_init: nil)
+    matrix = bmi_init.outer((1..number_weeks),
+                            R.eval("function(init, week) {return(init + 0.1 * week)}"))
+    times = R.c((1..number_weeks))
+    Trajectories.new(times: times, matrix: matrix)
+  end
+  
+end
+
+EOT
+
+console(<<-EOT)
+regular = Trajectories.regular(bmi_init: R.c(14, 15, 16), number_weeks: 3)
+EOT
+
+body(<<-EOT)
+We have already seen that constructors can be as complex as needed, calling other methods and doing
+calculations on the received parameters.  On this last example, we will check if the times 
+variable was provided. If it is not provided, then we will use matrix columns to define the times:
+EOT
+
+code(<<-EOT)
+
+class Trajectories
+
+  def self.init(times: nil, matrix: nil)
+    times = R.c((1..matrix.ncol.gz)) if times.nil?
+    Trajectories.new(times: times, matrix: matrix)
+  end
+
+end
+    
+EOT
+
+console(<<-EOT)
+traj = Trajectories.init(matrix: R.matrix((1..8), ncol: 4))
+EOT
+
+section("Accessors")
+
+body(<<-EOT)
+Accessors are methods for getting and setting the value of instance variables.  
+EOT
+
+subsection("Get")
+
+body(<<-EOT)
+Getters are methods for getting the value of an instance variable.  We have being using getters
+since the beginning of this document, without explicitly saying so.  When defining attr_reader 
+:times and attr_reader :matrix, we have actually defined two getter methods for reading the values
+of variables times and matrix respectively.  We can however define getters expicity:
+EOT
+
+code(<<-EOT)
+
+class TrajectoriesBis
+
+  def initialize(times: times, matrix: matrix)
+    @times = times
+    @matrix = matrix
+  end
+  
+  def times
+    @times
+  end
+
+  def matrix
+    @matrix
+  end
+  
+end
+
+traj = TrajectoriesBis.new(times: 1, matrix: 2)
+
+EOT
+
+console(<<-EOT)
+puts traj.times
+EOT
+
+console(<<-EOT)
+puts traj.matrix
+EOT
+
+body(<<-EOT)
+It is also possible to define more sophisticated  getters. For example one can
+regularly need the BMI at inclusion.  In R, one would index a matrix as matrix[,1].  In Ruby,
+it is a syntax error to have a ',' just after the '['.  In this case we need to add 'nil' as
+in matrix[nil, 1]:
+EOT
+
+code(<<-EOT)
+class Trajectories
+
+  def get_traj_inclusion
+    @matrix[nil, 1]
+  end
+  
+end
+EOT
+
+console(<<-EOT)
+trajCochin.get_traj_inclusion.pp
+EOT
+
+subsection("Set")
+
+body(<<-EOT)
+A setter is a method that assigns a value to a variable.  As with getters, Ruby also provides an
+easy way to write setters and allow you to also write them explicitly.  Let's first use the 
+simple way:
+EOT
+
+code(<<-EOT)
+class TrajectoriesBis
+
+  attr_writer :times
+  attr_writer :matrix
+  
+end
+
+traj = TrajectoriesBis.new
+traj.times = R.c(1, 2)
+traj.matrix = R.matrix((1..2), ncol: 2)
+EOT
+
+console(<<-EOT)
+traj.matrix.pp
+EOT
+
+body(<<-EOT)
+Note that now we can use '=' to assign a value to both variables times and matrix. Without 
+setters, changing the value of variables times and matrix was not possible.  Our class, up
+to this point was protected from any changes to those variables.  If we need to allow changes
+to those variable, then setters are needed.  In this case, the simple setter as shown above is
+not ideal, since it would allow changes that break the restriction that variable times has to
+have the same length as the number of columns of matrix.  In order to do the verification we
+need to implement a more sophisticated setter.  In the example bellow, we add the 'times=' setter
+that receives as input one argument.  First we convert the given argument to an R object, then
+check to see that the length of times is the same as the number of columns and if everything is
+fine, then we set the value of instance variable times:
+EOT
+
+#
+# We need to put the times= definiton inside the comment_code block because it accesses a variable
+# from inside the HereDoc.  If we do not comment this access we will get an error saying that
+# @matrix is not a global variable, which is really the case.
+#
+comment_code(<<-EOT)
+class Trajectories
+
+  def times=(times)
+    times = R.convert(times)
+    raise "[Trajectories: validation] the number of temporal measurements \#{times.length.gz} \
+does not correspond with the number of columns in the matrix \#{@matrix.ncol.gz}" if (times.length.gz != @matrix.ncol.gz)
+    @times = times
+  end
+  
+end
+EOT
+
+class Trajectories
+
+  def times=(times)
+    times = R.convert(times)
+    raise "[Trajectories: validation] the number of temporal measurements #{times.length.gz} \
+does not correspond with the number of columns in the matrix #{@matrix.ncol.gz}" if (times.length.gz != @matrix.ncol.gz)
+    @times = times
+  end
+  
+end
+
+console_error(<<-EOT)
+trajCochin.times = (1..5)
+EOT
+
+body(<<-EOT)
+We now set the value approprietaly and will not get any errors:
+EOT
+
+console(<<-EOT)
+trajCochin.times = R.c(1, 5, 6, 8)
+EOT
+
+subsection("The Operator '['")
+
+body(<<-EOT)
+It is also possible to define getters by using the operator '['.  This operator is not usually
+used for returning instance variables and it is preferrable to use the methods we've used above;
+however, for completeness with SS4 we are showing how to define this here.  Operator '[' is 
+better left to be used for array/matrix indices. 
+EOT
+
+code(<<-EOT)
+
+class Trajectories
+
+  def [](var_name)
+    
+    case var_name
+    when "times"
+      @times
+    when "matrix"
+      @matrix
+    else
+      raise "Unknown instance variable"
+    end
+    
+  end
+  
+end
+
+EOT
+
+console(<<-EOT)
+trajCochin["times"].pp
+EOT
+
+body(<<-EOT)
+Similarly, we could use operator '[]=' to assin a value to times and matrix.  We will not do this
+here as we think that the other options are better and the interested user can easily find help,
+if needed to implement such method.
+EOT
+
+section("To Go Further")
+
+body(<<-EOT)
+This section will introduce advance features of Object Oriented programming such as Inheritance 
+and Modules and will also show some aspects of S4 that do not apply to Ruby.
+EOT
+
+subsection("Methods Using Serveral Arguments")
+
+body(<<-EOT)
+In Ruby, methods can have as many arguments as needed and those methods are defined the way we
+have already seen in many of the examples above.  The example in SS4 presents a method that prints
+different output if its input is numeric, character has both.  Let's write a class in Ruby that
+does the same for Numeric and String.  In Ruby we do not define global functions, we always define
+methods inside classes or modules (as we will see later).  Also, Ruby is not typed, so methods are
+not called depending on their types as in SS4 examples.  Bellow, method test will be called with
+one paramenter.  At the time of calling we do not know the type of the argument, the method can
+then check is the received argument is a Numeric or a String and at this time, decide what should
+be printed. 
+EOT
+
+class Test
+
+  def test(input)
+
+    case input
+    when Numeric
+      puts "The input is numeric: #{input}"
+    when String
+      puts "The input is a string: #{input}"
+    else
+      puts "The input is neither a number nor a string"
+    end
+    
+  end
+  
+end
+
+comment_code(<<-EOT)
+class Test
+
+  def test(input)
+
+    case input
+    when Numeric
+      puts "The input is numeric: \#{input}"
+    when String
+      puts "The input is a string: \#{input}"
+    else
+      puts "The input is neither a number nor a string"
+    end
+    
+  end
+  
+end
+
+t = Test.new
+
+EOT
+
+
+console(<<-EOT)
+puts t.test(5)
+EOT
+
+console(<<-EOT)
+puts t.test("Hello")
+EOT
+
+body(<<-EOT)
+Ruby has ways of dealing with multiple arguments, missing arguments, undefined number of arguments,
+named arguments, unnamed arguments, etc.  This is beyond the scope of this document and we 
+suggest the interested reader to go to the many resources about Ruby that can easily be found 
+on the web.
+EOT
+
+subsection("Inheritance")
+
+body(<<-EOT)
+Ruby being a powerful Object Oriented language has the concept of Inheritance, but it does not 
+allow for multiple inheritance.  Multiple inheritance has many drawbacks and Ruby just does not
+support it.  However, Ruby has other concepts that make up for the lack or multiple inheritance as
+we will see in the following examples.
+
+So, let's go back to SS4 examples.  We want now to define a class called TrajPartitioned that 
+inherits from class Trajectories.  When a class has a parent, all methods available for the 
+parent are also available to the child.
+EOT
+
+code(<<-EOT)
+class TrajPartitioned < Trajectories
+
+  attr_reader :list_partitions
+
+end
+EOT
+
+body(<<-EOT)
+Thats all there is to it!  We've just created a class: TrajPartitioned that inherits all methods
+from class Trajectories and at this point does nothing different from Trajectories, but adds a 
+new instance variable: list_partitions.
+EOT
+
+console(<<-EOT)
+tdPitie = TrajPartitioned.new
+EOT

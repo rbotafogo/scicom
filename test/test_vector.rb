@@ -48,7 +48,7 @@ class SciComTest < Test::Unit::TestCase
       dbl_var = R.c(1, 2.5, 4.5)
       assert_equal(2.5, dbl_var[2].gz)
       assert_equal("double", dbl_var.typeof.gz)
-      assert_equal(3, dbl_var.length)
+      assert_equal(3, dbl_var.length.gz)
       assert_equal(false, dbl_var.integer?)
       assert_equal(true, dbl_var.double?)
       assert_equal(true, dbl_var.numeric?)
@@ -56,13 +56,13 @@ class SciComTest < Test::Unit::TestCase
       # int vector: with the R.i, you get an integer rather than a double
       int_var = R.c(R.i(1), R.i(6), R.i(10))
       assert_equal("integer", int_var.typeof.gz)
-      assert_equal(3, int_var.length)
+      assert_equal(3, int_var.length.gz)
       assert_equal(true, int_var.integer?)
       
       # logical vector: Use TRUE and FALSE to create logical vectors
       log_var = R.c(TRUE, FALSE, TRUE, FALSE)
       assert_equal("logical", log_var.typeof.gz)
-      assert_equal(4, log_var.length)
+      assert_equal(4, log_var.length.gz)
       assert_equal(true, log_var.logical?)
 
       str_var = R.c("hello there")
@@ -71,7 +71,7 @@ class SciComTest < Test::Unit::TestCase
       # string vector: create string (character) vectors
       chr_var = R.c("these are", "some strings")
       assert_equal("character", chr_var.typeof.gz)
-      assert_equal(2, chr_var.length)
+      assert_equal(2, chr_var.length.gz)
       assert_equal(true, chr_var.character?)
       assert_equal(true, chr_var.atomic?)
       assert_equal(false, chr_var.numeric?)
@@ -79,7 +79,7 @@ class SciComTest < Test::Unit::TestCase
       # complex vector
       comp_var = R.c(R.complex(real: 2, imaginary: 1), R.complex(real: 0, imaginary: 1))
       assert_equal("complex", comp_var.typeof.gz)
-      assert_equal(2, comp_var.length)
+      assert_equal(2, comp_var.length.gz)
       assert_equal(false, comp_var.integer?)
       assert_equal(false, comp_var.double?)
       assert_equal(true, comp_var.complex?)

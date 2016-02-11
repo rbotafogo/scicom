@@ -243,7 +243,7 @@ class SciComTest < Test::Unit::TestCase
       vec1.pp
 
       # Method length return the number of elements in a vector
-      assert_equal(4, vec1.length)
+      assert_equal(4, vec1.length.gz)
       # The same can be obtained by calling length in R, but remember that R always returns
       # a vector.
       R.length(vec1).pp
@@ -258,7 +258,7 @@ class SciComTest < Test::Unit::TestCase
       vec2.pp
 
       # vec2 has only three elements
-      assert_equal(3, vec2.length)
+      assert_equal(3, vec2.length.gz)
 
     end
 
