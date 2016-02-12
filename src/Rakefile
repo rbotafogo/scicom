@@ -1,5 +1,6 @@
 require 'rbconfig'
-require_relative '../dvlp.rb'
+
+$mdarray = `bundle show mdarray`.strip
 
 PROJECT_DIR = File.expand_path("..",Dir.pwd)
 VENDOR_DIR = "#{PROJECT_DIR}/vendor"
@@ -7,11 +8,12 @@ VENDOR_DIR = "#{PROJECT_DIR}/vendor"
 BUILD_DIR = "build"
 CLASSES_DIR = "#{BUILD_DIR}/classes"
 
-DEPENDENCIES_DIR = ""
+# Depends on MDArray
+DEPENDENCIES_DIR = "#{$mdarray}/vendor"
 
 TARGET_DIR = "#{PROJECT_DIR}/target"
 
-jars = Dir["#{VENDOR_DIR}/*.jar"]
+jars = Dir["#{VENDOR_DIR}/*.jar"] + Dir["#{DEPENDENCIES_DIR}/*.jar"]
 
 unless RUBY_PLATFORM == 'java'
   abort 'Please run with JRuby'

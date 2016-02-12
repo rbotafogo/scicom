@@ -1,3 +1,4 @@
+require 'rbconfig'
 require 'rake/testtask'
 require 'jars/installer'
 require 'jars/classpath'
@@ -5,31 +6,62 @@ require 'rake/javaextensiontask'
 
 require './version'
 
+$env = `uname -o`.strip
+$mdarray = `bundle show mdarray`.strip
+# $mdarray_vendor = "#{$mdarray}/vendor/"
+
+##########################################################################################
+# Prepare environment to work inside Cygwin
+##########################################################################################
+
+if $env == 'Cygwin'
+
+  #---------------------------------------------------------------------------------------
+  # Return the cygpath (windows format) of a path in POSIX format, i.e., /home/...
+  #---------------------------------------------------------------------------------------
+  
+  def set_path(path)
+    `cygpath -a -w #{path}`.tr("\n", "")
+  end
+  
+else
+  
+  #---------------------------------------------------------------------------------------
+  # Return the given path.  When not in cygwin then just use the given path
+  #---------------------------------------------------------------------------------------
+  
+  def set_path(path)
+    path
+  end
+  
+end
+##########################################################################################
+
+# $mdarray_path = set_path($mdarray_vendor)
+
+# p "#{$mdarray_path}"
+# p Dir.entries("#{$mdarray_path}")
+# p FileList["#{$mdarray_path}/*.jar"]
+
 name = "#{$gem_name}-#{$version}.gem"
 
 task :install_jars do
   Jars::JarInstaller.new.vendor_jars
 end
 
-desc 'Compiles extension and run specs'
-task :default => [ :compile, :spec ]
-
-spec = eval File.read( 'scicom.gemspec' )
-
-desc 'compile src/main/java/** into target/scicom_support.jar'
-Rake::JavaExtensionTask.new("scicom_support", spec) do |ext|
-  ext.ext_dir = 'src/main/java'
+Rake::JavaExtensionTask.new("scicom") do |ext|
+  jruby_home = RbConfig::CONFIG['prefix']
+  # ext.ext_dir = 'ext/java'
+  # ext.lib_dir = 'lib/nokogiri'
+  # jars = ["#{jruby_home}/lib/jruby.jar"] + FileList['lib/*.jar']
+  # jars = FileList["#{$mdarray_path}/*.jar"]
+  jars = FileList['vendor/*.jar']
+  ext.classpath = jars.map { |x| File.expand_path x }.join ':'
+  # ext.debug = true if ENV['JAVA_DEBUG']
 end
 
-require 'rubygems/package_task'
-Gem::PackageTask.new( spec ) do
-  desc 'Pack gem'
-  task :package => [:install_jars, :compile]
-end
-
-rule '.class' => '.java' do |t|
-  sh "javac #{t.source}"
-end
+desc 'compile java files'
+Rake::JavaExtensionTask.new("scicom")
 
 desc 'Makes a Gem'
 task :make_gem do
