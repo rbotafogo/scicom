@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-
 ##########################################################################################
 # @author Rodrigo Botafogo
 #
@@ -21,7 +20,6 @@
 # OR MODIFICATIONS.
 ##########################################################################################
 
-require 'java'
 require 'securerandom'
 
 require_relative 'rbsexp'
@@ -209,7 +207,11 @@ class Renjin
   end
 
   #----------------------------------------------------------------------------------------
-  #
+  # When calling a R.<id>, we will call method_missing.  This can be an assignment:
+  # R.name = <value>, can be a variable access: puts R.name, a call to a function without
+  # arguments R.<function> or a function with arguments. If it is a call to a function
+  # with arguments, then all arguments need to be parsed (and converted to R) and then
+  # the function is called.
   #----------------------------------------------------------------------------------------
 
   def method_missing(symbol, *args)
@@ -221,10 +223,8 @@ class Renjin
     name.gsub!("rclass", "class")
 
     if name =~ /(.*)=$/
-      super if args.length != 1
       ret = assign($1,args[0])
     else
-      # super if args.length != 0
       if (args.length == 0)
         # is_var = false
         # Try to see if name is a variable or a method.
@@ -322,7 +322,8 @@ class Renjin
   end
 
   #----------------------------------------------------------------------------------------
-  #
+  # Parse an argument and returns a piece of R script needed to build a complete R
+  # statement.
   #----------------------------------------------------------------------------------------
 
   def parse(*args)

@@ -1,8 +1,6 @@
 # -*- coding: utf-8 -*-
 
 ##########################################################################################
-# @author Rodrigo Botafogo
-#
 # Copyright © 2013 Rodrigo Botafogo. All Rights Reserved. Permission to use, copy, modify, 
 # and distribute this software and its documentation, without fee and without a signed 
 # licensing agreement, is hereby granted, provided that the above copyright notice, this 
@@ -21,36 +19,43 @@
 # OR MODIFICATIONS.
 ##########################################################################################
 
+require 'rubygems'
+require "test/unit"
+require 'shoulda'
 
-class Renjin
+require '../config' if @platform == nil
+require 'scicom'
 
-  class Environment < Renjin::RubySexp
+class SciComTest < Test::Unit::TestCase
 
-    #----------------------------------------------------------------------------------------
+  context "R environment" do
+
+    #--------------------------------------------------------------------------------------
     #
-    #----------------------------------------------------------------------------------------
+    #--------------------------------------------------------------------------------------
 
-    def method_missing(symbol, *args)
+    setup do 
       
-      name = symbol.id2name
-      if name =~ /(.*)=$/
-        # should never reach this point.  Parse error... but check
-        raise ArgumentError, "You shouldn't assign nil" if args==[nil]
-        ret = R.assign($1,args[0])
-      else
-        name.gsub!(/__/,".")
-        # super if args.length != 0
-        if (args.length == 0)
-          # treat the argument as a named item of the list
-          ret = Renjin::RubySexp.build(@sexp.getVariable(name))
-        else
-          params = parse(*args)
-          ret = eval("#{name}(#{params})")
-        end
-      end
+    end
+
+    #--------------------------------------------------------------------------------------
+    #
+    #--------------------------------------------------------------------------------------
+
+    should "create a callback method" do
       
-      ret
+
+      props1 = [1, 2, 3]
+      props2 = [1, 2]
+      props = [props1, props2]
       
+      cb = Callback.pack(props, recursive: true)
+
+      R.assign("x", cb)
+      R.eval("print(x$run('length'))")
+      R.eval("val <- sapply(x, function(x) x$run('length'))")
+      R.eval("print(val)")
+
     end
 
   end

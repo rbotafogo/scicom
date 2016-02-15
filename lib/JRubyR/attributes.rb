@@ -40,7 +40,11 @@ class Renjin
     end
 
     #----------------------------------------------------------------------------------------
-    #
+    # When accessing an attribute, we need to keep track of the object that holds the
+    # attribute.  This is necessary for the following construct to work:
+    # elmt.attr.name = "name".  In this case, we need to change the attribute of elmt and
+    # in R this is done by elmt.attr <- name. But when parsing Ruby, when we get to
+    # elmt.attr.name, it is to late.
     #----------------------------------------------------------------------------------------
     
     def method_missing(symbol, *args)
@@ -52,7 +56,6 @@ class Renjin
       name.gsub!("rclass", "class")
       
       if name =~ /(.*)=$/
-        super if args.length != 1
         args = R.parse(*args)
         ret = R.eval("attr(#{@rbsexp.r}, \"#{name.delete!('=')}\") = #{args}")
       else

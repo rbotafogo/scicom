@@ -48,6 +48,9 @@ class SciComTest < Test::Unit::TestCase
       @trth_vec2 = R.c(FALSE, FALSE)
       @gl = R.gl(2, 3)
 
+      # names is a Ruby array
+      @names = ["Lisa", "Teasha", "Aaron", "Thomas"]
+
     end
 
     #--------------------------------------------------------------------------------------
@@ -93,7 +96,12 @@ class SciComTest < Test::Unit::TestCase
       assert_equal("character", @x[["second"]].typeof.gz)
       assert_equal("yes", @x[["second"]][1].gz)
       assert_equal(2, @x[["fourth"]][4].gz)
-      
+
+      assert_equal("first", @x.names[1].gz)
+      assert_equal("second", @x.names[2].gz)
+      assert_equal("third", @x.names[3].gz)
+      assert_equal("fourth", @x.names[4].gz)
+
     end
 
     #--------------------------------------------------------------------------------------
@@ -174,24 +182,55 @@ class SciComTest < Test::Unit::TestCase
     end
 
     #--------------------------------------------------------------------------------------
+    # Assign a Ruby array to R.  The array is converted into a list.
+    #--------------------------------------------------------------------------------------
+
+    should "be able to assign a Ruby array to R" do
+
+      # Ruby Arrays can be used as arguments to R functions.  A Ruby Array will be
+      # converted to an R list.
+      people = R.identity(@names)
+
+      # Indexing of lists can be done by [x] or [[x]].  The first indexing still returns a
+      # list while the latter returns an element of the list.  In the latter case we can
+      # use gz to retrieve the value of the element, on the first case, gz does not work
+      # as we cannot get convert the first element of a list to a Ruby value.
+      assert_equal("Lisa", people[[1]].gz)
+      assert_equal("Teasha", people[[2]].gz)
+      assert_equal("Aaron", people[[3]].gz)
+      assert_equal("Thomas", people[[4]].gz)
+
+      assert_equal(true, (R.list("Lisa")._ :in, people[1]).gt)
+      assert_equal(false, (R.list("Lisa")._ :in, people[2]).gt)
+
+    end
+
+    #--------------------------------------------------------------------------------------
     #
     #--------------------------------------------------------------------------------------
 
-    should "be able to assign a Ruby array to R (not really recommended)" do
+    should "unlist a list" do
 
-      # names is a Ruby array
-      names = ["Lisa", "Teasha", "Aaron", "Thomas"]
+      people = R.convert(@names)
+      vec = people.unlist
+      assert_equal("Lisa", vec[1].gz)
+      assert_equal("Teasha", vec[2].gz)
+      assert_equal("Aaron", vec[3].gz)
+      assert_equal("Thomas", vec[4].gz)
 
-      # Ruby Arrays can be used as arguments to R functions.  An Ruby Array will be
-      # converted to an R list.
-      people = R.identity(names)
-      people.pp
+    end
+
+    #--------------------------------------------------------------------------------------
+    #
+    #--------------------------------------------------------------------------------------
+
+    should "assign values to Ruby variables and R variables" do
 
       # If a Ruby Array is assigned to an R variable, this R variable is a list.  Note
       # that variable 'people' above and variable 'R.people' are two different variables.
       # While the first is defined in the Ruby environment, the second is defined in 
       # R environment.
-      R.people = names
+      R.people = @names
       R.people.pp
 
       R.lst = [1, 2, 3, 4, 5, 6]
