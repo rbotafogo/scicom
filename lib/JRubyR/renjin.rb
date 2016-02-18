@@ -241,43 +241,6 @@ class Renjin
   end
 
   #----------------------------------------------------------------------------------------
-  # R built-in constants
-  #----------------------------------------------------------------------------------------
-
-  def pi
-    eval("pi")
-  end
-
-  def LETTERS
-    eval("LETTERS")
-  end
-
-  def letters
-    eval("letters")
-  end
-
-  def month__abb
-    eval("month.abb")
-  end
-
-  def month__name
-    eval("month.name")
-  end
-
-  def i(value)
-    eval("#{value}L")
-  end
-
-  def d(value)
-    eval("#{value}")
-  end
-
-  def md(value)
-    Renjin::Vector.new(build_vector(value))
-  end
-
-
-  #----------------------------------------------------------------------------------------
   #
   #----------------------------------------------------------------------------------------
 
@@ -434,13 +397,16 @@ class Renjin
 
     original_value = value
 
-    if ((value.is_a? MDArray) || (value.is_a? RubySexp))
+    if ((value.is_a? MDArray)) # || (value.is_a? RubySexp))
       if (value.sexp != nil)
         # MDArray already represented in R
         value = value.sexp
       else
         value = build_vector(value)
       end
+    elsif (value.is_a? RubySexp)
+      puts "I'm a Sexp: #{value} and value.sexp is #{value.sexp}"
+      value = value.sexp
     elsif (value == nil)
       value = NULL
     end
@@ -510,14 +476,64 @@ class Renjin
 
   end
 =end
-  #----------------------------------------------------------------------------------------
-  # Builds a Renjin vector from an MDArray. Should be private, but public for testing.
-  #----------------------------------------------------------------------------------------
-
-  # private
 
   #----------------------------------------------------------------------------------------
-  # Builds a Renjin vector from an MDArray. Should be private, but public for testing.
+  # R built-in constants
+  #----------------------------------------------------------------------------------------
+
+  def pi
+    eval("pi")
+  end
+
+  def LETTERS
+    eval("LETTERS")
+  end
+
+  def letters
+    eval("letters")
+  end
+
+  def month__abb
+    eval("month.abb")
+  end
+
+  def month__name
+    eval("month.name")
+  end
+
+  def i(value)
+    eval("#{value}L")
+  end
+
+  def d(value)
+    eval("#{value}")
+  end
+
+  #----------------------------------------------------------------------------------------
+  # Creates a new Renjin Vector based on an MDArray
+  #----------------------------------------------------------------------------------------
+
+  def md(value)
+    Renjin::Vector.new(build_vector(value))
+  end
+
+  #----------------------------------------------------------------------------------------
+  # Packs a ruby class inside a RBSexp, so that methods in the Ruby class can be called
+  # back from inside an R script
+  #----------------------------------------------------------------------------------------
+
+  def rpack(ruby_class, scope: :external)
+    Renjin::Callback.pack(ruby_class, scope: scope)
+  end
+
+  #----------------------------------------------------------------------------------------
+  #
+  #----------------------------------------------------------------------------------------
+
+  private
+
+  #----------------------------------------------------------------------------------------
+  # Builds a Renjin vector from an MDArray. 
   #----------------------------------------------------------------------------------------
   
   def build_vector(mdarray)

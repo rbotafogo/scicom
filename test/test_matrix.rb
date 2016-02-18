@@ -102,8 +102,8 @@ class SciComTest < Test::Unit::TestCase
         .fassign(:colnames, R.paste("V", R.seq(1, xij.attr.dim[2]), sep: ""))
         .pp
 
-      # Just as we could with vectors, we can add, subtract, muliply or divide the matrix 
-      # by a scaler (a number with out a dimension)
+      # Just as we could with vectors, we can add, subtract, multiply or divide the matrix 
+      # by a scalar (a number with out a dimension)
       (xij + 4).pp
 
       ((xij + 4) / 3).round(2).pp
@@ -197,5 +197,5 @@ class SciComTest < Test::Unit::TestCase
     end
 
   end
-
+  
 end

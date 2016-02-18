@@ -29,109 +29,6 @@ require_relative "attributes"
 
 class Renjin
 
-  module Index
-    
-    #----------------------------------------------------------------------------------------
-    #
-    #----------------------------------------------------------------------------------------
-    
-    def [](*index)
-      index = parse(index)
-      R.eval("#{r}[#{index}]")
-    end
-        
-    #----------------------------------------------------------------------------------------
-    #
-    #----------------------------------------------------------------------------------------
-    
-    def []=(*index, value)
-      index = parse(index)
-      value = R.parse(value)
-      R.eval("#{r}[#{index}] = #{value}")
-    end
-
-    #----------------------------------------------------------------------------------------
-    #
-    #----------------------------------------------------------------------------------------
-
-    def parse(index)
-
-      params = Array.new
-
-      index.each do |i|
-        if (i.is_a? Array)
-          params << i
-        else
-          params << R.parse(i)
-        end
-      end
-      
-      ps = String.new
-      params.each_with_index do |p, i|
-        ps << "," if i > 0
-        ps << ((p == "NULL")? "" : p.to_s)
-      end
-
-      ps
-
-    end
-
-    #----------------------------------------------------------------------------------------
-    # Module Index is included in list and vector. We allow access to list/vector elements
-    # by name.  Two underscores are replaced with a '.' in order to be able to call methods
-    # in R that have a '.' such as is.na, becomes R.is__na. 
-    #----------------------------------------------------------------------------------------
-
-    def method_missing(symbol, *args)
-      
-      name = symbol.id2name
-      name.gsub!(/__/,".")
-      
-      if name =~ /(.*)=$/
-        # p "#{r}$#{$1} = #{args[0].r}"
-        # ret = R.eval("#{r}[\"#{name}\"] = #{args[0].r}")
-        ret = R.eval("#{r}$#{$1} = #{args[0].r}")
-      elsif (args.length == 0)
-        # treat name as a named item of the list
-        if (R.eval("\"#{name}\" %in% names(#{r})").gt)
-          ret = R.eval("#{r}[[\"#{name}\"]]")
-        else
-          ret = R.eval("#{name}(#{r})") if ret == nil 
-        end
-      elsif (args.length > 0)
-        # p "#{name}(#{r}, #{R.parse(*args)})"
-        ret = R.eval("#{name}(#{r}, #{R.parse(*args)})")
-      else
-        raise "Illegal argument for named list item #{name}"
-      end
-      
-      ret
-      
-    end
-
-    #----------------------------------------------------------------------------------------
-    # We use the following notation to access binary R functions such as %in%:
-    # R.vec_ "in", list.
-    #----------------------------------------------------------------------------------------
-
-    def _(*args)
-      method = "%#{args.shift.to_s}%"
-      arg2 = R.parse(*args)
-      ret = R.eval("#{r} #{method} #{arg2}")
-    end
-    
-    #----------------------------------------------------------------------------------------
-    #
-    #----------------------------------------------------------------------------------------
-    
-    def each(&block)
-      while (@iterator.hasNext())
-        block.call(@iterator.next())
-      end
-    end
-
-  end
-
   #==========================================================================================
   # Module to wrapp every Renjin SEXP.
   #==========================================================================================
@@ -241,22 +138,6 @@ class Renjin
       print
     end
     
-    #----------------------------------------------------------------------------------------
-    #
-    #----------------------------------------------------------------------------------------
-
-    def nrow
-      R.nrow(self)
-    end
-
-    #----------------------------------------------------------------------------------------
-    #
-    #----------------------------------------------------------------------------------------
-
-    def ncol
-      R.ncol(self)
-    end
-
   end
   
 end
@@ -334,8 +215,7 @@ class Renjin
 end
 
 require_relative 'ruby_classes'
-require_relative 'vector'
-require_relative 'list'
+require_relative 'indexed'
 require_relative 'function'
 require_relative 'logical_value'
 require_relative 'environment'

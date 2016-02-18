@@ -294,6 +294,30 @@ class SciComTest < Test::Unit::TestCase
 
     end
 
+    #--------------------------------------------------------------------------------------
+    #
+    #--------------------------------------------------------------------------------------
+
+    should "create lists" do
+
+      p "creating list"
+      R.eval("lst = c('a', 'b', 'c')")
+      R.eval("print(lst)")
+      # the returned value is a list
+      rb_lst = R.lst
+      p "this is the list"
+      rb_lst.pp
+
+      # assign to an R variable the rb_lst returned previously.  The original variable
+      # is still valid
+      R.assign("lst2", rb_lst)
+      R.eval("print(lst2)")
+      R.lst2 = R.c("new list")
+      R.lst.pp
+      R.lst2.pp
+
+    end
+    
   end
   
 end
