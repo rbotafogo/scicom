@@ -34,6 +34,10 @@ class Java::OrgRenjinSexp::LogicalArrayVector
   field_reader :values
 end
 
+class Java::OrgRenjinSexp::LongArrayVector
+  field_reader :values
+end
+
 #==========================================================================================
 #
 #==========================================================================================
@@ -172,6 +176,8 @@ class Renjin
         @mdarray = MDArray.build_from_nc_array(:double, @sexp.array)
       elsif (@sexp.java_kind_of? Java::OrgRenjinSexp::DoubleArrayVector)
         @mdarray = MDArray.from_jstorage("double", [@sexp.length()], @sexp.toDoubleArrayUnsafe())
+      elsif (sexp.instance_of? Java::OrgRenjinSexp::LongArrayVector)
+        @mdarray = MDArray.from_jstorage("long", [@sexp.length()], @sexp.values)
       elsif (@sexp.java_kind_of? Java::OrgRenjinSexp::IntArrayVector)
         @mdarray = MDArray.from_jstorage("int", [@sexp.length()], @sexp.toIntArrayUnsafe())
       elsif (@sexp.java_kind_of? Java::OrgRenjinSexp::StringArrayVector)
@@ -179,8 +185,7 @@ class Renjin
       elsif (@sexp.java_kind_of? Java::OrgRenjinSexp::LogicalArrayVector)
         @mdarray = MDArray.from_jstorage("int", [@sexp.length()], @sexp.values)
       else
-        p "sexp type needs to be specialized: #{@sexp}"
-        # p @sexp
+        p "as__mdarray: sexp type needs to be specialized: #{@sexp}"
         @mdarray = Renjin::RubySexp.new(@sexp)
       end
       

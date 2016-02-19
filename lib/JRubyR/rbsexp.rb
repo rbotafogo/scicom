@@ -199,10 +199,12 @@ class Renjin
         res = Renjin::Vector.new(sexp)
       elsif (sexp.is_a? Java::OrgRenjinSexp::Closure)
         res = Renjin::Closure.new(sexp)
+      elsif (sexp.is_a? Java::OrgRenjinSexp::ExternalPtr)
+        res = Renjin::RubySexp.new(sexp)
       # elsif (sexp.is_a? Java::OrgRenjinPrimitives::R$primitive$sum)
         # res = Renjin::Primitive.new(sexp)
       else
-        puts "sexp type needs to be specialized: #{sexp}"
+        puts "rbsexp build: sexp type needs to be specialized: #{sexp}"
         res = Renjin::RubySexp.new(sexp)
       end
       

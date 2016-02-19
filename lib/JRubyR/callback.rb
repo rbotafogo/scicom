@@ -42,8 +42,9 @@ class Renjin
     #----------------------------------------------------------------------------------------
 
     def run(method, *args)
-      puts "method #{method} called with args: #{args}"
-      @ruby_obj.send(method, *args)
+      # puts "method #{method} called with args: #{args}"
+      # The returned value from the called method should be packed.
+      Callback.pack(@ruby_obj.send(method, *args))
     end
     
     #----------------------------------------------------------------------------------------
@@ -56,6 +57,12 @@ class Renjin
 
     def self.pack(obj, scope: :external)
 
+      # Do not pack basic types Boolean, Numberic or String
+      case obj
+      when TrueClass, FalseClass, Numeric, String
+        return obj
+      end
+      
       case scope
       when :internal
         obj.map! { |pk| Callback.new(pk) }
