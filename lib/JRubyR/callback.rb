@@ -3,7 +3,7 @@
 ##########################################################################################
 # @author Rodrigo Botafogo
 #
-# Copyright © 2013 Rodrigo Botafogo. All Rights Reserved. Permission to use, copy, modify, 
+# Copyright © 2016 Rodrigo Botafogo. All Rights Reserved. Permission to use, copy, modify, 
 # and distribute this software and its documentation, without fee and without a signed 
 # licensing agreement, is hereby granted, provided that the above copyright notice, this 
 # paragraph and the following two paragraphs appear in all copies, modifications, and 
@@ -48,6 +48,23 @@ class Renjin
     end
     
     #----------------------------------------------------------------------------------------
+    #
+    #----------------------------------------------------------------------------------------
+
+    def get_class(class_name)
+      run("const_get", class_name)
+    end
+
+    #----------------------------------------------------------------------------------------
+    #
+    #----------------------------------------------------------------------------------------
+
+    def build(class_name, *args)
+      klass = get_class(class_name)
+      klass.run("new", *args)
+    end
+
+    #----------------------------------------------------------------------------------------
     # Scope can be:
     #  * external: only the received object is packed
     #  * internal: only the internal objects are packed.  In this case, the received object
@@ -65,7 +82,9 @@ class Renjin
       
       case scope
       when :internal
-        obj.map! { |pk| Callback.new(pk) }
+        raise "Cannot rpack object's internals as it does not respond to the :each method." if
+          !obj.respond_to?(:each)
+        obj.map { |pk| Callback.new(pk) }
       when :external
         Callback.new(obj)
       when :all

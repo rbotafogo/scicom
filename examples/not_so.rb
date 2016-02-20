@@ -1726,3 +1726,23 @@ console(<<-EOT)
 tdCochin.to_part(:max).part.pp
 EOT
 
+
+
+section("ET Phone Home")
+
+code(<<-EOT)
+class TrajPartitioned
+
+  def to_part2
+    R.pack = R.rpack(@list_partitions, scope: :internal)
+    number_groups = R.eval("sapply(pack, function(x) x$run('nb_groups'))")
+    @list_partitions[number_groups.which__min.gz]
+  end
+  
+end
+EOT
+
+
+console(<<-EOT)
+tdCochin.to_part2.part.pp
+EOT

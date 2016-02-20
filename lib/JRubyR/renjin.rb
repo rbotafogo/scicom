@@ -405,7 +405,7 @@ class Renjin
         value = build_vector(value)
       end
     elsif (value.is_a? RubySexp)
-      puts "I'm a Sexp: #{value} and value.sexp is #{value.sexp}"
+      # puts "I'm a Sexp: #{value} and value.sexp is #{value.sexp}"
       value = value.sexp
     elsif (value == nil)
       value = NULL
@@ -578,6 +578,8 @@ end
 
 # Create a new R interpreter
 R = Renjin.new
+
+# Add some constants to the R interpreter
 NA = R.eval("NA")
 NaN = R.eval("NaN")
 Inf = R.eval("Inf")
@@ -585,3 +587,7 @@ MInf = R.eval("-Inf")
 NULL = R.direct_eval("NULL")
 # EPSILON = R.eval("EPSILON")
 # NA_integer = R.eval("NA_integer")
+
+# create a R variable Ruby.Object that allow access to Ruby Object class
+R.Ruby__Object = Renjin::Callback.new(Object)
+

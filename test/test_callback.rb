@@ -62,6 +62,7 @@ class SciComTest < Test::Unit::TestCase
 
       # Remember that ruby__array, becomes ruby.array inside the R script
       R.eval(<<-EOT)
+        print(typeof(ruby.array))
         ruby.array$run('<<', 4)
         ruby.array$run('<<', 5)
       EOT
@@ -111,35 +112,33 @@ class SciComTest < Test::Unit::TestCase
       EOT
       assert_equal(3, hh["c"])
       assert_equal(4, hh["d"])
-
-
-      R.Ruby__Object = R.rpack(Object)
-      
-      R.eval(<<-EOT)
-        String <- Ruby.Object$run("const_get", "String")
-        string <- String$run("new", "this is a new string")
-        Marshal <- Ruby.Object$run("const_get", "Marshal")
-        str <- Marshal$run("dump", string)
-        print(str)
-        restored <- Marshal$run("load", str)
-        print(restored)
-      EOT
       
     end
-=begin
+
     #--------------------------------------------------------------------------------------
     #
     #--------------------------------------------------------------------------------------
 
-    should "callback all internal elements" do
-      
-      props1 = [1, 2, 3]
-      props2 = [1, 2]
-      props = [props1, props2]
+    should "allow use of Ruby classes and objects inside an R script" do
 
-      R.rpack(props, scope: :internal)
-      R.eval("val <- sapply(#{array.r}, function(x) x$run('length'))")
-      p props
+      R.eval(<<-EOT)
+        # This is an actuall R script, which allows the creation and use of Ruby classes
+        # and methods.
+        # Create a string, from class String in Ruby.  Use function build to intanciate a 
+        # new object
+        string <- Ruby.Object$build("String", "this is a new string")
+
+        # Use function get_class to get a Ruby class
+        Marshal <- Ruby.Object$get_class("Marshal")
+
+        # Method 'dump' is a Marshal class method as is 'load' 
+        str <- Marshal$run("dump", string)
+        restored <- Marshal$run("load", str)
+      EOT
+      
+      assert_equal("this is a new string", R.string.gz)
+      assert_equal(Marshal.dump("this is a new string"), R.str.gz)
+      assert_equal("this is a new string", R.restored.gz)
 
     end
     
@@ -149,52 +148,32 @@ class SciComTest < Test::Unit::TestCase
 
     should "callback all internal elements" do
 
-      ret = R.rpack(props, scope: :all)
-      p ret
+      # Create two arrays and store them in a third array
+      props1 = [1, 2, 3]
+      props2 = [10, 20]
+      props = [props1, props2]
+
+      # rpack the internal's of the container array props, i.e, pack only arrays
+      # props1 and props2.  Array props is not being packed as Ruby arrays are morphed
+      # into R lists.  And a list good for what we want.  In order to work on R side
+      # we store the packed array into variable 'jake'
+      R.jake = R.rpack(props, scope: :internal)
+
+      R.eval(<<-EOT)
+        # We want to find the vector with the least elements we have stored.  We can use
+        # sapply to get the length of all vectors.  Although variable 'jake' is a regular
+        # R list, it's internal elements are rpacked Ruby objects
+        smallest <- which.min(sapply(jake, function(x) x$run("length")))
+
+        # Remember, the list has only rpacked Ruby objects.  To print it, we need to convert
+        # it to a string.
+        print(jake[[smallest]]$run('to_s'))
+      EOT
+      
+      # R.eval("val <- sapply(jake, function(x) x$run('length'))")
 
     end
-=end
+    
   end
   
 end
-
-
-
-=begin
-    #--------------------------------------------------------------------------------------
-    #
-    #--------------------------------------------------------------------------------------
-
-    should "work with varargs" do
-
-      class Bogus
-        include Java::RbScicom.BogusInterface
-        
-        attr_reader :ruby_obj
-        
-        #----------------------------------------------------------------------------------------
-        #
-        #----------------------------------------------------------------------------------------
-        
-        def initialize(ruby_obj)
-          @ruby_obj = ruby_obj
-        end
-        
-        #----------------------------------------------------------------------------------------
-        #
-        #----------------------------------------------------------------------------------------
-        
-        def run(method, *args)
-          @ruby_obj.send(method, *args)
-        end
-        
-      end
-      
-      props1 = [1, 2, 3]
-      
-      cb = Bogus.new(props1)
-      R.assign("x", cb)
-      R.eval("x$run('length')")
-
-    end
-=end
