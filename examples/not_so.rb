@@ -33,8 +33,8 @@ libraries or to provide some form of communication between separate processes. T
 interfaces are often the source of much agony because they place very specific demands on the 
 environment in which they run.
 
-We frenquently see on the web people asking: "which is better for data analysis: R or Python?" In
-This article we also have the objetive to try to answer this question.  As you will see, our 
+We frequently see on the web people asking: "which is better for data analysis: R or Python?" In
+This article we also have the objective to try to answer this question.  As you will see, our 
 point is: "when in doubt about R or Python, use SciCom!"
 
 EOT
@@ -42,7 +42,7 @@ EOT
 subsubsection("Limitations")
 
 body(<<-EOT)
-Unfortunately, SciCom has three main limitations, and although we think that "use Scicom!" is a 
+Unfortunately, SciCom has three main limitations, and although we think that "use SciCom!" is a 
 good catch phrase, at this point we don't see SciCom as being able to substitute R.  The three
 limitations are:
 
@@ -55,6 +55,23 @@ matplotlib;
 * SciCom does not have a large user community.  Actually it does not even have a small user 
 community.  Without a user community, no free software can survive.  I hope this paper will help
 attract some people to this new community.
+EOT
+
+subsubsection("A Note of Advice")
+
+body(<<-EOT)
+Renjin's internal representations of vectors are immutable.  This can be very important for 
+large datasets allowing for lazy operations and delaying them to as late as possible.  SciCom's
+goal is to make integration of Ruby and R as seamless as possible, and as will be seen in this
+document, R functions look like class methods on an Ruby R class.  The frontier between Ruby 
+and R is made as thin and transparent as possible and in some cases data in a Ruby object is
+shared with data in an R object.  In this case, we do not try to make Ruby data immutable and
+since Renjin expects it to be immutable, it is possible for weird problems to creep into the code.
+For instance, MDArray data is shared between Ruby and R and changing an element in MDArray will
+change the R dataframe without copying.  We believe that this can be very helpful in some 
+circumstance, but dangerous in others.  If, by any change, your code start showing strange 
+behavior and you are sharing data between R and Ruby, make sure that you know what you are
+doing.   
 EOT
 
 chapter("Bases of Object Programming")
@@ -95,7 +112,7 @@ document.
 In the example bellow, we create 
 class Trajectories with two instance variables, 'times' and 'matrix'.  We will not go over 
 the details of instance variables in Ruby, but here we created those variables with the 
-keyword 'attr_reader' and a colomn before the variables name:
+keyword 'attr_reader' and a column before the variables name:
 EOT
 
 code(<<-EOT)
@@ -138,7 +155,7 @@ subsection("Constructor")
 
 body(<<-EOT)
 Since there is no content stored in 'times' nor 'matrix', nil is returned.  In order to add
-a value in the variables, we need to add a contructor the class Trajectories.  In R, a 
+a value in the variables, we need to add a constructor the class Trajectories.  In R, a 
 constructor is build by default, in Ruby, this has to be created by adding a method called
 'initialize'.  In the example bellow, we will create the initializer that accepts two values,
 a 'times' value and a 'matrix' value and they are used to initialize the value of the 
@@ -171,7 +188,7 @@ i.e., R functions are all defined in SciCom in the R namespace.
 
 Since SciCom is Ruby and not R, some syntax adjustments are sometimes necessary.  For instance,
 in R, a range is represented as '(1:4)', in Ruby, the same range is represented as '(1..4)'. 
-When passing arguments to an R funciton in R one uses the '=' sign after the slot name; in R,
+When passing arguments to an R function in R one uses the '=' sign after the slot name; in R,
 one uses the ':' operator after parameter's name as we can see bellow:
 EOT
 
@@ -186,9 +203,9 @@ EOT
 subsection("Access to Instance Variables (to reach a slot)")
 
 body(<<-EOT)
-In order to access data in an instace variable the operator '.' is used.  In R, a similar
-result is obtained by use of the '@' operator, but SS4 does not recomend its use.  In SciCom,
-the '.' operator is the recomended way of accessing an instance variable.
+In order to access data in an instance variable the operator '.' is used.  In R, a similar
+result is obtained by use of the '@' operator, but SS4 does not recommend its use.  In SciCom,
+the '.' operator is the recommended way of accessing an instance variable.
  
 Now that we have created two trajectories, let's try to print its instance variables to see 
 that everything is fine:
@@ -224,7 +241,7 @@ EOT
 body(<<-EOT)
 Let's now build the same examples as in SS4:  Three hospitals take part in a 
 study. The Pitié Salpêtriere (which has not yet returned its data file, shame on them!),
-Cochin and Saint-Anne.  We first show the code in R and the the corresponding SciCom:
+Cochin and Saint-Anne.  We first show the code in R and the corresponding SciCom:
 EOT
 
 comment_code(<<-EOT)
@@ -278,7 +295,7 @@ trajStAnne =
 EOT
 
 body(<<-EOT)
-Let's check that the 'times' and 'matrix' instace variables were correctly set:
+Let's check that the 'times' and 'matrix' instance variables were correctly set:
 EOT
 
 console(<<-EOT)
@@ -304,7 +321,7 @@ body(<<-EOT)
 Default values are very useful and quite often used in Ruby programs.  Although SS4 does not
 recommend its use, there are many cases in which default values are useful and make code simpler.
 We have already seen default values in this document, with the default being 'nil'.  This was
-necessary in order to be able to create our constructor and passing it the propoper values.
+necessary in order to be able to create our constructor and passing it the proper values.
 
 In the example bellow, a class TrajectoriesBis is created with default value 1 for times and a 
 matrix with no elements in matrix.
@@ -330,7 +347,7 @@ body(<<-EOT)
 Let's take a look at our new class:
 EOT
 
-console_error(<<-EOT)
+console(<<-EOT)
 traj_bis.times.pp
 EOT
 
@@ -391,16 +408,16 @@ subsection ("The Empty Object")
 body(<<-EOT)
 When a Trajectories is created with new, and no argument is given, all its instance variables
 will have the default nil value.  Since Ruby has no type information, then there is only one
-type (or actually no type) of nil.  To check if a variable is empty, we check it agains the nil
+type (or actually no type) of nil.  To check if a variable is empty, we check it against the nil
 value.
 EOT
 
 subsection ("To See an Object")
 
 body(<<-EOT)
-Ruby has very strong meta-programming features, in particular, one can use instrospection to 
+Ruby has very strong meta-programming features, in particular, one can use introspection to 
 see methods and instance variables from a given class.  Method 'instance_variables' shows all
-the instace variables of an object:
+the instance variables of an object:
 EOT
 
 console(<<-EOT)
@@ -418,7 +435,7 @@ section ("Methods")
 body(<<-EOT)
 Methods are a fundamental feature of object oriented programming. We will now extend our class
 Trajectories to add methods to it.  In SS4, a method 'plot' is added to Trajectories.  At this
-point, Renjin and SciCom do not yet have ploting capabilities, so we will have to skip this 
+point, Renjin and SciCom do not yet have plotting capabilities, so we will have to skip this 
 method and go directly to the implementation of the 'print' method.
 
 Bellow is the R code for method print:
@@ -427,16 +444,16 @@ EOT
 comment_code(<<-EOT)
 > setMethod ("print","Trajectories",
 + function(x,...){
-+ cat("*** Class Trajectories, method Print *** \n")
++ cat("*** Class Trajectories, method Print *** \\n")
 + cat("* Times ="); print (x@times)
-+ cat("* Traj = \n"); print (x@traj)
-+ cat("******* End Print (trajectories) ******* \n")
++ cat("* Traj = \\n"); print (x@traj)
++ cat("******* End Print (trajectories) ******* \\n")
 + }
 + )
 EOT
 
 body(<<-EOT)
-Now the same code for class Trajectories in Scicom.  In general methods are defined in a class
+Now the same code for class Trajectories in SciCom.  In general methods are defined in a class
 together with all the class definition.  We will first use this approach. Later, we will show
 how to 'reopen' a class to add new methods to it.
 
@@ -492,13 +509,13 @@ EOT
 comment_code(<<-EOT)
 > setMethod("show","Trajectories",
 + function(object){
-+ cat("*** Class Trajectories, method Show *** \n")
++ cat("*** Class Trajectories, method Show *** \\n")
 + cat("* Times ="); print(object@times)
 + nrowShow <- min(10,nrow(object@traj))
 + ncolShow <- min(10,ncol(object@traj))
-+ cat("* Traj (limited to a matrix 10x10) = \n")
++ cat("* Traj (limited to a matrix 10x10) = \\n")
 + print(formatC(object@traj[1:nrowShow,1:ncolShow]),quote=FALSE)
-+ cat("******* End Show (trajectories) ******* \n")
++ cat("******* End Show (trajectories) ******* \\n")
 + }
 + )
 EOT
@@ -563,7 +580,7 @@ code(<<-EOT)
 empty_traj = Trajectories.new
 EOT
 
-console_error(<<-EOT)
+console(<<-EOT)
 empty_traj.show
 EOT
 
@@ -639,7 +656,7 @@ EOT
 
 body(<<-EOT)
 Here we introduce another particular case of SciCom.  R has many methods that have a '.' in 
-there names, such as 'is.na'.  In Ruby, the dot '.' is has a special meaning as it is the way
+their names, such as 'is.na'.  In Ruby, the dot '.' is has a special meaning as it is the way
 we call a method on an object.  Doing 'R.is.na' will not work.  So, in SciCom, R functions that
 have a dot in then will have the dot substituted by '__'.  So, method is.na in SciCom, becomes 
 R.is__na.  In method count_missing we use method chaining and convert the final count to a number.
@@ -704,7 +721,7 @@ comment_code(<<-EOT)
 + Class="Trajectories",
 + representation(times="numeric",traj="matrix"),
 + validity=function(object){
-+ cat("~~~ Trajectories: inspector ~~~ \n")
++ cat("~~~ Trajectories: inspector ~~~ \\n")
 + if(length(object@times)!=ncol(object@traj)){
 + stop ("[Trajectories: validation] the number of temporal measurements does not correspond
 + }else{}
@@ -739,7 +756,7 @@ end
 EOT
 
 body(<<-EOT)
-Let's first create a Trajectories that validades fine, i.e., the number of elements in @times is
+Let's first create a Trajectories that validates fine, i.e., the number of elements in @times is
 equal to the number of columns of the matrix.  In this case, we will show a message saying that
 validation was done and then print the object.
 EOT
@@ -755,7 +772,7 @@ many other object oriented languages.  The interested reader should look for fur
 on exception in the web.
 EOT
 
-console_error(<<-EOT)
+console(<<-EOT)
 error = Trajectories.new(times: R.c(1..3), matrix: R.matrix((1..2), ncol: 2))
 EOT
 
@@ -808,7 +825,7 @@ body(<<-EOT)
 Let's try then creating an empty object:
 EOT
 
-console_error(<<-EOT)
+console(<<-EOT)
 error = Trajectories.new
 EOT
 
@@ -816,7 +833,7 @@ body(<<-EOT)
 Another example:
 EOT
 
-console_error(<<-EOT)
+console(<<-EOT)
 error = Trajectories.new(times: 1)
 EOT
 
@@ -835,15 +852,15 @@ variable is later modified, no control is done. At this moment though, there is 
 the value of any of our instance variables.
 EOT
 
-console_error(<<-EOT)
+console(<<-EOT)
 error.times = R.c(1, 2, 3)
 EOT
 
 body(<<-EOT)
 The Trajectories class works for R objects and not for Ruby objects and thus expects as input R
-objects.  Passing R objects in all examples has being the oblication of the programmer.  SciCom,
+objects.  Passing R objects in all examples has being the obligation of the programmer.  SciCom,
 however, can translate Ruby objects to R objects and does so for parameter passing.  Here we do
-an explicit convertion of Ruby object to R in class Trajectories by calling R.convert for our
+an explicit conversion of Ruby object to R in class Trajectories by calling R.convert for our
 input parameters
 EOT
 
@@ -977,7 +994,7 @@ comment_code(<<-EOT)
 + f="initialize",
 + signature="Trajectories",
 + definition=function(.Object,times,traj){
-+ cat("~~~ Trajectories: initializator ~~~ \n")
++ cat("~~~ Trajectories: initializator ~~~ \\n")
 + colnames(traj) <- paste("T",times,sep="")
 + rownames(traj) <- paste("I",1:nrow(traj),sep= "")
 + .Object@traj <- traj # Assignment of the slots
@@ -1027,7 +1044,7 @@ body(<<-EOT)
 Another example:
 EOT
 
-console_error(<<-EOT)
+console(<<-EOT)
 error = Trajectories.new(times: R.c(1,2,4,8), matrix: R.matrix((1..8), nrow: 2))
 EOT
 
@@ -1036,7 +1053,7 @@ Note that we still call our 'validate' method and it is still an error to create
 Trajectories or one in which the sizes are wrong:
 EOT
 
-console_error(<<-EOT)
+console(<<-EOT)
 error = Trajectories.new(times: R.c(1, 2, 48), matrix: R.matrix((1..8), nrow: 2))
 EOT
 
@@ -1160,7 +1177,7 @@ EOT
 
 body(<<-EOT)
 Notice how method 'regular' is defined as 'self.regular', making it a class method.  The last
-statement of the method definition is actually a call to the Trajectories contructor 'new' passing
+statement of the method definition is actually a call to the Trajectories constructor 'new' passing
 the calculated values for times and matrix.
 
 Notice also how method regular is called, similar to the way new is called by adding it after class
@@ -1221,7 +1238,7 @@ body(<<-EOT)
 Getters are methods for getting the value of an instance variable.  We have being using getters
 since the beginning of this document, without explicitly saying so.  When defining attr_reader 
 :times and attr_reader :matrix, we have actually defined two getter methods for reading the values
-of variables times and matrix respectively.  We can however define getters expicity:
+of variables times and matrix respectively.  We can however define getters explicitly:
 EOT
 
 code(<<-EOT)
@@ -1343,7 +1360,7 @@ does not correspond with the number of columns in the matrix #{@matrix.ncol.gz}"
   
 end
 
-console_error(<<-EOT)
+console(<<-EOT)
 trajCochin.times = (1..5)
 EOT
 
@@ -1359,7 +1376,7 @@ subsection("The Operator '['")
 
 body(<<-EOT)
 It is also possible to define getters by using the operator '['.  This operator is not usually
-used for returning instance variables and it is preferrable to use the methods we've used above;
+used for returning instance variables and it is preferable to use the methods we've used above;
 however, for completeness with SS4 we are showing how to define this here.  Operator '[' is 
 better left to be used for array/matrix indices. 
 EOT
@@ -1390,7 +1407,7 @@ trajCochin["times"].pp
 EOT
 
 body(<<-EOT)
-Similarly, we could use operator '[]=' to assin a value to times and matrix.  We will not do this
+Similarly, we could use operator '[]=' to assign a value to times and matrix.  We will not do this
 here as we think that the other options are better and the interested user can easily find help,
 if needed to implement such method.
 EOT
@@ -1402,7 +1419,7 @@ This section will introduce advance features of Object Oriented programming such
 and Modules and will also show some aspects of S4 that do not apply to Ruby.
 EOT
 
-subsection("Methods Using Serveral Arguments")
+subsection("Methods Using Several Arguments")
 
 body(<<-EOT)
 In Ruby, methods can have as many arguments as needed and those methods are defined the way we
@@ -1411,7 +1428,7 @@ different output if its input is numeric, character has both.  Let's write a cla
 does the same for Numeric and String.  In Ruby we do not define global functions, we always define
 methods inside classes or modules (as we will see later).  Also, Ruby is not typed, so methods are
 not called depending on their types as in SS4 examples.  Bellow, method test will be called with
-one paramenter.  At the time of calling we do not know the type of the argument, the method can
+one parameter.  At the time of calling we do not know the type of the argument, the method can
 then check is the received argument is a Numeric or a String and at this time, decide what should
 be printed. 
 EOT
@@ -1537,7 +1554,7 @@ Creating TrajPartitioned without arguments will generate an error, since a Traje
 both times and matrix to be non null.
 EOT
 
-console_error(<<-EOT)
+console(<<-EOT)
 tdPitie = TrajPartitioned.new
 EOT
 
@@ -1554,7 +1571,7 @@ body(<<-EOT)
 And now let's create the TrajPartitioned:
 EOT
 
-console_error(<<-EOT)
+console(<<-EOT)
 tdCochin = TrajPartitioned.new(times: R.c(1,3,4,5), matrix: trajCochin.matrix, 
                                list_partitions: R.list(partCochin,partCochin2))
 EOT
@@ -1567,7 +1584,7 @@ of Ruby to keep the list of partitions.  This is not a problem as Ruby has data 
 maintain a list of objects, the Array.  Let's then try another solution:
 EOT
 
-console_error(<<-EOT)
+console(<<-EOT)
 tdCochin = TrajPartitioned.new(times: R.c(1,3,4,5), matrix: trajCochin.matrix, 
                                list_partitions: [partCochin, partCochin2])
 EOT
@@ -1726,9 +1743,193 @@ console(<<-EOT)
 tdCochin.to_part(:max).part.pp
 EOT
 
+body(<<-EOT)
+In this example we did not follow exactly the R code from SS4.  The reason for that is that
+'list_partitions' is a list of Ruby classes and we cannot run sapply on this list.  If we
+try to call a 'getNbGroups' or in the Ruby case nb_groups, the code will crash.  Let's try
+it:
+EOT
+
+
+
+
+
+section("Conclusions I")
+
+body(<<-EOT)
+This ends SS4 paper.  We believe we have shown that R S4 can be substituted by SciCom and
+Ruby classes and that SciCom makes an easy transition from R developers to Ruby.  Ruby is
+a very flexible and powerful language and has many interesting libraries, where Rails is
+maybe one of the best known, but there are thousands of others.  For those interested in
+getting deeper into Ruby's libraries, we suggest they look at:
+
+* https://github.com/markets/awesome-ruby
+* http://bestgems.org/
+
+For those interested in Ruby and science, we recommend:
+
+* http://sciruby.com/
+
+EOT
 
 
 section("ET Phone Home")
+
+body(<<-EOT)
+On this paper we have focused on accessing R functions from Ruby and have shown how to 
+integrate Ruby with R from the point of view of a Ruby developer, i.e, we have developed 
+in Ruby and have made calls to R functions very transparently.  Although this is quite
+powerful, sometimes this still lacks some power.  In this section we will see how we can
+integrate R with Ruby (through SciCom) from the point of view of the R developer, i.e.,
+we will allow R scripts to have access to Ruby classes and methods.
+
+We did not explicitly show and did not call upon the readers attention, but whenever
+an R function was called we either passed to it basic type objects (numeric, string, 
+boolean), Ruby arrays and MDArrays.  Let's try now to pass a Ruby class to R:
+EOT
+
+code(<<-EOT)
+R.part = Partition.new(3, R.c("A", "C", "C", "B").factor)
+EOT
+
+console(<<-EOT)
+R.part.pp
+EOT
+
+body(<<-EOT)
+Calling method 'pp' on this object does not print anything, as this is a completely strange
+object in the R planet.  So, let's try to see what type of object this is:
+EOT
+
+console(<<-EOT)
+R.part.typeof.pp
+EOT
+
+body(<<-EOT)
+We get 'externalptr' as type.  So we can send the Ruby class to the R planet, but there is
+nothing we can do with it there.  It is just an 'externalptr'. But we have learned elsewhere
+that if we want to send an astronaut from a planet to another, a good way of doing it is by
+creating an 'avatar'!  An 'avatar' is remotely controled by it's owner, but it acts almost as
+if it were a native being of the other planet. 
+
+SciCom provides a way of creating an 'avatar' from any Ruby class and send it to R land. We
+will now show how this is done and how our 'avatar' calls home to get things done.  Method
+'rpack' creates the avatar.  We will start with a simple example, creating an 'avatar' from
+a Ruby array:
+EOT
+
+code(<<-EOT)
+# create an array of data in Ruby
+array = [1, 2, 3]
+
+# Pack the array and assign it to an R variable.  Remember that ruby__array, becomes
+# ruby.array inside the R script
+R.ruby__array = R.rpack(array)
+EOT
+
+body(<<-EOT)
+Now, we have in 'ruby.array' an 'avatar' of array.  In order for our 'avatar' to call 
+back home, it uses method 'run':
+EOT
+
+code(<<-EOT)
+# note that this calls Ruby method 'length' on the array and not R length function.
+R.eval("val <- ruby.array$run('length')")
+EOT
+
+console(<<-EOT)
+R.eval("print(val)")
+EOT
+
+body(<<-EOT)
+Let's use a more interesting array method '<<'.  This method adds elements to the
+end of the array.  This method takes one argument, the element to be added at the end of
+the array.  Thus we call function run passing two arguments, the '<<' method as first
+argument and the element to add as second argument.  
+EOT
+
+code(<<-EOC)
+R.eval(<<-EOT)
+  ruby.array$run('<<', 4)
+  ruby.array$run('<<', 5)
+EOT
+EOC
+
+body(<<-EOT)
+Let's now print the content of the array.  For that, we use another Ruby method: 'to_s'.  This
+method generates a string with a representation of an object.  In the case of an array, it
+will show the array's content:
+EOT
+
+console(<<-EOT)
+R.eval("print(ruby.array$run('to_s'))")
+EOT
+
+body(<<-EOT)
+One important aspect of interfacing R and Ruby is that both world interact with the same data.
+There is no data copying between the two worlds, so, effectively whatever happens to the 
+'avatar' will also happen to the 'real' object.  Let's take a look at that.  First, we will
+go back to the Ruby world and see our array:
+EOT
+
+console(<<-EOT)
+puts array
+EOT
+
+body(<<-EOT)
+Now, let's change a value of our array in Ruby:
+EOT
+
+code(<<-EOT)
+array[0] = "new element"
+EOT
+
+body(<<-EOT)
+And let's take a look at our 'ruby.array' in R:
+EOT
+
+console(<<-EOT)
+R.eval("print(ruby.array$run('to_s'))")
+EOT
+
+body(<<-EOT)
+As you can see, 'ruby.array' is still the same Ruby object.
+
+Avatars maintain some properties of their original world.  Although the concept of method
+chaning is foreign to R, chaining can be used with imported objects from Ruby. Method
+chaining occurs when the result of a applying a method on an object returns an object (usually
+the same object) in which another method can be applied.  In the example bellow, method '<<'
+will be applied multiple times for ruby.array
+EOT
+
+code(<<-EOC)
+R.eval(<<-EOT)
+  ruby.array$run('<<', 6)$run('<<', 7)$run('<<', 8)$run('<<', 9)
+EOT
+EOC
+
+console(<<-EOT)
+R.eval("print(ruby.array$run('to_s'))")
+EOT
+
+body(<<-EOT)
+We can also access any array element inside the R script, but note that we have
+to use Ruby indexing, i.e., the first element of the array is index 0:
+EOT
+
+console(<<-EOT)
+R.eval("print(ruby.array$run('[]', 2))")
+EOT
+
+console(<<-EOT)
+R.eval("print(ruby.array$run('[]', 5))")
+EOT
+
+body(<<-EOT)
+Now that we have seen how to "call back" home and integrate Ruby classes with R, let's go
+back to our TrajPartitioned methtod to_part, and create a to_part2 method that will use
+R 'sapply' function:
+EOT
 
 code(<<-EOT)
 class TrajPartitioned
@@ -1742,7 +1943,114 @@ class TrajPartitioned
 end
 EOT
 
-
 console(<<-EOT)
 tdCochin.to_part2.part.pp
+EOT
+
+subsection("Creating Ruby Objects from R Scripts")
+
+body(<<-EOT)
+In all the examples given so far on sending Ruby objects to R, the object was created in 
+Ruby and send to R.  In the following examples, all the work will be done inside R 
+scripts without the need to create anything in Ruby. For the R developer, this might be
+the easiest way to begin trying SciCom and start migrating from R to Ruby.
+
+In this first example we will create a Ruby String object inside an R script.  In order
+to create Ruby objects in R, we need to use the Ruby.Ojbect class and use the 'build'
+function.  The 'build' function is the equivalent of the 'new' function in Ruby and 
+receives as first argument the name of the class to be build and as other arguments the
+same arguments from Ruby 'new':
+
+In the following example, we create a String object initialized with "this is a new string":
+EOT
+
+code(<<-EOC)
+R.eval(<<-EOT)
+  # This is an actuall R script, which allows the creation and use of Ruby classes
+  # and methods.
+  # Create a string, from class String in Ruby.  Use function build to intanciate a 
+  # new object
+  string <- Ruby.Object$build("String", "this is a new string")
+EOT
+EOC
+
+console(<<-EOT)
+R.eval("print(string)")
+EOT
+
+body(<<-EOT)
+In Ruby, many methods are know as 'class methods'.  Class methods are methods that exists on 
+the class and not on an instance of the class.  In the example above, we create an instance
+(object) of type String.  In the following example, we will access class Marshal: The marshaling 
+library converts collections of Ruby objects into a byte stream, allowing them to be stored 
+outside the currently active script. This data may subsequently be read and the original 
+objects reconstituted.
+EOT
+
+code(<<-EOC)
+# Use function get_class to get a Ruby class
+R.eval(<<-EOT)
+  Marshal <- Ruby.Object$get_class("Marshal")
+
+  # Method 'dump' is a Marshal class method as is 'load' 
+  str <- Marshal$run("dump", string)
+  restored <- Marshal$run("load", str)
+EOT
+EOC
+
+console(<<-EOT)
+R.eval("print(restored)")
+EOT
+
+subsection("Interfacing Java with Renjin")
+
+body(<<-EOT)
+Renjin allows for easy integration of Java into R scripts, giving the user access to all of 
+Java's libraries and functions.  Although this paper is manly about interfacing R and Ruby,
+we believe that it is also important to see how to interface with Java from an R script. 
+JRuby, the platform on which SciCom depends, also allows easy integration of Java and Ruby;
+however we will not show it here, since this is well documented elsewhere.
+EOT
+
+code(<<-EOC)
+R.eval(<<-EOT)
+  import(java.util.HashMap)
+
+  # create a new instance of the HashMap class:
+  ageMap <- HashMap$new()
+
+  # call methods on the new instance:
+  ageMap$put("Bob", 33)
+  ageMap$put("Carol", 41)
+
+  age <- ageMap$get("Carol")
+
+  # Java primitives and their boxed types
+  # are automatically converted to R vectors:
+  typeof(age)
+EOT
+EOC
+
+console(<<-EOT)
+R.eval("print(ageMap$size())")
+EOT
+
+console(<<-EOC)
+R.eval(<<-EOT)
+  cat("Carol is ", age, " years old.\\n", sep = "")
+EOT
+EOC
+
+
+section("Conclusions II")
+
+body(<<-EOT)
+The Java Virtual Machine (JVM) is an amazing environment allowing for multiple languages to cohabit 
+and integrate in a very transparent way.  SciCom interfaces R, Ruby and Java and gives the 
+developer access to a gigantic set of libraries from those three worlds.  In
+development circles people usually say: "choose the right tool for the job at hand", with JVM/
+Java/R/Renjin/Ruby/SciCom the right tool for the job might just be at hand all the time.
+
+We often see questions on the web about which language to choose between R and Python. Between 
+R and Python, choose SciCom!
 EOT

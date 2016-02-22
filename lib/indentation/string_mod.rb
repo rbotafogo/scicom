@@ -6,8 +6,8 @@ class String
   #         If set to a negative value, removes that many of the specified indentation character,
   #         tabs, or spaces from the beginning of the string
   # * i_char - Character (or string) to use for indentation
-  def indent(num = nil, i_char = ' ')
-    _indent(num, i_char)
+  def indent(num = nil, prefix = '', i_char = ' ')
+    _indent(num, prefix, i_char)
   end
   
   # Indents this string
@@ -17,8 +17,8 @@ class String
   #         If set to a negative value, removes that many of the specified indentation character,
   #         tabs, or spaces from the beginning of the string
   # * i_char - Character (or string) to use for indentation
-  def indent!(num = nil, i_char = ' ')
-    replace(_indent(num, i_char))
+  def indent!(num = nil, prefix = '', i_char = ' ')
+    replace(_indent(num, prefix, i_char))
   end
   
   # Split across newlines and return the fewest number of indentation characters found on each line
@@ -26,14 +26,14 @@ class String
     # Cannot ignore empty lines unless we're also ignoring blank lines
     options[:ignore_blank_lines] = options[:ignore_empty_lines] ? true : options[:ignore_blank_lines]
     empty? ? 0 : split("\n", -1).reject{|line|
-                                        if options[:ignore_empty_lines]
-                                          line.strip.empty?
-                                        elsif options[:ignore_blank_lines]
-                                          line.empty?
-                                        else
-                                          false
-                                        end
-                                      }.collect{|substr| substr.match(/^[ \t]*/).to_s.length}.min
+      if options[:ignore_empty_lines]
+        line.strip.empty?
+      elsif options[:ignore_blank_lines]
+        line.empty?
+      else
+        false
+      end
+    }.collect{|substr| substr.match(/^[ \t]*/).to_s.length}.min
   end
   
   # Find the least indentation of all lines within this string and remove that amount (if any)
@@ -49,7 +49,9 @@ class String
   end
   
   private
-  def _indent(num = nil, i_char = ' ')
+  
+  def _indent(num = nil, prefix = '', i_char = ' ')
+    
     # Define number of indentations to use
     number = num
     # Default number to 2 if spaces or 1 if other
@@ -57,7 +59,7 @@ class String
   
     case
     when number >= 0
-      split("\n", -1).collect{|line| (i_char * number) + line}.join("\n")
+      split("\n", -1).collect{|line| (i_char * number) + line}.join("\n#{prefix}")
     else
       i_regexp = Regexp.new("^([ \t]|#{i_char})")
       split("\n", -1).collect do |line|

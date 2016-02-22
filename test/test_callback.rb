@@ -47,20 +47,17 @@ class SciComTest < Test::Unit::TestCase
       # create an array of data in Ruby
       array = [1, 2, 3]
 
-      # pack the array only, not the internal elements, scope: is :external
-      ret = R.rpack(array, scope: :external)
+      # Pack the array and assign it to an R variable.  Remember that ruby__array, becomes
+      # ruby.array inside the R script
+      R.ruby__array = R.rpack(array)
 
-      # Use 'ret.r' to convert the Ruby 'ret' variable to an r variable
       # note that this calls Ruby method 'length' on the array and not R length function.
-      R.eval("val <- #{ret.r}$run('length')")
+      R.eval("val <- ruby.array$run('length')")
       assert_equal(3, R.val.gz)
 
       # Let's use a more interesting array method '<<'.  This method adds elements to the
-      # end of the array.  But before that, to simplify the code, let's create a variable
-      # in R so we do not need to user #{ret.r}. 
-      R.ruby__array = ret
+      # end of the array.  
 
-      # Remember that ruby__array, becomes ruby.array inside the R script
       R.eval(<<-EOT)
         print(typeof(ruby.array))
         ruby.array$run('<<', 4)
