@@ -1,7 +1,9 @@
 # coding: utf-8
 require '../config'
 require 'scicom'
-require_relative 'rbmarkdown'
+require 'codewriter'
+# require_relative '../../CodeWriter/lib/code_writer'
+set_output(R)
 
 # title("A (not so) Short Introduction to SciCom")
 
@@ -45,16 +47,21 @@ body(<<-EOT)
 Unfortunately, SciCom has three main limitations, and although we think that "use SciCom!" is a 
 good catch phrase, at this point we don't see SciCom as being able to substitute R.  The three
 limitations are:
+EOT
 
-* Renjin has implemented all of base R (maybe still some bugs, I don't know!), but there are still
+list(<<-EOT)
+Renjin has implemented all of base R (maybe still some bugs, I don't know!), but there are still
 many packages that do not yet work with it.  Renjin is making huge steps forward, but for the
 standard R user, chances are that her preferred package does not yet run in Renjin;
-* Renjin does not implement any of the graph functionality such as plot or ggplot and has intention
+
+Renjin does not implement any of the graph functionality such as plot or ggplot and has intention
 to do so.  Ruby has some graphing libraries, but they are still not "au par" with ggplot nor 
 matplotlib;
-* SciCom does not have a large user community.  Actually it does not even have a small user 
+
+SciCom does not have a large user community.  Actually it does not even have a small user 
 community.  Without a user community, no free software can survive.  I hope this paper will help
 attract some people to this new community.
+
 EOT
 
 subsubsection("A Note of Advice")
@@ -527,28 +534,33 @@ features of SciCom, some we have already seen, others will be described now:
 EOT
 
 list(<<-EOT)
-* As we have already seen, to call an R function one uses the R.<function> notation.  There
+As we have already seen, to call an R function one uses the R.<function> notation.  There
 is however another way: when the first argument to the R function is an R object such as a
 matrix, a list, a vector, etc. we can use '.' notation to call the function.  This makes the 
 function look like a method of the object.  For instance, R.nrow(@matrix), can be called by
 doing @matrix.nrow;
-* In R, every number is converted to a vector and this can be done with method R.i.  Converting
+
+In R, every number is converted to a vector and this can be done with method R.i.  Converting
 a vector with only one number back to a number can be done with method '.gz'.  So if @num is
 an R vector that holds a number, then @num.gz is a number that can be used normally with Ruby
 methods;
-* R functions and Ruby methods can be used freely in SciCom.  We show bellow two different ways
+
+R functions and Ruby methods can be used freely in SciCom.  We show bellow two different ways
 of getting the minimum of a number, either by calling R.min or by getting the minimum of an 
 array, with the min method;
-* SciCom allows for method 'chaining'. Method chaining, also known as named parameter idiom, is 
+
+SciCom allows for method 'chaining'. Method chaining, also known as named parameter idiom, is 
 a common syntax for invoking multiple method calls in object-oriented programming languages. 
 Each method returns an object, allowing the calls to be chained together in a single statement 
 without requiring variables to store the intermediate results.  For instance @matrix.nrow.gz, 
 which returns the number of rows of the matrix as a number;
-* Ranges in Ruby are represented by (x..y), where x is the beginning of the range and y its end.
+
+Ranges in Ruby are represented by (x..y), where x is the beginning of the range and y its end.
 An R matrix can be indexed by range, object@traj[1:nrowShow,1:ncolShow], the same result is 
 obtained in SciCom by indexing @matrix[(1..nrow_show), (1..ncol_show)].  Observe that this
 statement is then chained with the format function and with the pp method to print the matrix.
 EOT
+
 
 code(<<-EOT)
 class Trajectories
@@ -1083,13 +1095,17 @@ EOT
 body(<<-EOT)
 Now, let's make a TrajectoriesBis in SciCom.  Here again, we should point out some characteristics
 of our code:
+EOT
 
-* We made initialize with two positional arguments, instead of named arguments, i.e., the first
+list(<<-EOT)
+We made initialize with two positional arguments, instead of named arguments, i.e., the first
 argument is the number of weeks and the second bmi_init.  Is this case, when making a new object the
 position of the arguments is important and there is no way to pass the argument by name;
-* R function outer was called as if a method from bmi_init using dot notation, although one could
+
+R function outer was called as if a method from bmi_init using dot notation, although one could
 use R.outer without problem;
-* Function 'outer' expects an R function as its 3rd argument.  In order to build an R function from
+
+Function 'outer' expects an R function as its 3rd argument.  In order to build an R function from
 SciCom, we need to pass the function definition as a string to R.eval.
 EOT
 
@@ -1695,23 +1711,29 @@ EOT
 body(<<-EOT)
 And now the Ruby code.  Here we are getting deeper into Ruby and it is becoming harder for a
 pure R developer to understand the code.  We will describe it in more detail:
+EOT
 
-* We define a method called 'to_part' that has one argument 'which'.  By default 'which' is 
+list(<<-EOT)
+We define a method called 'to_part' that has one argument 'which'.  By default 'which' is 
 ':min', the name of the minimum method.  This means that if no argument is given to to_part it
 will assume the which = :min;
-* @list_partition is a Ruby array.  Method map is similar to method sapply in R, it applies a
+
+@list_partition is a Ruby array.  Method map is similar to method sapply in R, it applies a
 'block' to every element of the array, returning an array.  Describing blocks is beyond the 
 scope of this document, but we can think of it as if it were a function.  
 The block is in '{}' and has one argument named 'part'.  Thus, map goes through all elements 
 of the array, and gets the nb_groups of the element and returns them into the number_groups array.
-* number_groups is and array and doing number_groups.min returns
+
+number_groups is and array and doing number_groups.min returns
 the minimum value in number_groups and number_groups.max the maximum.  We can call a method on an
 object by 'sending' the method name to the object, so, number_groups.send(:min) is equivalent to
 number_groups.min;
-* Method 'index' for array, returns the index of a given element. So, number_groups(3) would return
+
+Method 'index' for array, returns the index of a given element. So, number_groups(3) would return
 the index of the element '3'.  Then number_groups.index(number_groups.min) returns the index of
 the minimum element in the array.  This is the equivalent of R which.min(number_groups);
-* Finally, number_groups.index(number_groups.send(which)), will return the index of the element we
+
+Finally, number_groups.index(number_groups.send(which)), will return the index of the element we
 ask for, be it :min or :max.  Note that if we pass another value, this would be an error.
 EOT
 
@@ -1750,6 +1772,149 @@ try to call a 'getNbGroups' or in the Ruby case nb_groups, the code will crash. 
 it:
 EOT
 
+section("Virtual Classes")
+
+body(<<-EOT)
+In Ruby there are no "Virtual Classes", but it is possible to implement derived classes from
+a parent class with methods that behave properly according to the object's class.  Following
+SS4 we will implement two classes: PartitionSimple and PartitionEval which are subclasses
+of class PartitionFather.  PartitionFather will just be a regular class.  Methods defined in
+PartionFather will be available to be used in the subclasses
+
+Here is the R code of those classes and the implementation of a method in PartitionFather
+that multiplies the number of groups by 2:
+EOT
+
+comment_code(<<-EOT)
+> setClass(
++ Class="PartitionFather",
++ representation=representation(nbGroups="numeric","VIRTUAL")
++ )
+
+> setClass(
++ Class="PartitionSimple",
++ representation=representation(part="factor"),
++ contains="PartitionFather"
++ )
+
+> setClass(
++ Class="PartitionEval",
++ representation=representation(part="ordered"),
++ contains="PartitionFather"
++ )
+
+> setGeneric("nbMultTwo",function(object){standardGeneric("nbMultTwo")})
+
+> setMethod("nbMultTwo","PartitionFather",
++ function(object){
++ object@nbGroups <- object@nbGroups*2
++ return (object)
++ }
++ )
+EOT
+
+body(<<-EOT)
+Since Ruby has no type definition, there is no really need for a parent class and subclasses.
+However, we will implement those classes in order to show Ruby's inheritance:
+EOT
+
+code(<<-EOT)
+# Parent class.  Differently from SS4, both 'nb_groups' and 'part' are defined in the
+# parent class. 
+class PartitionFather
+
+  attr_reader :nb_groups
+  attr_reader :part
+  
+  # initialize class PartitionFather with the number of groups and parts.  Note that we
+  # use R.i for nb_groups in order to convert the number of groups into an R vector.
+  def initialize(nb_groups: 0, part: nil)
+    @nb_groups = R.i(nb_groups)
+    @part = part
+  end
+  
+  # method nb_mult_two can be called from all subclasses
+  def nb_mult_two
+    @nb_groups * 2
+  end
+  
+  # method 'to_s' is called whenever we try to print a Ruby object.  This method emulates
+  # R 'print' method that prints all the slots.
+  def to_s
+    puts ("Variable 'nb_groups':")
+    @nb_groups.pp
+    puts
+    puts ("Variable 'part':")
+    @part.pp
+    puts
+  end
+  
+end
+
+# Class PartitionSimple is a subclass of PartitionFather.  To make a subclass of a
+# class we use the operator '<'.  Since the whole logic is in the parent class 
+# PartitionSimple is just an empty class
+class PartitionSimple < PartitionFather
+
+end
+
+# PartitionEval is also only an empty class
+class PartitionEval < PartitionFather
+
+end
+EOT
+
+console(<<-EOT)
+a = PartitionSimple.new(nb_groups: 3, part: (R.LETTERS[R.c(1, 2, 3, 2, 2, 1)].factor))
+puts a
+EOT
+
+console(<<-EOT)
+a.nb_mult_two.pp
+EOT
+
+console(<<-EOT)
+b = PartitionEval.new(nb_groups: 5, part: R.LETTERS[R.c(1, 5, 3, 4, 2, 4)].ordered)
+puts b
+EOT
+
+console(<<-EOT)
+b.nb_mult_two.pp
+EOT
+
+body(<<-EOT)
+The example above, although it replicates SS4 is not actually very useful from the point of
+view of class hierarchy in Ruby.  We will then write a new function to_s in class
+PartitionSimple that will print the name of the class:
+EOT
+
+code(<<-EOT)
+class PartitionSimple
+
+  def to_s
+    puts("Class PartitionSimple")
+    super
+  end
+  
+end
+EOT
+
+console(<<-EOT)
+puts a
+EOT
+
+body(<<-EOT)
+As can be seen, 'puts a' now calls method 'to_s' defined in class PartitionSimple.  This 
+method prints 'Class PartitionSimple' and then call the super method, i.e., method 'to_s'
+from class PartitionFather.
+
+Note though that 'puts b' still prints the same output, since it has no particular 'to_s'
+method.
+EOT
+
+console(<<-EOT)
+puts b
+EOT
 
 
 

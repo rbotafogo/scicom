@@ -47,18 +47,16 @@ EOF
   gem.requirements << "org.renjin:renjin-script-engine, RENJIN_VERSION"
   gem.requirements << "org.renjin:renjin-aether-package-loader, RENJIN_VERSION"
 
-  # This should no longer be needed, since Renjin now provides for dynamic loading
-  # of libraries
-  # gem.add_runtime_dependency('state_machine', '~> 1.2', [">= 1.2.0"])
-
-  gem.add_development_dependency('ruby-maven', '~> 3.3.3')
+  gem.add_development_dependency('CodeWriter', "~> 0.1")
+  gem.add_development_dependency('ruby-maven', "~> 3.3")
   gem.add_development_dependency('shoulda', "~> 3.5")
   gem.add_development_dependency('simplecov', "~> 0.11")
   gem.add_development_dependency('yard', "~> 0.8")
   gem.add_development_dependency('kramdown', "~> 1.0")
-  gem.add_development_dependency( 'rake', '~> 10.3')
+  gem.add_development_dependency('rake', '~> 10.3')
+
   # needed to compile src/main/java/** into lib/example.jar
-  gem.add_development_dependency('rake-compiler', '~> 0.9')
+  # gem.add_development_dependency('rake-compiler', '~> 0.9')
   
   # ensure the gem is built out of versioned files
   gem.files = Dir['Rakefile', 'version.rb', 'config.rb', '{lib,test}/**/*.rb', 'test/**/*.csv',
@@ -67,5 +65,9 @@ EOF
                   'README*', 'LICENSE*'] # & `git ls-files -z`.split("\0")
 
   gem.test_files = Dir['test/*.rb']
+
+  # This should no longer be needed, since Renjin now provides for dynamic loading
+  # of libraries
+  # gem.add_runtime_dependency('state_machine', '~> 1.2', [">= 1.2.0"])
 
 end

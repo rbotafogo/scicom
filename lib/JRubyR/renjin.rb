@@ -141,11 +141,19 @@ class Renjin
   def set_std_out(buffer)
 
     $stdout = StringIO.new(buffer)
-    writer = Writer.new(buffer)
-    print_writer = Java::JavaIo::PrintWriter.new(writer)
+    @alternate_out = Writer.new(buffer)
+    print_writer = Java::JavaIo::PrintWriter.new(@alternate_out)
     @session.setStdOut(print_writer)
-    writer
+    self
     
+  end
+  
+  #----------------------------------------------------------------------------------------
+  #
+  #----------------------------------------------------------------------------------------
+
+  def alternate_out
+    @alternate_out.string
   end
   
   #----------------------------------------------------------------------------------------
@@ -154,10 +162,20 @@ class Renjin
 
   def set_std_err(buffer)
 
-    writer = Writer.new(buffer)
-    print_writer = Java::JavaIo::PrintWriter.new(writer)
+    $stderr = StringIO.new(buffer)
+    @alternate_err = Writer.new(buffer)
+    print_writer = Java::JavaIo::PrintWriter.new(@alternate_err)
     @session.setStdErr(print_writer)
+    self
     
+  end
+
+  #----------------------------------------------------------------------------------------
+  #
+  #----------------------------------------------------------------------------------------
+
+  def alternate_err
+    @alternate_err.string
   end
 
   #----------------------------------------------------------------------------------------
@@ -176,6 +194,7 @@ class Renjin
   #----------------------------------------------------------------------------------------
 
   def set_default_std_err
+    $stderr = STDERR
     @session.setStdErr(@default_std_err)
   end
   
