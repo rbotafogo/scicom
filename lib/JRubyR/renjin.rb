@@ -260,7 +260,9 @@ class Renjin
   end
 
   #----------------------------------------------------------------------------------------
-  #
+  # Every time eval is called, a new Renjin::RubySexp is build.  If we don't want to wrap
+  # the returned value of an evaluation in a RubySexp, then method direct_eval should be
+  # called.
   #----------------------------------------------------------------------------------------
 
   def eval(expression)
@@ -334,7 +336,9 @@ class Renjin
         params << "(#{arg.begin}:#{final_value})"
       elsif (arg.is_a? Hash)
         arg.each_pair do |key, value|
-          params << "#{key.to_s} = #{parse(value)}"
+          # k = key.to_s.gsub(/__/,".")
+          params << "#{key.to_s.gsub(/__/,'.')} = #{parse(value)}"
+          # params << "#{k} = #{parse(value)}"
         end
       elsif ((arg.is_a? Renjin::RubySexp) || (arg.is_a? Array) || (arg.is_a? MDArray))
         params << arg.r
@@ -575,15 +579,15 @@ class Renjin
     #   index.stride)
     
     case mdarray.type
-    when "int"
+    when "int", :int
       vector = Java::RbScicom::MDIntVector.factory(mdarray.nc_array, attributes)
-    when "double"
+    when "double", :double
       vector = Java::RbScicom::MDDoubleVector.factory(mdarray.nc_array, attributes)
-    when "byte"
+    when "byte", :byte
       vector = Java::RbScicom::MDLogicalVector.factory(mdarray.nc_array, attributes)
-    when "string"
+    when "string", :string
       vector = Java::RbScicom::MDStringVector.factory(mdarray.nc_array, attributes)
-    when "boolean"
+    when "boolean", :boolean
       raise "Boolean vectors cannot be converted to R vectors.  If you are trying to \
 convert to an R Logical object, use a :byte MDArray"
     else

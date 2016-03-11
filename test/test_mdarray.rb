@@ -23,7 +23,7 @@ require 'rubygems'
 require "test/unit"
 require 'shoulda'
 
-require 'env'
+require '../config' if @platform == nil
 require 'scicom'
 
 
@@ -39,45 +39,33 @@ class SciComTest < Test::Unit::TestCase
 
     end
 
-
     #--------------------------------------------------------------------------------------
     #
     #--------------------------------------------------------------------------------------
 
     should "convert a vector to an MDArray" do
 
+      r_vector = R.c(1, 2, 3, 4)
+
       # Method 'get' converts a Vector to an MDArray
-      vec = i3.get
+      vec = r_vector.get
       assert_equal(true, vec.is_a?(MDArray))
-      assert_equal("int", vec.type)
+      assert_equal("double", vec.type)
 
       # For consistancy with R notation one can also call as__mdarray to convert a 
       # vector to an MDArray
-      vec2 = i3.as__mdarray
+      vec2 = r_vector.as__mdarray
       assert_equal(true, vec2.is_a?(MDArray))
-      assert_equal("int", vec2.type)
+      assert_equal("double", vec2.type)
 
       # Now 'vec' is an MDArray and its elements can be accessed through indexing, but
       # this time the first index is 0, and the element is an actual number
-      assert_equal(10, vec[0])
-
-      # Convert vector to an MDArray
-      array = vec2.get
-      
-      # Use array as any other MDArray...
-      array.each do |elmt|
-        p elmt
-      end
-
-      # ... although there is no need to convert a vector to an MDArray to call each:
-      # the each method is also defined for vectors
-      vec1.each do |elmt|
-        p elmt
-      end
+      assert_equal(1, vec[0])
+      assert_equal(2, vec[1])
+      assert_equal(3, vec[2])
+      assert_equal(4, vec[3])
       
     end
-
-=begin
 
     #--------------------------------------------------------------------------------------
     #
@@ -88,42 +76,52 @@ class SciComTest < Test::Unit::TestCase
       # typed_arange does the same as arange but for arrays of other type
       arr = MDArray.typed_arange(:double, 60)
       # MDArray is stored in row-major order
-      arr.reshape!([5, 3, 4])
+      arr.reshape!([5, 12])
       # arr.print
 
-      R.eval <<EOF
-      print(#{arr.r});
-      vec = #{arr.r};
-print(vec);
-print(vec[1, 1, 1]);
+      R.eval <<-EOF
+        vec = #{arr.r};
+        print(vec);
+        print(vec[1, 1]);
+      EOF
 
-EOF
-
-end
-=end
+    end
 
     #--------------------------------------------------------------------------------------
     #
     #--------------------------------------------------------------------------------------
 
     should "receive 1 Dimensional MDArrays in R" do
-      
+
+      # vec is an MDArray
       vec = MDArray.double([6], [1, 3, 5, 7, 11, 13])
-      # vec is just a normal MDArray that can be changed at anytime
-      vec[0] = 2
 
+      # prime is a R vector
       R.prime = vec
+      R.prime.pp
 
-      # now vec is immutable, since it is now in Renjin and Renjin requires an immutable
-      # vector
-      assert_raise ( RuntimeError ) { vec[0] = 1 }
+      # change the value of vec, the same change should happens in prime... they have the
+      # same backing store
+      vec[0] = 17
+      R.prime.pp
 
-      vec2 = R.eval("print(prime)")
-      vec2.print
+      # now r_vec is an R vector
+      r_vec = R.c(1, 3, 5, 7, 11, 13)
+      r_vec.pp
+      
+      # and prime is an MDArray
+      prime = r_vec.get
+      prime.print
 
-      assert_raise ( RuntimeError ) { vec2[1] = 7 }
+      # change the value of prime
+      prime[0] = 17
+      prime.print
+      
+      r_vec.pp
       
     end
+
+=begin
 
     #--------------------------------------------------------------------------------------
     #
@@ -252,7 +250,7 @@ end
       R.eval("print(#{MDArray.typed_arange(:double, 5).r})")
 
     end
-
+=end
   end
-
+  
 end

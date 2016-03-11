@@ -38,6 +38,7 @@ class Renjin
     include_package "java.lang"
     
     attr_reader :sexp
+    attr_reader :refresh
     attr_reader :rvar
     attr_reader :attr
     attr_accessor :scope
@@ -75,8 +76,15 @@ class Renjin
         @rvar = "sc_#{SecureRandom.hex(8)}"
         
         # if this object already has a sexp value then assign to @rvar the existing sexp,
-        # otherwise, assign itself to @rvar.
-        (@sexp == nil)? R.assign(@rvar, self) : R.assign(@rvar, @sexp)
+        # otherwise, assign itself to @rvar.  If a sexp already exists then set the
+        # refresh flag to true, so that we know that the sexp was changed.
+        # (@sexp == nil)? R.assign(@rvar, self) : R.assign(@rvar, @sexp)
+        if (@sexp.nil?)
+          R.assign(@rvar, self)
+        else
+          @refresh = true
+          R.assign(@rvar, @sexp)
+        end
         
         # Whenever a variable is injected in Renjin, it is also added to the Renjin stack.
         # After eval, every injected variable is removed from Renjin making sure that we

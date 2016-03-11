@@ -25,9 +25,11 @@ require 'shoulda'
 
 require '../config' if @platform == nil
 require 'scicom'
+require '../../CodeWriter/lib/codewriter'
 
 class SciComTest < Test::Unit::TestCase
-
+  include Markdown
+  
   context "R environment" do
 
     #--------------------------------------------------------------------------------------
@@ -41,7 +43,7 @@ class SciComTest < Test::Unit::TestCase
     #--------------------------------------------------------------------------------------
 
     setup do 
-      
+      set_output
     end
 
     #--------------------------------------------------------------------------------------
@@ -50,11 +52,14 @@ class SciComTest < Test::Unit::TestCase
 
     should "create matrix with the matrix function" do
 
-      # R provides numeric row and column names (e.g., [1,] is the first row, [,4] is the 
-      # fourth column, but it is useful to label the rows and columns to make the rows 
-      # (subjects) and columns (variables) distinction more obvious.
+      body(<<-EOT)
+        R provides numeric row and column names (e.g., [1,] is the first row, [,4] is the 
+        fourth column, but it is useful to label the rows and columns to make the rows 
+        (subjects) and columns (variables) distinction more obvious.
+      EOT
+
       xij = R.matrix(R.seq(1..40), ncol: 4)
-      
+
       # method fassign is used whenever in R there would be a function assignment such as,
       # for example: rownames(x) <- c("v1", "v2", "v3")
       # R.fassign(xij, :rownames, R.paste("S", R.seq(1, xij.attr.dim[1]), sep: ""))
@@ -64,20 +69,20 @@ class SciComTest < Test::Unit::TestCase
       xij.fassign(:rownames, R.paste("S", R.seq(1, xij.attr.dim[1]), sep: ""))
       xij.fassign(:colnames, R.paste("V", R.seq(1, xij.attr.dim[2]), sep: ""))
       xij.pp
-
+      
       # if an index can be passed to the R function, then fassign needs to be a bit more
       # complex. For instance, callling dimnames(x)[[1]] <- "name" is done by the following
       # call: x.fassign({f: :dimnames, index:[[1]]}, "name"
       # Changing rownames by using function :dimnames and index [[1]]
       xij.fassign({f: :dimnames, index: [[1]]}, 
-        R.paste("DS", R.seq(1, xij.attr.dim[1]), sep: ""))
+                  R.paste("DS", R.seq(1, xij.attr.dim[1]), sep: ""))
 
       # Changing colnames by using function :dimnames and index [[2]]
       xij.fassign({f: :dimnames, index: [[2]]}, 
-        R.paste("DV", R.seq(1, xij.attr.dim[2]), sep: ""))
-
+                  R.paste("DV", R.seq(1, xij.attr.dim[2]), sep: ""))
+      
       xij.pp
-
+      
       # Just as the transpose of a vector makes a column vector into a row vector, so 
       # does the transpose of a matrix swap the rows for the columns. Note that now the 
       # subjects are columns and the variables are the rows.

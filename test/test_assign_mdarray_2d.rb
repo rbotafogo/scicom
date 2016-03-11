@@ -56,7 +56,7 @@ MDArray to R"
 
       # change an element of the MDArray
       arr1[0, 0] = 10.34567
-      p "changing element is arr1 will cause the same change in r_matrix"
+      p "changing element in arr1 will cause the same change in r_matrix"
       arr1.print
 
       p "element [0, 0] of r_matrix has also changed"

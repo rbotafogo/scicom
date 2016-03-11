@@ -1,8 +1,30 @@
 # coding: utf-8
+
+##########################################################################################
+# Copyright © 2013 Rodrigo Botafogo. All Rights Reserved. Permission to use, copy, modify, 
+# and distribute this software and its documentation, without fee and without a signed 
+# licensing agreement, is hereby granted, provided that the above copyright notice, this 
+# paragraph and the following two paragraphs appear in all copies, modifications, and 
+# distributions.
+#
+# IN NO EVENT SHALL RODRIGO BOTAFOGO BE LIABLE TO ANY PARTY FOR DIRECT, INDIRECT, SPECIAL, 
+# INCIDENTAL, OR CONSEQUENTIAL DAMAGES, INCLUDING LOST PROFITS, ARISING OUT OF THE USE OF 
+# THIS SOFTWARE AND ITS DOCUMENTATION, EVEN IF RODRIGO BOTAFOGO HAS BEEN ADVISED OF THE 
+# POSSIBILITY OF SUCH DAMAGE.
+#
+# RODRIGO BOTAFOGO SPECIFICALLY DISCLAIMS ANY WARRANTIES, INCLUDING, BUT NOT LIMITED TO, 
+# THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE. THE 
+# SOFTWARE AND ACCOMPANYING DOCUMENTATION, IF ANY, PROVIDED HEREUNDER IS PROVIDED "AS IS". 
+# RODRIGO BOTAFOGO HAS NO OBLIGATION TO PROVIDE MAINTENANCE, SUPPORT, UPDATES, ENHANCEMENTS, 
+# OR MODIFICATIONS.
+##########################################################################################
+
 require '../config'
 require 'scicom'
 require 'codewriter'
-# require_relative '../../CodeWriter/lib/code_writer'
+# require_relative '../../CodeWriter/lib/codewriter'
+# include Writer
+
 set_output(R)
 
 # title("A (not so) Short Introduction to SciCom")
@@ -1916,8 +1938,136 @@ console(<<-EOT)
 puts b
 EOT
 
+section("Internal Modification of an Object")
 
 
+subsection("Method to Modify a Field")
+
+body(<<-EOT)
+Let us return to our trajectories example and define a third method that imputes data for 
+missing values. To simplify, we will impute by replacing by the mean values.  This is the R
+code to do this:
+EOT
+
+comment_code(<<-EOT)
+> meanWithoutNa <- function (x){mean(x,na.rm=TRUE)}
+> setGeneric("impute",function (.Object){standardGeneric("impute")})
+> setMethod(
++ f="impute",
++ signature="Trajectories",
++ def=function(.Object){
++ average <- apply(.Object@traj,2,meanWithoutNa)
++ for (iCol in 1:ncol(.Object@traj)){
++ .Object@traj[is.na(.Object@traj[,iCol]),iCol] <- average[iCol]
++ }
++ return(.Object)
++ }
++ )
+EOT
+
+body(<<-EOT)
+The code above, as explained in SS4 creates a new object and does not change the original one.
+So, calling impute(trajCochin) will work correctly by creating a new object but will not
+change trajCochin.  This works fine, but can be memory expensive if the matrix is a large
+one.
+
+Let's now implement the same method in SciCom.  We will use for that Ruby's 'each' method.
+In Ruby, the 'each' method goes through all elements of a vector or list in order.  The 
+'each' method is available for an R matrix in SciCom.  Actually, when calling 'each' for an
+R matrix, the matrix is converted to a Ruby MDArray and the 'each' method is applied to this
+MDArray. So, we can do @matrix.each and cycle through every element in this matrix.  
+The 'each_with_index' method does the same as 'each' but also passes the index of the element 
+to the Ruby block (please, google Ruby block to get further information on blocks in Ruby).
+
+One key aspect to remember is that Ruby indexes start with 0 while R indexes start with 1, so 
+an element with index i in Ruby will be indexed i+1 in R.  With that, let's see the SciCom 
+code for method impute:
+EOT
+
+code(<<-EOT)
+class Trajectories
+
+  def mean_without_na
+    @matrix.mean(na__rm: TRUE)
+  end
+
+  def impute
+    @matrix.each_with_index do |elmt, i|
+      @matrix[i+1] = mean_without_na if elmt.nan?
+    end
+  end
+  
+end
+EOT
+
+console(<<-EOT)
+trajCochin.impute
+trajCochin.matrix.pp
+EOT
+
+body(<<-EOT)
+It works! and note that actually trajCochin matrix was changed.  However, as with the R 
+solution, Renjin does make a copy of the data on the background.  Let's investigate this a 
+little further getting inside SciCom's internal.  Method 'as__mdarray' explicitly converts 
+an R matrix to an MDArray:
+EOT
+
+console(<<-EOT)
+cochin_internal = trajCochin.matrix.as__mdarray
+cochin_internal.print
+EOT
+
+body(<<-EOT)
+Now lets assign a value to trajCochin matrix and compare it to the variable chochin_internal:
+EOT
+
+console(<<-EOT)
+trajCochin.matrix[1] = 1
+trajCochin.matrix.pp
+puts
+puts cochin_internal
+EOT
+
+body(<<-EOT)
+As we can now see, trajCochin and cochin_internal have different content, while cochin_internal
+still has the same value in index 0, i.e. 15.0, trajCochin matrix has value 1 in index 1.  This
+shows that Renjin when assigning to trajCochin.matrix[1] makes a copy of the original data.
+
+Bellow, we use method 'get' which is a synonym of method 'as__mdarray' to again get the content
+of trajCochin.matrix.  This variable has as first element the value 1, as set previously.
+EOT
+
+console(<<-EOT)
+internal2 = trajCochin.matrix.get
+internal2.print
+EOT
+
+body(<<-EOT)
+We will now set the value of the second element of internal2 to 1000.  Note that internal2 is
+an MDArray and that the second element of this array is indexed with 1:
+EOT
+
+console(<<-EOT)
+internal2[1] = 1000
+internal2.print
+EOT
+
+body(<<-EOT)
+And now, if we print the value of trajCochin.matrix, we note that the second element of this
+matrix (R matrix) is also 1000.  This shows that the MDArray obtained from calling 'as__mdarray'
+and the R matrix have the same backing store.  
+EOT
+
+console(<<-EOT)
+trajCochin.matrix.pp
+EOT
+
+body(<<-EOT)
+Remember, changing the internals of an R matrix like that can be quite dangerous.  Renjin expects
+its data to be imuntable, and using MDArray allows the user to change this data violating 
+Renjin principles.  If weird bugs start creeping on your code, this should be one of the first 
+things to be investigated.
+EOT
 
 section("Conclusions I")
 
