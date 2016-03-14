@@ -168,6 +168,7 @@ class Renjin
       @sexp = sexp
       @rvar = nil
       @attr = Attributes.new(self)
+      @refresh = false
 
     end
     

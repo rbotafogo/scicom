@@ -1,68 +1,3 @@
-## SciCom with Standard R Interface
-
-SciCom allows R programmers to use R commands inside a Ruby script in
-a way similar to RinRuby by calling method eval and passing to it an R
-script:
-
-    # Basic integration with R can always be done by calling eval and passing it a valid
-    # R expression.
-    > R.eval("r.i = 10L")
-    > R.eval("print(r.i)")
-
-    [1] 10
-
-    > R.eval("vec = c(10, 20, 30, 40, 50)")
-    > R.eval("print(vec)")
-
-    [1] 10 20 30 40 50
-
-    > R.eval("print(vec[1])")
-
-    [1] 10
-
-Programmers can also use here docs to integrate an R script inside a
-Ruby script.  The next example show a model for predicting baseball
-wins based on runs allowed and runs scored.  The data comes from
-Baseball-Reference.com.
-
-      R.eval <<EOF
-
-        # This dataset comes from Baseball-Reference.com.
-        baseball = read.csv("baseball.csv")
-        # str has a bug in Renjin
-        # str(data)
-
-        # Lets look at the data available for Momeyball.
-        moneyball = subset(baseball, Year < 2002)
-
-        # Let's see if we can predict the number of wins, by lookin at
-        # runs allowed (RA) and runs scored (RS).  RD is the runs difference.
-        # We are making a linear model from predicting wins (W) based on RD
-        moneyball$RD = moneyball$RS - moneyball$RA
-        WinsReg = lm(W ~ RD, data=moneyball)
-        print(summary(WinsReg))
-
-    EOF
-
-The output of the program above is:
-
-    Call:
-    lm(data = moneyball, formula = W ~ RD)
-
-    Residuals:
-        Min      1Q  Median      3Q     Max
-    -14,266  -2,651   0,123   2,936  11,657
-
-    Coefficients:
-                Estimate   Std. Error t value    Pr(>|t|)             
-    (Intercept) 80,881     0,131      616,675    <0         ***       
-             RD 0,106      0,001       81,554    <0         ***       
-    ---
-    Signif. codes:  0 '***' 0,001 '**' 0,01 '*' 0,05 '.' 0,1 ' ' 1 
-
-    Residual standard error: 3,939 on 900 degrees of freedom
-    Multiple R-squared: 0,8808,	Adjusted R-squared: 0,8807 
-    F-statistic: 6.650,9926 on 1 and 900 DF,  p-value: < 0
 
 ## The SciCom “language”
 
@@ -256,3 +191,68 @@ Ruby hashes in the normal Ruby way.
 
 	[0.0+1.0i]
 
+## SciCom with Standard R Interface
+
+SciCom allows R programmers to use R commands inside a Ruby script in
+a way similar to RinRuby by calling method eval and passing to it an R
+script:
+
+    # Basic integration with R can always be done by calling eval and passing it a valid
+    # R expression.
+    > R.eval("r.i = 10L")
+    > R.eval("print(r.i)")
+
+    [1] 10
+
+    > R.eval("vec = c(10, 20, 30, 40, 50)")
+    > R.eval("print(vec)")
+
+    [1] 10 20 30 40 50
+
+    > R.eval("print(vec[1])")
+
+    [1] 10
+
+Programmers can also use here docs to integrate an R script inside a
+Ruby script.  The next example show a model for predicting baseball
+wins based on runs allowed and runs scored.  The data comes from
+Baseball-Reference.com.
+
+      R.eval <<EOF
+
+        # This dataset comes from Baseball-Reference.com.
+        baseball = read.csv("baseball.csv")
+        # str has a bug in Renjin
+        # str(data)
+
+        # Lets look at the data available for Momeyball.
+        moneyball = subset(baseball, Year < 2002)
+
+        # Let's see if we can predict the number of wins, by lookin at
+        # runs allowed (RA) and runs scored (RS).  RD is the runs difference.
+        # We are making a linear model from predicting wins (W) based on RD
+        moneyball$RD = moneyball$RS - moneyball$RA
+        WinsReg = lm(W ~ RD, data=moneyball)
+        print(summary(WinsReg))
+
+    EOF
+
+The output of the program above is:
+
+    Call:
+    lm(data = moneyball, formula = W ~ RD)
+
+    Residuals:
+        Min      1Q  Median      3Q     Max
+    -14,266  -2,651   0,123   2,936  11,657
+
+    Coefficients:
+                Estimate   Std. Error t value    Pr(>|t|)             
+    (Intercept) 80,881     0,131      616,675    <0         ***       
+             RD 0,106      0,001       81,554    <0         ***       
+    ---
+    Signif. codes:  0 '***' 0,001 '**' 0,01 '*' 0,05 '.' 0,1 ' ' 1 
+
+    Residual standard error: 3,939 on 900 degrees of freedom
+    Multiple R-squared: 0,8808,	Adjusted R-squared: 0,8807 
+    F-statistic: 6.650,9926 on 1 and 900 DF,  p-value: < 0

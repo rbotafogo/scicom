@@ -140,8 +140,11 @@ class Renjin
     def as__mdarray
 
       if (@mdarray && !@refresh)
-        # do nothing and return the mdarray
-      elsif (@sexp.java_kind_of? Java::RbScicom::MDDoubleVector)
+        return @mdarray
+      end
+
+      @refresh = false
+      if (@sexp.java_kind_of? Java::RbScicom::MDDoubleVector)
         @mdarray = MDArray.build_from_nc_array(:double, @sexp.array)
       elsif (@sexp.java_kind_of? Java::OrgRenjinSexp::DoubleArrayVector)
         @mdarray = MDArray.from_jstorage("double", [@sexp.length()], @sexp.toDoubleArrayUnsafe())
