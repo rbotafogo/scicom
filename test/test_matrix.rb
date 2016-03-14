@@ -25,10 +25,8 @@ require 'shoulda'
 
 require '../config' if @platform == nil
 require 'scicom'
-require '../../CodeWriter/lib/codewriter'
 
 class SciComTest < Test::Unit::TestCase
-  include Markdown
   
   context "R environment" do
 
@@ -43,7 +41,7 @@ class SciComTest < Test::Unit::TestCase
     #--------------------------------------------------------------------------------------
 
     setup do 
-      set_output
+
     end
 
     #--------------------------------------------------------------------------------------
@@ -52,12 +50,9 @@ class SciComTest < Test::Unit::TestCase
 
     should "create matrix with the matrix function" do
 
-      body(<<-EOT)
-        R provides numeric row and column names (e.g., [1,] is the first row, [,4] is the 
-        fourth column, but it is useful to label the rows and columns to make the rows 
-        (subjects) and columns (variables) distinction more obvious.
-      EOT
-
+      # R provides numeric row and column names (e.g., [1,] is the first row, [,4] is the 
+      # fourth column, but it is useful to label the rows and columns to make the rows 
+      # (subjects) and columns (variables) distinction more obvious.
       xij = R.matrix(R.seq(1..40), ncol: 4)
 
       # method fassign is used whenever in R there would be a function assignment such as,
